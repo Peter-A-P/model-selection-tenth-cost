@@ -1,0 +1,27 @@
+# Private working notes, never committed
+CLAUDE.local.md
+
+# Secrets
+.env
+.env.*
+
+# Downloaded public per-item data and vendor response cache
+data/raw/
+data/cache/
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+dist/
+build/
+*.egg-info/
+
+# OS and editors
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
