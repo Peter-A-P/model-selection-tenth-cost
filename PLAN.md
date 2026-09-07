@@ -115,6 +115,10 @@ question is about the items, not about whether the vendor changed.
 Anthropic calls go through the Message Batches API at half price where latency does not
 matter, which is everywhere in this project.
 
+All vendor calls go through the portfolio's gateway library (project 04, version 0, built
+in September): routing by alias, an OpenTelemetry span and a cost record per call, and the
+project's spend cap enforced there. The cache described above sits on top of it.
+
 ## 4. Methods
 
 ### 4.1 Item response models
@@ -193,7 +197,7 @@ mselect/
   irt/           twopl, threepl, fit (py-irt and PyMC), fit_stats, q3, dimensionality, dif
   cat/           estimate (EAP, MLE), select (Fisher info, content balance), stop, simulate
   experiments/   retest, position, framing
-  runner/        vendor calls (raw HTTP per vendor, Anthropic via the batch endpoint), cache
+  runner/        vendor calls through the portfolio gateway library (project 04 version 0), Anthropic via its batch endpoint, cache
   power.py       items_needed(effect, power, ability)
   report/        tables and charts for the README and write-up
   cli.py         typer CLI: mselect bank build, mselect fit, mselect simulate, mselect run, mselect report
