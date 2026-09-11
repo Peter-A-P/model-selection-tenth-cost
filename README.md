@@ -89,6 +89,66 @@ Three more limits worth stating before the method is used for anything:
   observed for models 5 to 10 points apart at ten items), because it assumes items are locally
   independent and they are not. Treat it as a floor. [PLAN.md](PLAN.md) section 13.6.
 
+## Using it to choose a model
+
+Everything above is a decision procedure rather than a leaderboard, so here is the shape of it
+on a real shortlist and what each step costs.
+
+**Ask what the decision needs, before spending anything.**
+
+```python
+import mselect
+mselect.items_needed(3, 0.8, ability=0.0)   # 118 items per model, to catch a three point drop
+mselect.items_needed(1, 0.8, ability=0.0)   # 3,559 items per model, for a one point drop
+```
+
+This is the step usually skipped, and it is where an evaluation budget goes. If the candidates
+are about a point apart, no affordable test will separate them and the decision belongs to
+price, latency or context window instead. Learning that before the first call is itself a
+result. Treat the number as a floor, for the reason in the limitation above.
+
+**Screen the shortlist at ten items each.** Ten adaptively chosen items rank a panel about as
+well as 127 randomly chosen ones on bank v1 (tau 0.778, 95% CI 0.716 to 0.832) and 143 on bank
+v2 (tau 0.851, 0.818 to 0.878). Five candidates is fifty calls, and the bottom of a shortlist
+usually falls away at once.
+
+**Resolve the survivors pairwise.** The last two are close by construction, so change the
+stopping rule from "tight enough" to "decided", and keep asking until the intervals come apart.
+
+```python
+decision = mselect.separated(ability_a, ability_b)
+decision.describe("candidate-a", "candidate-b")
+# the shape of the answer, for example:
+# candidate-a ahead after 34 items
+# (candidate-a 0.71 [0.42, 0.99], candidate-b 0.18 [-0.11, 0.46])
+```
+
+**Take "not separated" as an answer too.** Overlapping intervals are reported as not separated
+at this budget, never as the same. That outcome says the two models are indistinguishable for
+what you were willing to spend, which is a decision result: stop paying for evaluations and
+choose on cost.
+
+The release-gate question, "did the new version get worse?", is the same procedure with the old
+and new versions as the pair, plus one asymmetry. Failing to separate is not reassurance unless
+the budget was large enough to find the drop you care about, which is what `items_needed` is
+for. Not separated after 118 items means something. After twelve it means nothing.
+
+Two things the bank hands a consumer that a benchmark score does not: `mselect.dependence()`
+turns a count of items into the number of independent items they are worth, and the
+[broken-item report](docs/items-that-measure-nothing.md) names the ones to drop before trusting
+any difficulty at all.
+
+### What runs today, and what does not
+
+The loop above runs end to end against the 550 models already calibrated in the two banks, on
+models held out of the fit, which is where every number in the tables comes from. Pointing it at
+a model of your own choosing needs the one piece this repository does not have: something that
+makes a vendor call. `mselect/runner/` holds what to ask, the option rotations, the answer
+parsers and the scoring rules, tested against adversarial replies, and takes a `Caller` it is
+handed; the caller goes through the portfolio gateway, project 04. That seam is deliberate, so
+that none of the scoring logic needs a network, a key or a dollar to test. It is an adapter
+rather than a rebuild, and it is the same gap the Status section names.
+
 ## Does it replicate? A second bank, from a different source
 
 Everything above is one item bank: 150 models, mostly frontier APIs, scored by HELM. A result
