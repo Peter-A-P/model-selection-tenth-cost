@@ -19,6 +19,13 @@ normal prior over its own panel, so a difficulty of 1.2 in v1 and 1.2 in v2 are 
 quantity, and nothing here compares them as levels. What is comparable is the ordering: the
 correlation between the two difficulty vectors, and between the two discrimination vectors, over
 the items both banks contain.
+
+And the answer depends entirely on which items are in the comparison, which is the finding. Over
+all 998 shared items, difficulty correlates about -0.04: no transfer at all. Over the items that
+discriminate in both banks, it correlates about +0.71. Both are computed and both are reported,
+because `b` is `-d/a` and an item whose slope is near zero has no identified difficulty to
+transfer; the unfiltered number is dominated by items that are not measuring anything in one
+bank or the other.
 """
 
 from __future__ import annotations
@@ -43,6 +50,12 @@ BRIDGE_FIELD = "question_id"
 RESAMPLES = 2000
 
 
+# An item whose slope is near zero has no identified difficulty: b is -d/a, and dividing by
+# something indistinguishable from zero gives a number, not a measurement. The comparison is
+# therefore reported twice, and this is the line between the two.
+WORKING_DISCRIMINATION = 0.3
+
+
 @dataclass(frozen=True, slots=True)
 class Agreement:
     """How two calibrations of the same items agree, with an interval on every number."""
@@ -53,15 +66,36 @@ class Agreement:
     discrimination_pearson: Interval
     discrimination_spearman: Interval
     hardest_decile_recovered: Interval
-    weakest_decile_recovered: Interval
 
     def describe(self) -> str:
         return (
-            f"{self.n_items} items in both banks: difficulty correlates "
+            f"{self.n_items} items: difficulty correlates "
             f"{self.difficulty_pearson.fmt(percent=False)}, discrimination "
             f"{self.discrimination_pearson.fmt(percent=False)}; "
             f"{self.hardest_decile_recovered.fmt()} of one bank's hardest tenth is in the "
             f"other's hardest tenth"
+        )
+
+
+@dataclass(frozen=True, slots=True)
+class CrossBank:
+    """The portability result: the whole overlap, and the part of it that measures anything."""
+
+    first: str
+    second: str
+    kind: str
+    discrimination_threshold: float
+    shared_items: int
+    everything: Agreement
+    working: Agreement
+    first_proportion_correct: float
+    second_proportion_correct: float
+
+    def describe(self) -> str:
+        return (
+            f"{self.shared_items} items in both banks. Over all of them: "
+            f"{self.everything.describe()}. Over the {self.working.n_items} that discriminate "
+            f"above {self.discrimination_threshold} in both: {self.working.describe()}"
         )
 
 
@@ -163,15 +197,10 @@ def bridge(
     return matched
 
 
-def compare(
-    *,
-    first: str = "v1",
-    second: str = "v2",
-    kind: str = "2pl",
-    seed: int = 0,
-    progress: Callable[[str], None] = lambda _: None,
-) -> Agreement:
-    """Correlate the two calibrations of the shared items, with bootstrap intervals."""
+def _pairs(
+    first: str, second: str, kind: str, progress: Callable[[str], None]
+) -> tuple[pl.DataFrame, float, float]:
+    """The shared items with both banks' parameters, and each bank's accuracy on them."""
     matched = bridge(first=first, second=second, progress=progress)
     bank_one = bank_io.load(first)
     bank_two = bank_io.load(second)
@@ -192,13 +221,27 @@ def compare(
         )
         .rename({"a": "a_two", "b": "b_two"})
     )
-    b_one = joined["b_one"].to_numpy()
-    b_two = joined["b_two"].to_numpy()
-    a_one = joined["a_one"].to_numpy()
-    a_two = joined["a_two"].to_numpy()
+    one = _accuracy(bank_one, joined[f"item_{first}"].to_list())
+    two = _accuracy(bank_two, joined[f"item_{second}"].to_list())
+    return joined, one, two
 
+
+def _accuracy(bank: bank_io.Bank, item_ids: list[str]) -> float:
+    """What share of these items the bank's panel answered correctly."""
+    index = {key: position for position, key in enumerate(bank.item_ids)}
+    columns = [index[key] for key in item_ids if key in index]
+    if not columns:  # pragma: no cover - the join guarantees an overlap
+        return float("nan")
+    return float(np.nanmean(bank.x[:, columns]))
+
+
+def _agreement(frame: pl.DataFrame, seed: int) -> Agreement:
+    b_one = frame["b_one"].to_numpy()
+    b_two = frame["b_two"].to_numpy()
+    a_one = frame["a_one"].to_numpy()
+    a_two = frame["a_two"].to_numpy()
     return Agreement(
-        n_items=joined.height,
+        n_items=frame.height,
         difficulty_pearson=_bootstrap_statistic(b_one, b_two, _pearson, seed=seed),
         difficulty_spearman=_bootstrap_statistic(b_one, b_two, _spearman, seed=seed),
         discrimination_pearson=_bootstrap_statistic(a_one, a_two, _pearson, seed=seed),
@@ -206,9 +249,38 @@ def compare(
         hardest_decile_recovered=_bootstrap_statistic(
             b_one, b_two, lambda x, y: _decile_overlap(x, y, top=True), seed=seed
         ),
-        weakest_decile_recovered=_bootstrap_statistic(
-            a_one, a_two, lambda x, y: _decile_overlap(x, y, top=False), seed=seed
-        ),
+    )
+
+
+def compare(
+    *,
+    first: str = "v1",
+    second: str = "v2",
+    kind: str = "2pl",
+    seed: int = 0,
+    threshold: float = WORKING_DISCRIMINATION,
+    progress: Callable[[str], None] = lambda _: None,
+) -> CrossBank:
+    """Correlate the two calibrations of the shared items, over everything and over what works.
+
+    The two numbers say different things and a consumer needs both. Over every shared item, the
+    difficulty correlation is what someone gets who imports a bank wholesale. Over the items that
+    discriminate in both banks, it is what someone gets who first drops the items that measure
+    nothing, which is the thing `docs/items-that-measure-nothing.md` exists to make possible.
+    """
+    joined, one, two = _pairs(first, second, kind, progress)
+    working = joined.filter((pl.col("a_one") > threshold) & (pl.col("a_two") > threshold))
+    progress(f"{working.height} of {joined.height} shared items discriminate in both banks")
+    return CrossBank(
+        first=first,
+        second=second,
+        kind=kind,
+        discrimination_threshold=threshold,
+        shared_items=joined.height,
+        everything=_agreement(joined, seed),
+        working=_agreement(working, seed),
+        first_proportion_correct=one,
+        second_proportion_correct=two,
     )
 
 
@@ -221,15 +293,13 @@ def run(
     progress: Callable[[str], None] = lambda _: None,
 ) -> str:
     """Run the comparison and write it where the report can read it."""
-    agreement = compare(first=first, second=second, kind=kind, seed=seed, progress=progress)
+    result = compare(first=first, second=second, kind=kind, seed=seed, progress=progress)
     payload = {
         "run": datetime.now(UTC).date().isoformat(),
-        "first_bank": first,
-        "second_bank": second,
         "fit": kind,
         "seed": seed,
-        "agreement": asdict(agreement),
+        "result": asdict(result),
     }
     out = paths.out_for(second) / f"crossbank-{first}-{kind}.json"
     out.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
-    return agreement.describe()
+    return result.describe()

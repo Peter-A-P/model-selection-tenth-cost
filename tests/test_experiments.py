@@ -153,3 +153,28 @@ def test_a_bridge_with_too_few_items_reports_no_number_rather_than_a_wrong_one()
     short = np.array([1.0, 2.0])
     result = crossbank._bootstrap_statistic(short, short.copy(), crossbank._pearson)
     assert result.n == 2 and np.isnan(result.point)
+
+
+def test_an_unidentified_difficulty_destroys_a_correlation_that_the_filter_recovers() -> None:
+    """Why the cross-bank result is reported twice.
+
+    `b` is `-d/a`, so an item whose slope is near zero has a difficulty that is arithmetic
+    rather than measurement. Mixing those in with real ones is what turns a correlation of 0.7
+    into one of 0.0, which is exactly what the 998 shared MMLU-Pro items do.
+    """
+    rng = np.random.default_rng(11)
+    truth = rng.normal(size=300)
+    good_one = truth + rng.normal(scale=0.3, size=300)
+    good_two = truth + rng.normal(scale=0.3, size=300)
+    junk_one = rng.normal(scale=8.0, size=300)
+    junk_two = rng.normal(scale=8.0, size=300)
+
+    mixed_one = np.concatenate([good_one, junk_one])
+    mixed_two = np.concatenate([good_two, junk_two])
+
+    mixed = crossbank._bootstrap_statistic(mixed_one, mixed_two, crossbank._pearson, resamples=200)
+    filtered = crossbank._bootstrap_statistic(good_one, good_two, crossbank._pearson, resamples=200)
+
+    assert abs(mixed.point) < 0.3
+    assert filtered.point > 0.8
+    assert filtered.lo > mixed.hi, "the filter has to change the conclusion, not just the number"
