@@ -270,6 +270,26 @@ def test_bank_v1_keeps_every_filename_and_marker_it_already_had() -> None:
     assert build_report._suffix("v2") == "-v2"
     start, end = build_report._markers("v2")
     assert start != build_report.START and "v2" in start and "v2" in end
+    assert build_report._bench_markers("v1") == (build_report.BENCH_START, build_report.BENCH_END)
+    bench_start, bench_end = build_report._bench_markers("v2")
+    assert bench_start != build_report.BENCH_START
+    assert "v2" in bench_start and "v2" in bench_end
+    # Every marker the report writes into must be distinct, or one block overwrites another.
+    assert (
+        len(
+            {
+                start,
+                end,
+                bench_start,
+                bench_end,
+                build_report.START,
+                build_report.END,
+                build_report.BENCH_START,
+                build_report.BENCH_END,
+            }
+        )
+        == 8
+    )
 
 
 def test_the_report_names_the_source_from_the_bank_rather_than_assuming_helm() -> None:

@@ -27,6 +27,8 @@ END = "<!-- mselect:results:end -->"
 # Bank v1 keeps the unsuffixed names it has always had, so its links and figures do not move.
 # Any other bank gets its version appended to every file it writes and its own pair of README
 # markers, because two banks writing to one filename is two banks describing each other.
+BENCH_START = "<!-- mselect:benchmarks:start -->"
+BENCH_END = "<!-- mselect:benchmarks:end -->"
 HEADLINE_VERSION = "v1"
 PENDING = "_pending the own-run panel (needs the gateway's batch support; see PLAN.md section 3.3)_"
 
@@ -73,6 +75,8 @@ def write_all(
     readme = paths.ROOT / "README.md"
     _replace_between(readme, table, _markers(version))
     progress(f"README results table for {version} regenerated")
+    _replace_between(readme, benchmark_table(bank, item_diagnostics), _bench_markers(version))
+    progress(f"README per-benchmark table for {version} regenerated")
 
     broken = broken_items_doc(bank, item_diagnostics, diagnostics)
     broken_path = paths.ROOT / "docs" / f"items-that-measure-nothing{tag}.md"
@@ -90,6 +94,15 @@ def _markers(version: str) -> tuple[str, str]:
     return (
         f"<!-- mselect:results:{version}:start -->",
         f"<!-- mselect:results:{version}:end -->",
+    )
+
+
+def _bench_markers(version: str) -> tuple[str, str]:
+    if version == HEADLINE_VERSION:
+        return BENCH_START, BENCH_END
+    return (
+        f"<!-- mselect:benchmarks:{version}:start -->",
+        f"<!-- mselect:benchmarks:{version}:end -->",
     )
 
 
@@ -316,15 +329,60 @@ def results_table(
     return "\n".join(lines)
 
 
-def broken_items_doc(
-    bank: bank_io.Bank, item_diagnostics: pl.DataFrame, diagnostics: dict[str, Any]
-) -> str:
-    """`docs/items-that-measure-nothing.md`: the broken-item report, with evidence per item."""
-    frame = item_diagnostics.join(
+def _with_benchmarks(bank: bank_io.Bank, item_diagnostics: pl.DataFrame) -> pl.DataFrame:
+    """Item diagnostics with the bank columns the reports group and cite by."""
+    return item_diagnostics.join(
         bank.items.select("item_id", "benchmark", "instance_id", "scenario_key", "n_options"),
         on="item_id",
         how="left",
     )
+
+
+def _by_benchmark(frame: pl.DataFrame) -> pl.DataFrame:
+    """Per-benchmark shares of the flags that make an item useless.
+
+    One aggregation feeds both the broken-item report and the README block, so the two
+    cannot disagree about where a benchmark's dead items are.
+    """
+    return (
+        frame.group_by("benchmark")
+        .agg(
+            pl.len().alias("items"),
+            (pl.col("a") < 0.3).mean().alias("weak"),
+            (pl.col("a") < 0.0).mean().alias("negative"),
+            pl.col("no_information").mean().alias("dead"),
+        )
+        # Benchmark name breaks the tie, so two benchmarks of the same size do not swap
+        # places between runs and put a spurious diff in a committed document.
+        .sort(["items", "benchmark"], descending=[True, False])
+    )
+
+
+def benchmark_table(bank: bank_io.Bank, item_diagnostics: pl.DataFrame) -> str:
+    """The README's per-benchmark block: which benchmarks the useless items are in.
+
+    The README reports one share for the whole bank, and the reader's next question is
+    always which benchmark it came from, because the answer decides whether the finding
+    is about their suite. It is the same aggregation the broken-item report prints, cut
+    to the two columns that carry the point.
+    """
+    lines = [
+        "| Benchmark | Items | Discrimination below 0.3 | Negative slope |",
+        "|---|---:|---:|---:|",
+    ]
+    for row in _by_benchmark(_with_benchmarks(bank, item_diagnostics)).iter_rows(named=True):
+        lines.append(
+            f"| {benchmark_meta.title(row['benchmark'])} | {row['items']:,} | "
+            f"{row['weak']:.1%} | {row['negative']:.1%} |"
+        )
+    return "\n".join(lines)
+
+
+def broken_items_doc(
+    bank: bank_io.Bank, item_diagnostics: pl.DataFrame, diagnostics: dict[str, Any]
+) -> str:
+    """`docs/items-that-measure-nothing.md`: the broken-item report, with evidence per item."""
+    frame = _with_benchmarks(bank, item_diagnostics)
     total = frame.height
     flags = diagnostics["item_flags"]
 
@@ -363,19 +421,7 @@ def broken_items_doc(
         "| Benchmark | Items | a < 0.3 | a < 0 | no information |",
         "|---|---:|---:|---:|---:|",
     ]
-    by_benchmark = (
-        frame.group_by("benchmark")
-        .agg(
-            pl.len().alias("items"),
-            (pl.col("a") < 0.3).mean().alias("weak"),
-            (pl.col("a") < 0.0).mean().alias("negative"),
-            pl.col("no_information").mean().alias("dead"),
-        )
-        # Benchmark name breaks the tie, so two benchmarks of the same size do not swap
-        # places between runs and put a spurious diff in a committed document.
-        .sort(["items", "benchmark"], descending=[True, False])
-    )
-    for row in by_benchmark.iter_rows(named=True):
+    for row in _by_benchmark(frame).iter_rows(named=True):
         lines.append(
             f"| {benchmark_meta.title(row['benchmark'])} | {row['items']:,} | {row['weak']:.1%} | "
             f"{row['negative']:.1%} | {row['dead']:.1%} |"

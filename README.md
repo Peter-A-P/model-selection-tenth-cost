@@ -149,6 +149,42 @@ handed; the caller goes through the portfolio gateway, project 04. That seam is 
 that none of the scoring logic needs a network, a key or a dollar to test. It is an adapter
 rather than a rebuild, and it is the same gap the Status section names.
 
+## Where the useless items are
+
+One item in five in bank v1 discriminates below 0.3 and one in twelve has a negative slope,
+which are two rows of the table above and the least interesting way to say it. The share is not
+spread evenly, and which benchmark a reader uses decides whether any of this is about them.
+
+<!-- mselect:benchmarks:start -->
+| Benchmark | Items | Discrimination below 0.3 | Negative slope |
+|---|---:|---:|---:|
+| Massive Multitask Language Understanding | 13,937 | 18.6% | 7.2% |
+| LegalBench | 2,047 | 53.0% | 27.2% |
+| GSM8K (grade-school word problems) | 1,000 | 4.9% | 0.9% |
+| MedQA (US medical licensing questions) | 1,000 | 20.1% | 7.1% |
+| MMLU-Pro | 998 | 14.8% | 5.0% |
+| OpenBookQA | 500 | 4.4% | 0.6% |
+| GPQA (graduate-level Q&A) | 446 | 32.3% | 12.1% |
+| MATH (competition mathematics) | 437 | 5.9% | 0.7% |
+<!-- mselect:benchmarks:end -->
+
+GSM8K, MATH and OpenBookQA are in good health by this measure. Over half of LegalBench's items,
+as administered in HELM Lite, do not separate strong models from weak ones, and more than a
+quarter run backwards, meaning stronger models get them wrong more often. A negative slope has
+four possible causes, not equally interesting: a mis-keyed answer, an ambiguous question where
+the better model sees the ambiguity, a grader marking a correct answer wrong, and genuine
+inverse scaling. Telling them apart needs the item text and a human, which is why nothing here
+is named as mis-keyed. But it takes one fit to produce the list, and if you own a benchmark it
+is where to look first.
+
+[**Your benchmark is measuring fewer things than you think**](docs/writeup.md) is the write-up
+of what fell out of this: the five findings in full, the empirical curves of the worst items,
+and what to do about each on Monday, including the two audiences this README does not otherwise
+address. If you own a benchmark, fit a 2PL to the per-item results you already have and read the
+bottom of the discrimination list; the dead items are free to find and cost you money every run.
+If you publish an evaluation number, publish a Q3 and a dimensionality check beside it, because
+both are cheap and both change how the interval should be read.
+
 ## Does it replicate? A second bank, from a different source
 
 Everything above is one item bank: 150 models, mostly frontier APIs, scored by HELM. A result
@@ -194,6 +230,24 @@ highest-likelihood option.
 
 Bank `v2` (`b66652e06b8acf5d`): 400 models x 20,323 items, 8,114,706 recorded responses from the Open LLM Leaderboard v2 per-item details. Fitted with marginal maximum a posteriori by Bock-Aitkin EM, 61-point normal quadrature. Regenerate with `mselect report --version v2`.
 <!-- mselect:results:v2:end -->
+
+Where the useless items are in this bank, on the same aggregation as v1 above:
+
+<!-- mselect:benchmarks:v2:start -->
+| Benchmark | Items | Discrimination below 0.3 | Negative slope |
+|---|---:|---:|---:|
+| MMLU-Pro | 12,034 | 39.1% | 19.8% |
+| BIG-Bench Hard | 5,761 | 39.8% | 19.2% |
+| MATH level 5 (the hardest competition problems) | 1,324 | 15.0% | 1.0% |
+| MuSR (multistep soft reasoning) | 756 | 70.8% | 40.9% |
+| GPQA (graduate-level Q&A) | 448 | 76.6% | 44.4% |
+<!-- mselect:benchmarks:v2:end -->
+
+GPQA is 32.3% dead on bank v1 and 76.6% here, which is the bank-dependence point again rather
+than a contradiction. Discrimination is measured against a panel, and a question almost none of
+this panel can answer separates nobody: most of these 400 open-weight submissions sit near
+chance on GPQA, so the item has no one left to tell apart. Read a share in this table as a
+statement about the benchmark and the panel together, never about the benchmark alone.
 
 ![Kendall's tau against the full-suite ranking on bank v2](docs/figures/headline-curve-v2.png)
 
