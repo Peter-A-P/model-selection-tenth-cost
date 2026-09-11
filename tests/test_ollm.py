@@ -120,6 +120,17 @@ def test_every_task_declares_which_document_fields_are_the_question() -> None:
     for task in ollm.TASKS:
         assert task.content, f"{task.suffix} has no content field"
         assert all(field for field in task.content)
+    # MMLU-Pro asks 392 of its questions more than once with different options each time, so
+    # its options are part of the question. No other task in the set repeats a question.
+    mmlu_pro = next(task for task in ollm.TASKS if task.benchmark == "mmlu_pro")
+    assert mmlu_pro.content == ("question", "options")
+
+
+def test_a_list_valued_document_field_keeps_its_order() -> None:
+    """Options are a list. Two items with the same options in a different order are not one."""
+    assert ollm._flatten(["a", "b"]) != ollm._flatten(["b", "a"])
+    assert ollm._flatten(["a", "b"]) == ollm._flatten(["a", "b"])
+    assert ollm._flatten("plain") == "plain"
 
 
 def test_every_task_in_the_set_is_distinct_and_scored_binary() -> None:

@@ -82,7 +82,9 @@ AUDIT_MODELS: Final = 40
 # derivation as well as the columns. Bump this whenever `item_id` or `read_identity` changes
 # what it computes, or a rebuild will read yesterday's identities back off disk and mix two
 # schemes in one bank without a word. 1: lm-eval doc_hash and target_hash. 2: the question text
-# hashed here, with the answer key hashed in. 3: the question text alone, key reported beside it.
+# hashed here, with the answer key hashed in. 3: the question text alone, key reported beside it
+# and used only to tell apart a question a task asks twice. Changing which `doc` fields a task
+# calls its question does not need a bump: those field names are already in the key.
 IDENTITY_SCHEME: Final = 3
 
 
@@ -170,7 +172,10 @@ TASKS: Final[tuple[Task, ...]] = (
         Task(f"leaderboard_math_{name}", "math_hard", "exact_match", "free_response", ("problem",))
         for name in _MATH
     ),
-    Task("leaderboard_mmlu_pro", "mmlu_pro", "acc", "multiple_choice", ("question",)),
+    # The options are part of the question here and nowhere else in this set: MMLU-Pro asks 392
+    # of its 12,032 questions more than once, up to six times, with different options each time,
+    # and those are different items. Every other task is already unique on its question fields.
+    Task("leaderboard_mmlu_pro", "mmlu_pro", "acc", "multiple_choice", ("question", "options")),
 )
 
 BENCHMARKS: Final = tuple(dict.fromkeys(task.benchmark for task in TASKS))
@@ -623,6 +628,13 @@ class TaskItems:
     key_drift_models: int  # how many models spell at least one key differently
 
 
+def _flatten(value: object) -> str:
+    """One document field as text. A list of options keeps its order, which the dataset fixes."""
+    if isinstance(value, list):
+        return "\x1f".join(str(item) for item in value)
+    return str(value)
+
+
 def normalise(text: str) -> str:
     """Runs of whitespace collapsed, so reformatting is not a different question."""
     return " ".join(text.split())
@@ -708,7 +720,7 @@ def read_identity(client: Client, submission: Submission, task: Task) -> pl.Data
         raise FetchError(f"{submission.repo}/{task.suffix} did not read as a table")
     frame = frame.sort("doc_id")
     questions = [
-        "\x01".join(str(row["doc"][field]) for field in task.content)
+        "\x01".join(_flatten(row["doc"][field]) for field in task.content)
         for row in frame.iter_rows(named=True)
     ]
     keys = ["".join(str(value).split()) for value in frame["target"].to_list()]
