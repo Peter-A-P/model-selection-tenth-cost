@@ -1,7 +1,8 @@
 # What did not work
 
-Rule C: name an approach tried and rejected, with the evidence. This one was the project's own
-headline assumption, which makes it worth writing down properly.
+Rule C: name an approach tried and rejected, with the evidence. The first was the project's own
+headline assumption. The second would have corrupted an item bank silently rather than loudly,
+which is the more instructive failure.
 
 ## Rejected: adaptive ability testing as a drop-in replacement for the benchmark score
 
@@ -64,6 +65,48 @@ evidence supports it:
 The README states the crossover rather than the best-case number alone, and the headline chart
 is titled after it.
 
+## Rejected: the evaluation harness's own content hash as item identity
+
+**The idea.** lm-eval-harness writes a `doc_hash` column beside every per-item result: a hash of
+the document, computed by the thing that ran the evaluation. Bank v2 needs exactly that, to
+answer "is this the same question the other model was asked". Recomputing it looked like
+duplicated work.
+
+**What the measurement says.** It is not a hash of the document. It is a hash of the harness's
+serialisation of the document, so it moves when the harness moves. On
+`leaderboard_math_num_theory_hard`, a quarter of the panel disagrees with the reference model
+about **every one of the 154 values**, while the problem text at each position is
+character-for-character identical:
+
+```
+doc_id 0, reference model: 'How many perfect square factors does the number 46,656 have?'
+doc_id 0, disagreeing model: 'How many perfect square factors does the number 46,656 have?'
+doc_hash: different
+```
+
+Keyed that way, each of those items would have become two items, each answered by part of the
+panel, each with half the evidence behind its parameters. Nothing in the build would have
+complained: the item count would have risen, which looks like more data.
+
+**What replaced it, in two corrections.** The question text is read out of the Parquet document
+column and hashed here, and then discarded without being stored. That exposed the same problem
+one level down, in the answer key, which the first replacement hashed alongside the question the
+way bank v1 does: two releases of MATH-Hard write the same answer as `\infty` and `\iny`, and as
+`-\frac{1}{{}2x}` and `-\frac1{2x}`. That split 33 of 307 algebra items and dropped 74 of the
+400 models from that task, for a difference that is typographic.
+
+So the identity is the question, and the key is used only where it has to be: two of
+`leaderboard_bbh_causal_judgement`'s 187 questions are asked twice with the opposite key, and
+those are genuinely two measurements. The drift itself is reported rather than absorbed, per
+task, in the bank manifest.
+
+**The general form, which matters more than this bank.** An identifier published by an
+evaluation harness may be a hash of a serialisation rather than of the thing. A bank built from
+someone else's harness inherits that harness's version drift, and the only defence is to hash
+the question yourself and check that every model agrees about what each position means. Bank v2
+checks all 400 models on all 36 tasks for exactly this, which is not a precaution that was in
+the plan; it is one the plan needed.
+
 ## Also tried, also abandoned
 
 **`py-irt` and PyMC for the fit.** Planned in section 4.1. Dropped after the matrix turned out
@@ -72,9 +115,15 @@ PyTorch dependency and a variational approximation would both have cost more tha
 The reasoning and the replacement cross-check are in PLAN.md section 13.2.
 
 **The Open LLM Leaderboard per-sample datasets as the primary source.** Planned in section 3.1.
-They are gated behind a signed-in Hugging Face token now, verified request by request in
-[data-sources.md](data-sources.md). HELM's open buckets replaced them and turned out to be
-larger.
+They are gated behind a signed-in Hugging Face token, verified request by request in
+[data-sources.md](data-sources.md). HELM's open buckets replaced them for bank v1 and turned out
+to be larger. With a token they are readable and are bank v2, so this one was deferred rather
+than rejected.
+
+**Asking Hugging Face for access to each gated dataset.** An early draft of the v2 loader
+called the `ask-access` endpoint for every model in the panel. Deleted once the gate was
+measured properly: the same range request answers 401 without a token and 206 with one, for a
+repository the account has never touched. The loader now contains no POST at all.
 
 ## What a reader should not conclude
 
