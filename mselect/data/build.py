@@ -252,6 +252,7 @@ def build_bank(
             }
             for s in scenarios
         ],
+        "source_name": "the public HELM per-item releases",
         "source_bucket": helm.BUCKET,
     }
     (out_dir / "MANIFEST.json").write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
@@ -527,6 +528,7 @@ def build_ollm_bank(
             }
             for task in selected
         ],
+        "source_name": "the Open LLM Leaderboard v2 per-item details",
         "source_bucket": f"{ollm.HUB}/datasets/{ollm.ORG}",
     }
     (out_dir / "MANIFEST.json").write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")

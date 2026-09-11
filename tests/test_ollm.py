@@ -22,6 +22,7 @@ import pytest
 
 from mselect.data import bank as bank_io
 from mselect.data import build, ollm
+from mselect.report import build_report
 
 
 def _submission(name: str, average: float, organisation: str = "org") -> ollm.Submission:
@@ -206,3 +207,19 @@ def test_a_packed_matrix_round_trips_through_the_bank_format(tmp_path) -> None: 
     assert loaded.n_models == 2 and loaded.n_items == 3
     size = (tmp_path / bank_io.MATRIX_FILE).stat().st_size
     assert size < 1000
+
+
+def test_bank_v1_keeps_every_filename_and_marker_it_already_had() -> None:
+    """A second bank must not move v1's figures, documents or README block."""
+    assert build_report._suffix("v1") == ""
+    assert build_report._markers("v1") == (build_report.START, build_report.END)
+    assert build_report._suffix("v2") == "-v2"
+    start, end = build_report._markers("v2")
+    assert start != build_report.START and "v2" in start and "v2" in end
+
+
+def test_the_report_names_the_source_from_the_bank_rather_than_assuming_helm() -> None:
+    bank = bank_io.default_bank("v1")
+    assert "HELM" in build_report._source_name(bank)
+    for version in bank_io.available():
+        assert build_report._source_name(bank_io.default_bank(version))

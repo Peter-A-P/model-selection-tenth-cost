@@ -646,24 +646,32 @@ def audit_alignment(
     expected = dict(zip(doc_ids, identities, strict=True))
 
     rng = random.Random(f"{seed}:{task.suffix}")
-    others = [s for s in panel[1:]]
+    others = list(panel[1:])
     rng.shuffle(others)
+    sample = others[:audit]
     mismatched: list[str] = []
     checked = 0
-    for submission in others[:audit]:
+    lock = threading.Lock()
+
+    def check(submission: Submission) -> None:
+        nonlocal checked
         try:
             other = read_task(client, submission, task, with_hashes=True)
         except FetchError:  # no run of this task to align; the row-count check drops it later
-            continue
+            return
         mapping = {
             int(doc): item_id(task, str(doc_hash), str(target))
             for doc, doc_hash, target in zip(
                 other["doc_id"], other["doc_hash"], other["target_hash"], strict=True
             )
         }
-        checked += 1
-        if mapping != expected:
-            mismatched.append(submission.fullname)
+        with lock:
+            checked += 1
+            if mapping != expected:
+                mismatched.append(submission.fullname)
+
+    _each(check, sample)
+    mismatched.sort()
     return TaskItems(
         task=task,
         reference=reference.fullname,

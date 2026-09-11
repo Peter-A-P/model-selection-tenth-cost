@@ -85,5 +85,6 @@
       "kind": "multiple_choice"
     }
   ],
+  "source_name": "the public HELM per-item releases",
   "source_bucket": "https://storage.googleapis.com/crfm-helm-public"
 }

@@ -29,12 +29,12 @@ its level, and stop when the interval is tight enough to decide.
 | Items carrying no measurable information at mid-panel ability | 4,221 (20.7%) |
 | Local dependence: item pairs with Q3 above 0.2 | 8% to 31% of pairs, depending on the benchmark |
 | Dimensionality: correlation between per-benchmark abilities | 0.42 to 0.96 across benchmark pairs |
-| Reliability: the same model answering the same item in two HELM administrations | 95.3% agreement (n = 8,431 repeated cells) |
+| Reliability: the same model answering the same item twice | 95.3% agreement (n = 8,431 repeated cells) |
 | Differential item functioning, open weights vs API only | 128 items flagged (0.9%) |
 | Position bias and prompt-framing effects | _pending the own-run panel (needs the gateway's batch support; see PLAN.md section 3.3)_ |
 | Cost per ranking decision, in dollars | _pending the own-run panel (needs the gateway's batch support; see PLAN.md section 3.3)_ |
 
-Bank `v1` (`1d4c357935c70875`): 150 models x 20,365 items, 1,648,626 recorded responses from the public HELM releases. Fitted with marginal maximum a posteriori by Bock-Aitkin EM, 61-point normal quadrature. Regenerate with `mselect report`.
+Bank `v1` (`1d4c357935c70875`): 150 models x 20,365 items, 1,648,626 recorded responses from the public HELM per-item releases. Fitted with marginal maximum a posteriori by Bock-Aitkin EM, 61-point normal quadrature. Regenerate with `mselect report --version v1`.
 <!-- mselect:results:end -->
 
 ![Kendall's tau against the full-suite ranking, by number of items](docs/figures/headline-curve.png)

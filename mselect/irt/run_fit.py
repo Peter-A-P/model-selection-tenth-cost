@@ -237,45 +237,64 @@ def diagnose_bank(
             continue
         after = released > published
         usable = np.isfinite(bank.x[:, mask]).any(axis=1) & (released != "")
-        if not (after & usable).any() or not (~after & usable).any():
+        before_count = int((~after & usable).sum())
+        after_count = int((after & usable).sum())
+        if min(before_count, after_count) < MIN_DIF_GROUP:
             dif_results[f"contamination_{name}"] = {
                 "skipped": (
-                    f"every model in the panel that answered {name} was released after it was "
-                    f"published ({published}); the before/after contrast does not exist"
+                    f"{before_count} models released before {name} was published ({published}) "
+                    f"and {after_count} after, among those with a known date that answered it; "
+                    f"fewer than {MIN_DIF_GROUP} on one side is not a contrast worth reporting"
                 )
             }
             continue
+        # Only models with a known release date take part: a missing date is not evidence of
+        # being old, and letting it default to one side would fabricate the contrast.
         sub = dif.run_dif(
-            bank.x[:, mask],
-            theta,
-            after,
-            grouping=f"{name}: released after publication ({published})",
+            bank.x[np.ix_(usable, mask)],
+            theta[usable],
+            after[usable],
+            grouping=(
+                f"{name}: released after publication ({published}); "
+                f"{before_count} before, {after_count} after"
+            ),
             reference="released before",
             focal="released after",
             logistic=False,
         )
         dif_results[f"contamination_{name}"] = {"summary": sub.summary(), "grouping": sub.grouping}
 
+    dated = released != ""
     cohort = _cohort_split(released)
-    cohort_result = dif.run_dif(
-        bank.x,
-        theta,
-        cohort,
-        grouping="newer model generation vs older, at matched ability",
-        reference="older half of the panel",
-        focal="newer half of the panel",
-        logistic=False,
-    )
-    dif_results["generation_drift"] = {
-        "summary": cohort_result.summary(),
-        "grouping": cohort_result.grouping,
-        "note": (
-            "a median split on release date. Items that are relatively easier for newer models "
-            "at the same ability are contamination candidates, not proof of contamination."
-        ),
-    }
-    _write_dif(bank, cohort_result, kind, "generation")
-    progress("DIF by generation done")
+    if int(dated.sum()) < 2 * MIN_DIF_GROUP:
+        dif_results["generation_drift"] = {
+            "skipped": f"only {int(dated.sum())} models in this panel carry a release date"
+        }
+        progress("DIF by generation skipped: too few dated models")
+    else:
+        cohort_result = dif.run_dif(
+            bank.x[dated],
+            theta[dated],
+            cohort[dated],
+            grouping=(
+                f"newer model generation vs older, at matched ability "
+                f"({int(dated.sum())} models with a known date)"
+            ),
+            reference="older half of the panel",
+            focal="newer half of the panel",
+            logistic=False,
+        )
+        dif_results["generation_drift"] = {
+            "summary": cohort_result.summary(),
+            "grouping": cohort_result.grouping,
+            "note": (
+                "a median split on release date. Items that are relatively easier for newer "
+                "models at the same ability are contamination candidates, not proof of "
+                "contamination."
+            ),
+        }
+        _write_dif(bank, cohort_result, kind, "generation")
+        progress("DIF by generation done")
 
     report = {
         "bank_version": bank.version,
@@ -322,12 +341,20 @@ class _Split:
 
     @property
     def degenerate(self) -> bool:
-        return not self.focal_mask.any() or bool(self.focal_mask.all())
+        focal = int(self.focal_mask.sum())
+        return min(focal, int(self.focal_mask.size) - focal) < MIN_DIF_GROUP
 
     @property
     def why(self) -> str:
-        side = "in the focal group" if not self.focal_mask.any() else "outside it"
-        return f"{self.grouping}: every model in the panel is {side}, so there is no contrast"
+        focal = int(self.focal_mask.sum())
+        return (
+            f"{self.grouping}: {focal} models in the focal group and "
+            f"{int(self.focal_mask.size) - focal} outside it, which is fewer than "
+            f"{MIN_DIF_GROUP} on one side"
+        )
+
+
+MIN_DIF_GROUP = 10  # below this a group is noise, and a DIF table over it is worse than none
 
 
 def _panel_splits(bank: bank_io.Bank) -> list[_Split]:

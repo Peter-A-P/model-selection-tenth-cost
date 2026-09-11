@@ -514,3 +514,23 @@ has. Two consequences: anything fetched is in clear to whatever performs the ins
 including the token in the `Authorization` header, which is an argument for the token being
 read-only and short-lived; and HELM's Google Cloud Storage host is not intercepted, which is why
 bank v1 built without ever meeting this.
+
+### 14.5 Two differential-item-functioning results in bank v1 should not have been published
+
+Adding a second panel forced the grouping code to ask whether a contrast exists before running
+one, and the answer changed two numbers that were already in `docs/diagnostics.md`.
+
+**A contrast needs models on both sides, and ten is the floor.** The old check only asked
+whether each side was non-empty. The MMLU-Pro contamination result was therefore computed on
+three models released before MMLU-Pro was published against sixty-three released after, and
+reported as though it meant something. It is now recorded as not testable, with the group sizes
+named. The same check now also rejects every other contamination split for the same reason,
+where before it rejected them for having an empty side.
+
+**A model with no release date is not an old model.** The median split on release date put the
+two HELM models with no recorded date into the older half, because an empty string sorts below
+every date. They are now excluded, the split is over the 148 dated models, and the generation
+drift result moves from 198 flagged items to 189.
+
+Both corrections make bank v1 say less than it did. That is the right direction: the earlier
+numbers were not wrong arithmetic, they were arithmetic on a comparison that was not there.

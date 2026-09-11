@@ -97,36 +97,31 @@ Each benchmark was fitted on its own and the resulting abilities correlated acro
 - of those, favouring the focal group: 66
 - median absolute delta across testable items: 1.25
 
-**contamination_commonsense**: not testable. every model in the panel that answered commonsense was released after it was published (2018-09); the before/after contrast does not exist
+**contamination_commonsense**: not testable. 0 models released before commonsense was published (2018-09) and 91 after, among those with a known date that answered it; fewer than 10 on one side is not a contrast worth reporting
 
-**contamination_gpqa**: not testable. every model in the panel that answered gpqa was released after it was published (2023-11); the before/after contrast does not exist
+**contamination_gpqa**: not testable. 0 models released before gpqa was published (2023-11) and 66 after, among those with a known date that answered it; fewer than 10 on one side is not a contrast worth reporting
 
-**contamination_gsm8k**: not testable. every model in the panel that answered gsm8k was released after it was published (2021-10); the before/after contrast does not exist
+**contamination_gsm8k**: not testable. 0 models released before gsm8k was published (2021-10) and 90 after, among those with a known date that answered it; fewer than 10 on one side is not a contrast worth reporting
 
-**legalbench: released after publication (2023-08)**
+**legalbench: released after publication (2023-08); 22 before, 69 after**
 
-- items testable: 1,908
-- flagged (ETS delta above 1.5 and Mantel-Haenszel p below 0.01): 2 (0.1%)
-- of those, favouring the focal group: 0
-- median absolute delta across testable items: 1.00
+- items testable: 1,911
+- flagged (ETS delta above 1.5 and Mantel-Haenszel p below 0.01): 4 (0.2%)
+- of those, favouring the focal group: 1
+- median absolute delta across testable items: 0.97
 
-**contamination_math**: not testable. every model in the panel that answered math was released after it was published (2021-03); the before/after contrast does not exist
+**contamination_math**: not testable. 0 models released before math was published (2021-03) and 91 after, among those with a known date that answered it; fewer than 10 on one side is not a contrast worth reporting
 
-**contamination_med_qa**: not testable. every model in the panel that answered med_qa was released after it was published (2020-09); the before/after contrast does not exist
+**contamination_med_qa**: not testable. 0 models released before med_qa was published (2020-09) and 91 after, among those with a known date that answered it; fewer than 10 on one side is not a contrast worth reporting
 
-**contamination_mmlu**: not testable. every model in the panel that answered mmlu was released after it was published (2020-09); the before/after contrast does not exist
+**contamination_mmlu**: not testable. 0 models released before mmlu was published (2020-09) and 79 after, among those with a known date that answered it; fewer than 10 on one side is not a contrast worth reporting
 
-**mmlu_pro: released after publication (2024-06)**
+**contamination_mmlu_pro**: not testable. 3 models released before mmlu_pro was published (2024-06) and 63 after, among those with a known date that answered it; fewer than 10 on one side is not a contrast worth reporting
 
-- items testable: 531
-- flagged (ETS delta above 1.5 and Mantel-Haenszel p below 0.01): 0 (0.0%)
-- of those, favouring the focal group: 0
-- median absolute delta across testable items: 1.54
+**newer model generation vs older, at matched ability (148 models with a known date)**
 
-**newer model generation vs older, at matched ability**
-
-- items testable: 13,991
-- flagged (ETS delta above 1.5 and Mantel-Haenszel p below 0.01): 198 (1.4%)
-- of those, favouring the focal group: 129
-- median absolute delta across testable items: 1.54
+- items testable: 13,572
+- flagged (ETS delta above 1.5 and Mantel-Haenszel p below 0.01): 189 (1.4%)
+- of those, favouring the focal group: 118
+- median absolute delta across testable items: 1.56
 - note: a median split on release date. Items that are relatively easier for newer models at the same ability are contamination candidates, not proof of contamination.
