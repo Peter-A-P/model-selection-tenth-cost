@@ -1,7 +1,7 @@
 {
   "bank_version": "v1",
   "built": "2026-09-11",
-  "bank_hash": "1d4c357935c70875",
+  "bank_hash": "4a9871d69f3360d8",
   "min_models_per_item": 40,
   "n_models": 150,
   "n_items": 20365,
@@ -10,14 +10,14 @@
   "repeated_cells": 8431,
   "repeated_cell_agreement": 0.9526746530660657,
   "items_per_benchmark": {
-    "gsm8k": 1000,
-    "mmlu_pro": 998,
-    "mmlu": 13937,
-    "commonsense": 500,
-    "gpqa": 446,
     "legalbench": 2047,
-    "med_qa": 1000,
-    "math": 437
+    "mmlu_pro": 998,
+    "commonsense": 500,
+    "math": 437,
+    "mmlu": 13937,
+    "gsm8k": 1000,
+    "gpqa": 446,
+    "med_qa": 1000
   },
   "sources": [
     {

@@ -210,3 +210,48 @@ pick it are there to make item parameters identifiable, not to be fair to anyone
 Each candidate is then probed on the smallest file in the set before anything large is
 downloaded; six could not be read and were replaced. The chosen panel is written to
 `data/raw/ollm/panel.json` with the seed, so the selection is reproducible.
+
+## What this repository redistributes, and under what terms
+
+The code is MIT licensed (`LICENSE`). The data question is separate and worth answering
+explicitly, because this project is built entirely on other people's benchmarks.
+
+**No benchmark text is in this repository.** Not a question, not an answer, not an option, not an
+excerpt. An earlier version of the bank carried a 160-character excerpt of each question, as
+evidence for the broken-item report. The report never rendered it, so it was 2.3 MB of other
+people's text serving nothing, and it was removed in v0.3.0. What is stored instead, per item:
+
+| Stored | Example | Why it is enough |
+|---|---|---|
+| A content hash of the question | `a1b2c3d4e5f6a7b8` | Identifies the item without reproducing it |
+| The source's own instance id | `id1663`, `mmlu_pro#4021` | Looks the item up in the original dataset |
+| The benchmark and task it came from | `mmlu_pro`, `leaderboard_bbh_snarks` | Groups items and names the source |
+| Whether it is multiple choice, and how many options | `multiple_choice`, `10` | Decides whether a guessing parameter is fitted |
+
+Anyone who wants to see the items themselves gets them from the original sources below, under
+those sources' own terms, which is where that decision belongs.
+
+**What is redistributed is measurements**: which model answered which item correctly, expressed
+as a 0 or a 1 against a hash. Those are facts produced by the evaluation runs, published openly
+by the two projects named below, and they are what the bank is for.
+
+### The sources
+
+| Source | What was taken | Terms |
+|---|---|---|
+| [HELM](https://crfm.stanford.edu/helm/), Stanford CRFM | Per-instance correctness for 150 models across 8 scenarios, from the public release buckets | Public buckets, no account or token; the underlying benchmarks keep their own licences |
+| [Open LLM Leaderboard v2](https://huggingface.co/open-llm-leaderboard), Hugging Face | Per-document correctness for 400 models across 36 tasks, from the `-details` datasets | Gated to signed-in accounts, read-only; no access request is filed by this code |
+
+### The benchmarks underneath them
+
+Named so a reader can go to the source, and because a project about what benchmarks measure
+should say whose benchmarks they are. Bank v1: MMLU, MMLU-Pro, GPQA, MATH, GSM8K, MedQA,
+LegalBench, OpenBookQA. Bank v2: BIG-Bench Hard, MMLU-Pro, MuSR, MATH level 5, GPQA.
+
+Each is licensed by its own authors and this repository takes no position on those terms,
+because it redistributes none of their content. LegalBench in particular is a collection of 162
+tasks with per-task licences rather than one licence, which is part of why carrying excerpts of
+it was the wrong call.
+
+If you are an author of any of the above and want something here changed or removed, open an
+issue and it will be.

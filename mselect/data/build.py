@@ -11,11 +11,13 @@ Two things the plan did not anticipate, both recorded in the manifest:
   subjects overlap the standalone MMLU project). Those repeated cells are free test-retest
   evidence across administrations, so the builder counts them and their agreement rate before
   collapsing them by majority.
-* Item text is not committed. The bank stores the content hash, the benchmark, the HELM
-  instance id and a short preview, which is enough to look an item up in the cache and enough
-  evidence for the broken-item report, without republishing benchmark text in a public
-  repository. GPQA gets no preview at all: its authors ask that it not be reproduced in
-  scrapeable form.
+* No benchmark text is committed, at all. The bank stores the content hash, the benchmark, the
+  HELM instance id and the scenario, which is enough to look any item up in the cached release.
+  An earlier version stored a 160-character excerpt of each question as evidence for the
+  broken-item report; the report never rendered it, and 2.3 MB of third-party text spread across
+  seven licences, one of them per-task and not uniformly permissive, is not something a public
+  repository should carry for a column nothing reads. `docs/data-sources.md` records the sources
+  and their licences instead.
 """
 
 from __future__ import annotations
@@ -35,9 +37,6 @@ from numpy.typing import NDArray
 from mselect import paths
 from mselect.data import bank as bank_io
 from mselect.data import helm, ollm
-
-PREVIEW_CHARS = 160
-NO_PREVIEW = frozenset({"gpqa"})  # not reproduced: see the module docstring
 
 
 def normalise(text: str) -> str:
@@ -108,7 +107,6 @@ def _collect(
                 continue
             key = item_hash(scenario.benchmark, instance.text, instance.options, instance.answer)
             if key not in items:
-                preview = "" if scenario.benchmark in NO_PREVIEW else normalise(instance.text)
                 items[key] = {
                     "item_id": key,
                     "benchmark": scenario.benchmark,
@@ -117,7 +115,6 @@ def _collect(
                     "instance_id": instance_id,
                     "n_options": len(instance.options),
                     "has_key": bool(instance.answer),
-                    "preview": preview[:PREVIEW_CHARS],
                     "source_project": scenario.project,
                     "source_release": scenario.release,
                 }
@@ -406,7 +403,6 @@ def _ollm_task(
                     "instance_id": f"{task.label}#{doc}",
                     "n_options": None,
                     "has_key": bool(key),
-                    "preview": "",
                     "source_project": ollm.ORG,
                     "source_release": "latest",
                 }

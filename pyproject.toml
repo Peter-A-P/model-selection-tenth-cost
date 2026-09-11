@@ -1,10 +1,14 @@
 [project]
 name = "mselect"
-version = "0.2.0"
+version = "0.3.0"
 description = "Model selection at a tenth of the cost: item response theory and adaptive testing over language-model benchmarks."
 readme = "README.md"
 requires-python = ">=3.13,<3.14"
 authors = [{ name = "Peter Parker" }]
+license = "MIT"
+license-files = ["LICENSE"]
+keywords = ["item response theory", "adaptive testing", "benchmarks", "evaluation", "psychometrics"]
+
 dependencies = [
   # The response matrix, the EM fit and every statistic in irt/ and cat/. 2.x is the current
   # line and its API is stable; 3 does not exist yet.
@@ -35,6 +39,9 @@ dependencies = [
 # library `boundary`, pinned to >=0.2 once its Message Batches support lands. That dependency
 # is added with the runner, not before: it lives in a private repository and CI would need a
 # token to install it for code that does not exist yet.
+
+[project.urls]
+Repository = "https://github.com/Peter-A-P/model-selection-tenth-cost"
 
 [dependency-groups]
 dev = [

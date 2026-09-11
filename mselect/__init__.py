@@ -46,7 +46,7 @@ from mselect.handover import (
 from mselect.irt.model import Items
 from mselect.power import ItemsNeeded, detectable_effect, items_needed, power_at
 
-__version__ = "0.2.0"
+__version__ = "0.3.0"
 
 __all__ = [
     "Ability",

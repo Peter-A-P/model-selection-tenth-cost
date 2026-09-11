@@ -403,10 +403,12 @@ README say so rather than being quietly dropped.
 ### 13.5 Item text is not committed
 
 Section 12 said to keep item-level raw responses as Parquet. The responses are committed; the
-item text is not. The bank stores the content hash, the HELM instance id, the scenario and a
-short preview, which is enough to find any item in the cache and enough evidence for the
-broken-item report, without republishing benchmark questions in a public repository. GPQA items
-carry no preview at all, at its authors' request.
+item text is not. The bank stores the content hash, the HELM instance id and the scenario, which
+is enough to find any item in the cache.
+
+> Amended in v0.3.0, and the amendment is the point of section 14.9: this originally said the
+> bank also stores "a short preview", a 160-character excerpt of each question, as evidence for
+> the broken-item report. It was removed. GPQA never carried one, at its authors' request.
 
 ### 13.6 The efficiency claim has a crossover, and the power function is optimistic
 
@@ -639,8 +641,10 @@ Every one of the 998 MMLU-Pro items HELM sampled is among the 12,032 the leaderb
 the same questions are calibrated twice, on panels with no models in common, through harnesses
 that score them differently: HELM reads the model's stated final answer after chain-of-thought,
 lm-eval-harness takes the highest-likelihood option. The match was verified before the number
-was believed: all 998 of bank v1's stored question previews prefix-match the leaderboard's
-question text exactly.
+was believed: the pairing is on MMLU-Pro's own `question_id`, which both sources keep, and it
+was checked against the question text itself before the excerpts were removed from the bank in
+v0.3.0. All 998 matched. Anyone re-running the check rebuilds the bank from the cache, which
+still holds the text, and compares there.
 
 | Items compared | Difficulty correlation | Hardest tenth recovered |
 |---|---|---|
@@ -702,3 +706,31 @@ The practical consequence stands either way, and it is the one section 14.7 turn
 bank v2 has more items that measure nothing than bank v1 does, they are named in
 `docs/items-that-measure-nothing-v2.md`, and a consumer should filter on discrimination before
 using any of it.
+
+### 14.9 The bank carried 2.3 MB of other people's benchmark text for nothing
+
+Found in the audit before making the repository public, which is the right time to find it and
+later than it should have been found.
+
+Section 13.5 recorded that the bank stores a 160-character excerpt of each question, as evidence
+for the broken-item report. Three things were wrong with that, and the third is why it was
+removed rather than documented:
+
+1. **The report never rendered it.** `build_report` selected the column into a dataframe and
+   printed no part of it. The excerpts were serving nothing at all.
+2. **`docs/items-that-measure-nothing.md` said item text was not reproduced "in a public
+   repository".** A reader takes that as a claim about the repository. The repository held 2.3
+   MB of it, across 19,919 items.
+3. **The licences are not uniform.** MMLU, GSM8K, MATH, MedQA, MMLU-Pro and OpenBookQA are MIT
+   or Apache and posed no question. LegalBench is a collection of 162 tasks with per-task
+   licences, some non-commercial and some unstated, and 2,047 of its items were in there.
+
+So the column is gone from both banks and from the builder. Nothing visible changed, because
+nothing visible used it. Both banks were rebuilt from the caches and refitted, which reproduced
+every published number exactly and changed only the content hashes, since the fit reads the
+response matrix and never the item table. `tests/test_no_secrets.py` now allowlists the string
+columns a bank may carry, so adding one back is a decision somebody has to make on purpose.
+
+The general lesson is not about licensing. It is that **a claim in a document is not a property
+of a repository until something checks it**, and this project had already learned that about
+credentials and had not applied it to content.

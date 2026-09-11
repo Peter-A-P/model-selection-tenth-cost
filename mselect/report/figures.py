@@ -9,6 +9,7 @@ contrast warning requires; and a legend whenever more than one series is present
 from __future__ import annotations
 
 from pathlib import Path
+from typing import Final
 
 import matplotlib
 import numpy as np
@@ -36,6 +37,12 @@ LABELS = {
 INK = "#0b0b0b"
 MUTED = "#52514e"
 GRID = "#d9d8d4"
+# Matplotlib stamps its own version into a PNG text chunk, so a figure regenerated under a
+# different patch release differs in bytes while being identical in every pixel. The README says
+# these are regenerated with one command; dropping the stamp is what makes that produce no diff
+# when nothing has changed, rather than a diff nobody can interpret.
+NO_METADATA: Final = {"Software": None}
+
 SURFACE = "#fcfcfb"
 
 
@@ -115,7 +122,7 @@ def headline_curve(curve: pl.DataFrame, full_tau: float, suite_items: int, out: 
         labelcolor=MUTED,
     )
     fig.tight_layout()
-    fig.savefig(out, dpi=160, facecolor=SURFACE)
+    fig.savefig(out, dpi=160, facecolor=SURFACE, metadata=NO_METADATA)
     plt.close(fig)
     return out
 
@@ -178,7 +185,7 @@ def item_parameters(params: pl.DataFrame, out: Path) -> Path:
         labelcolor=MUTED,
     )
     fig.tight_layout()
-    fig.savefig(out, dpi=160, facecolor=SURFACE)
+    fig.savefig(out, dpi=160, facecolor=SURFACE, metadata=NO_METADATA)
     plt.close(fig)
     return out
 
@@ -218,7 +225,7 @@ def information_curve(items: Items, out: Path, *, top: int = 200) -> Path:
         pad=12,
     )
     fig.tight_layout()
-    fig.savefig(out, dpi=160, facecolor=SURFACE)
+    fig.savefig(out, dpi=160, facecolor=SURFACE, metadata=NO_METADATA)
     plt.close(fig)
     return out
 
@@ -262,6 +269,6 @@ def local_dependence(summary: dict[str, object], out: Path) -> Path:
     )
     ax.set_xlim(0, max([*shares, 1.0]) * 1.18)
     fig.tight_layout()
-    fig.savefig(out, dpi=160, facecolor=SURFACE)
+    fig.savefig(out, dpi=160, facecolor=SURFACE, metadata=NO_METADATA)
     plt.close(fig)
     return out

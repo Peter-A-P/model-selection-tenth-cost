@@ -2,7 +2,7 @@
   "fit_version": "1",
   "kind": "2pl",
   "bank_version": "v2",
-  "bank_hash": "e1790eab19300b9b",
+  "bank_hash": "b66652e06b8acf5d",
   "fitted": "2026-09-11",
   "estimator": "marginal maximum a posteriori by Bock-Aitkin EM, 61-point normal quadrature",
   "priors": "a ~ Normal(1.0, 1.0), d ~ Normal(0, 4.0), c ~ Beta(2.0, 8.0) on multiple choice and 0 elsewhere",

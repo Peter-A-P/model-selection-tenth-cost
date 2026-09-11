@@ -71,3 +71,39 @@ def test_the_scanner_would_actually_catch_one(tmp_path: Path) -> None:
     assert pattern.search("key: " + "hf" + "_" + "aB3" * 12)
     assert not pattern.search("the hf_ prefix on its own is not a token")
     del tmp_path
+
+
+def test_no_benchmark_text_is_committed() -> None:
+    """The repository claims to carry no benchmark question text. This is that claim, enforced.
+
+    An earlier bank stored a 160-character excerpt of each question as evidence for the
+    broken-item report. The report never rendered it, so it was 2.3 MB of other people's text
+    under seven licences, one of them per-task, serving nothing. It was removed in v0.3.0 and
+    this test is what stops it coming back.
+
+    The check is an allowlist of column names rather than a length limit, because a length limit
+    is a guess about what text looks like. Every string column a bank carries has to be named
+    here, which means adding one is a decision somebody makes on purpose.
+    """
+    import polars as pl
+
+    from mselect import paths
+    from mselect.data import bank as bank_io
+
+    allowed = {
+        "item_id",  # a content hash, 16 hex characters
+        "benchmark",  # "mmlu", "bbh"
+        "kind",  # "multiple_choice", "free_response"
+        "scenario_key",  # the source's own run or task name, a configuration string
+        "instance_id",  # the source's own id for the item, which is how to look it up
+        "source_project",
+        "source_release",
+    }
+    for version in bank_io.available():
+        items = pl.read_parquet(paths.BANK / version / "items.parquet")
+        text_columns = {name for name, dtype in items.schema.items() if dtype == pl.Utf8}
+        unexpected = text_columns - allowed
+        assert not unexpected, (
+            f"bank {version} carries unlisted text columns {unexpected}; if one of them holds "
+            f"benchmark content it must not be committed, and if it does not, add it above"
+        )

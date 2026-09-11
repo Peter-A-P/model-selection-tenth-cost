@@ -40,7 +40,7 @@ transfer" into a number. [Both are below.](#does-it-replicate-a-second-bank-from
 | Position bias and prompt-framing effects | _pending the own-run panel (needs the gateway's batch support; see PLAN.md section 3.3)_ |
 | Cost per ranking decision, in dollars | _pending the own-run panel (needs the gateway's batch support; see PLAN.md section 3.3)_ |
 
-Bank `v1` (`1d4c357935c70875`): 150 models x 20,365 items, 1,648,626 recorded responses from the public HELM per-item releases. Fitted with marginal maximum a posteriori by Bock-Aitkin EM, 61-point normal quadrature. Regenerate with `mselect report --version v1`.
+Bank `v1` (`4a9871d69f3360d8`): 150 models x 20,365 items, 1,648,626 recorded responses from the public HELM per-item releases. Fitted with marginal maximum a posteriori by Bock-Aitkin EM, 61-point normal quadrature. Regenerate with `mselect report --version v1`.
 <!-- mselect:results:end -->
 
 ![Kendall's tau against the full-suite ranking, by number of items](docs/figures/headline-curve.png)
@@ -101,7 +101,9 @@ a nearly-complete block peeled out of it. The panel is drawn ten from each of fo
 bands of the leaderboard average, so it spans the range from near-chance to the top of the
 open-weight field instead of clustering where the submissions do, and it is capped at eight
 models per hub organisation because forty merges of one base model are close to one model
-repeated. It covers BIG-Bench Hard, MMLU-Pro, MuSR, MATH at level 5 and GPQA, and where bank v1
+repeated. The selection is mechanical and seeded, so the panel is whatever those two rules
+returned: model names are as their authors published them on the hub, and none were dropped or
+kept on the strength of what they are called. It covers BIG-Bench Hard, MMLU-Pro, MuSR, MATH at level 5 and GPQA, and where bank v1
 reads the model's stated final answer after chain-of-thought, this one takes the
 highest-likelihood option.
 
@@ -130,7 +132,7 @@ highest-likelihood option.
 | Position bias and prompt-framing effects | _pending the own-run panel (needs the gateway's batch support; see PLAN.md section 3.3)_ |
 | Cost per ranking decision, in dollars | _pending the own-run panel (needs the gateway's batch support; see PLAN.md section 3.3)_ |
 
-Bank `v2` (`e1790eab19300b9b`): 400 models x 20,323 items, 8,114,706 recorded responses from the Open LLM Leaderboard v2 per-item details. Fitted with marginal maximum a posteriori by Bock-Aitkin EM, 61-point normal quadrature. Regenerate with `mselect report --version v2`.
+Bank `v2` (`b66652e06b8acf5d`): 400 models x 20,323 items, 8,114,706 recorded responses from the Open LLM Leaderboard v2 per-item details. Fitted with marginal maximum a posteriori by Bock-Aitkin EM, 61-point normal quadrature. Regenerate with `mselect report --version v2`.
 <!-- mselect:results:v2:end -->
 
 ![Kendall's tau against the full-suite ranking on bank v2](docs/figures/headline-curve-v2.png)
@@ -153,8 +155,9 @@ dependence](docs/figures/local-dependence-v2.png).
 Every MMLU-Pro item HELM sampled is among the 12,032 the leaderboard runs. So the same questions
 are calibrated on panels with no models in common, through harnesses that score them differently,
 and "a bank calibrated on a different panel is a different bank" stops being a caveat and becomes
-a measurement. All 998 of bank v1's stored question previews prefix-match the leaderboard's
-question text exactly, so the pairing is not a guess.
+a measurement. The pairing is on MMLU-Pro's own question id, which both sources keep, and it was
+checked against the question text itself before the excerpts were removed from the bank: all 998
+matched.
 
 | Items compared | Difficulty correlation | One bank's hardest tenth, recovered by the other |
 |---|---|---|
@@ -229,9 +232,10 @@ the size of the file it was taken from.
 ## Status
 
 Built out of its November slot, ahead of schedule, and not finished. What is measured:
-everything in the table above, from public per-item data. What is not: the own-run panel of
-current models (test-retest, position bias, prompt framing, and the dollar cost per ranking
-decision), which needs vendor calls through the portfolio gateway's batch support. The plan for
+everything in both tables above, from public per-item data, on two independent banks. What is
+not: the own-run panel of current models (test-retest, position bias, prompt framing, and the
+dollar cost per ranking decision), which needs vendor calls through the portfolio gateway's
+batch support. The plan for
 that half is [PLAN.md](PLAN.md) section 3.3, and the schedule change is recorded in
 [PLAN.md](PLAN.md) section 13. Everything about that half that can be settled without spending
 anything is settled: the prompts, the option rotations, the panel, the answer parsers and the
@@ -260,9 +264,21 @@ git config core.hooksPath .githooks
   what turned out to be gated.
 - [docs/items-that-measure-nothing.md](docs/items-that-measure-nothing.md): the broken-item report.
 - [docs/diagnostics.md](docs/diagnostics.md): local dependence, dimensionality and DIF in full.
-- [docs/rejected.md](docs/rejected.md): an approach tried and rejected, with the evidence.
+- [docs/rejected.md](docs/rejected.md): two approaches tried and rejected, with the evidence.
+  One was this project's own headline assumption. The other would have corrupted an item bank
+  silently rather than loudly, which is the more useful failure.
 - [docs/writeup.md](docs/writeup.md): the practitioner write-up, "your benchmark is measuring
   fewer things than you think".
+
+## Licence, and what is redistributed
+
+The code is [MIT licensed](LICENSE). **No benchmark text is in this repository**: not a question,
+not an answer, not an excerpt. The bank stores a content hash of each item, the source's own
+instance id and the benchmark it came from, which is enough to reproduce every number here and
+enough to look any item up at its source, without carrying a line of anyone else's benchmark.
+What is redistributed is measurements, which model answered which item correctly, from two
+openly published evaluation projects. [docs/data-sources.md](docs/data-sources.md) names the
+sources, what was taken and the terms.
 
 ## Part of a portfolio
 

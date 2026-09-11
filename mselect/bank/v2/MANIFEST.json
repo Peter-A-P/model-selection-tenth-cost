@@ -1,7 +1,7 @@
 {
   "bank_version": "v2",
   "built": "2026-09-11",
-  "bank_hash": "e1790eab19300b9b",
+  "bank_hash": "b66652e06b8acf5d",
   "min_models_per_item": 100,
   "n_models": 400,
   "n_items": 20323,
@@ -10,11 +10,11 @@
   "repeated_cells": 0,
   "repeated_cell_agreement": 1.0,
   "items_per_benchmark": {
-    "musr": 756,
     "bbh": 5761,
     "gpqa": 448,
     "mmlu_pro": 12034,
-    "math_hard": 1324
+    "math_hard": 1324,
+    "musr": 756
   },
   "density": 0.9982170447276485,
   "panel": {
@@ -77,7 +77,7 @@
       ],
       "models_read": 399,
       "models_missing": [
-        "JungZoona/T3Q-qwen2.5-14b-v1.0-e3: https://huggingface.co/datasets/open-llm-leaderboard/JungZoona__T3Q-qwen2.5-14b-v1.0-e3-details/resolve/refs%2Fconvert%2Fparquet/JungZoona__T3Q-qwen2.5-14b-v1.0-e3__leaderboard_bbh_disambiguation_qa/latest/0000.parquet returned HTTP 404"
+        "JungZoona/T3Q-qwen2.5-14b-v1.0-e3: https://huggingface.co/datasets/open-llm-leaderboard/JungZoona__T3Q-qwen2.5-14b-v1.0-e3-details/resolve/refs%2Fconvert%2Fparquet/JungZoona__T3Q-qwen2.5-14b-v1.0-e3__leaderboard_bbh_disambiguation_qa/latest/0000.parquet returned HTTP 401"
       ],
       "items": 250,
       "items_every_model_answered": 250,
@@ -107,7 +107,7 @@
       ],
       "models_read": 399,
       "models_missing": [
-        "rootxhacker/Apollo-70B: https://huggingface.co/datasets/open-llm-leaderboard/rootxhacker__Apollo-70B-details/resolve/refs%2Fconvert%2Fparquet/rootxhacker__Apollo-70B__leaderboard_bbh_geometric_shapes/latest/0000.parquet returned HTTP 404"
+        "rootxhacker/Apollo-70B: https://huggingface.co/datasets/open-llm-leaderboard/rootxhacker__Apollo-70B-details/resolve/refs%2Fconvert%2Fparquet/rootxhacker__Apollo-70B__leaderboard_bbh_geometric_shapes/latest/0000.parquet returned HTTP 401"
       ],
       "items": 250,
       "items_every_model_answered": 250,
@@ -221,7 +221,7 @@
       ],
       "models_read": 399,
       "models_missing": [
-        "formulae/mita-v1.1-7b-2-24-2025: https://huggingface.co/datasets/open-llm-leaderboard/formulae__mita-v1.1-7b-2-24-2025-details/resolve/refs%2Fconvert%2Fparquet/formulae__mita-v1.1-7b-2-24-2025__leaderboard_bbh_penguins_in_a_table/latest/0000.parquet returned HTTP 404"
+        "formulae/mita-v1.1-7b-2-24-2025: https://huggingface.co/datasets/open-llm-leaderboard/formulae__mita-v1.1-7b-2-24-2025-details/resolve/refs%2Fconvert%2Fparquet/formulae__mita-v1.1-7b-2-24-2025__leaderboard_bbh_penguins_in_a_table/latest/0000.parquet returned HTTP 401"
       ],
       "items": 146,
       "items_every_model_answered": 146,
@@ -265,7 +265,7 @@
       ],
       "models_read": 399,
       "models_missing": [
-        "OpenLLM-France/Lucie-7B-Instruct-v1.1: https://huggingface.co/datasets/open-llm-leaderboard/OpenLLM-France__Lucie-7B-Instruct-v1.1-details/resolve/refs%2Fconvert%2Fparquet/OpenLLM-France__Lucie-7B-Instruct-v1.1__leaderboard_bbh_salient_translation_error_detection/latest/0000.parquet returned HTTP 404"
+        "OpenLLM-France/Lucie-7B-Instruct-v1.1: https://huggingface.co/datasets/open-llm-leaderboard/OpenLLM-France__Lucie-7B-Instruct-v1.1-details/resolve/refs%2Fconvert%2Fparquet/OpenLLM-France__Lucie-7B-Instruct-v1.1__leaderboard_bbh_salient_translation_error_detection/latest/0000.parquet returned HTTP 401"
       ],
       "items": 250,
       "items_every_model_answered": 250,
@@ -295,7 +295,7 @@
       ],
       "models_read": 399,
       "models_missing": [
-        "rootxhacker/Apollo-70B: https://huggingface.co/datasets/open-llm-leaderboard/rootxhacker__Apollo-70B-details/resolve/refs%2Fconvert%2Fparquet/rootxhacker__Apollo-70B__leaderboard_bbh_sports_understanding/latest/0000.parquet returned HTTP 404"
+        "rootxhacker/Apollo-70B: https://huggingface.co/datasets/open-llm-leaderboard/rootxhacker__Apollo-70B-details/resolve/refs%2Fconvert%2Fparquet/rootxhacker__Apollo-70B__leaderboard_bbh_sports_understanding/latest/0000.parquet returned HTTP 401"
       ],
       "items": 250,
       "items_every_model_answered": 250,
@@ -524,8 +524,8 @@
       ],
       "models_read": 398,
       "models_missing": [
-        "Daemontatox/mini-Cogito-R1: https://huggingface.co/datasets/open-llm-leaderboard/Daemontatox__mini-Cogito-R1-details/resolve/refs%2Fconvert%2Fparquet/Daemontatox__mini-Cogito-R1__leaderboard_math_precalculus_hard/latest/0000.parquet returned HTTP 404",
-        "rootxhacker/Apollo-70B: https://huggingface.co/datasets/open-llm-leaderboard/rootxhacker__Apollo-70B-details/resolve/refs%2Fconvert%2Fparquet/rootxhacker__Apollo-70B__leaderboard_math_precalculus_hard/latest/0000.parquet returned HTTP 404"
+        "Daemontatox/mini-Cogito-R1: https://huggingface.co/datasets/open-llm-leaderboard/Daemontatox__mini-Cogito-R1-details/resolve/refs%2Fconvert%2Fparquet/Daemontatox__mini-Cogito-R1__leaderboard_math_precalculus_hard/latest/0000.parquet returned HTTP 401",
+        "rootxhacker/Apollo-70B: https://huggingface.co/datasets/open-llm-leaderboard/rootxhacker__Apollo-70B-details/resolve/refs%2Fconvert%2Fparquet/rootxhacker__Apollo-70B__leaderboard_math_precalculus_hard/latest/0000.parquet returned HTTP 401"
       ],
       "items": 135,
       "items_every_model_answered": 135,
@@ -542,7 +542,7 @@
       ],
       "models_read": 399,
       "models_missing": [
-        "Daemontatox/mini-Cogito-R1: https://huggingface.co/datasets/open-llm-leaderboard/Daemontatox__mini-Cogito-R1-details/resolve/refs%2Fconvert%2Fparquet/Daemontatox__mini-Cogito-R1__leaderboard_mmlu_pro/latest/0000.parquet returned HTTP 404"
+        "Daemontatox/mini-Cogito-R1: https://huggingface.co/datasets/open-llm-leaderboard/Daemontatox__mini-Cogito-R1-details/resolve/refs%2Fconvert%2Fparquet/Daemontatox__mini-Cogito-R1__leaderboard_mmlu_pro/latest/0000.parquet returned HTTP 401"
       ],
       "items": 12040,
       "items_every_model_answered": 12024,

@@ -321,9 +321,7 @@ def broken_items_doc(
 ) -> str:
     """`docs/items-that-measure-nothing.md`: the broken-item report, with evidence per item."""
     frame = item_diagnostics.join(
-        bank.items.select(
-            "item_id", "benchmark", "preview", "instance_id", "scenario_key", "n_options"
-        ),
+        bank.items.select("item_id", "benchmark", "instance_id", "scenario_key", "n_options"),
         on="item_id",
         how="left",
     )
@@ -406,10 +404,11 @@ def broken_items_doc(
 
     lines += [
         "",
-        "Item text is not reproduced here. The bank stores a content hash, the HELM instance id and "
-        "the scenario it came from, which is enough to look any item up in the cached HELM release "
-        "without republishing benchmark questions in a public repository. GPQA items carry no "
-        "preview at all, at its authors' request.",
+        "No benchmark text appears here or anywhere else in this repository. The bank stores a "
+        "content hash, the source instance id and the scenario an item came from, which is enough "
+        "to look any item up in the cached public release and enough to reproduce every number "
+        "below, without this repository carrying a line of anyone else's benchmark. "
+        "`docs/data-sources.md` names the sources and their licences.",
         "",
         "## What this does not claim",
         "",
