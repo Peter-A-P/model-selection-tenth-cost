@@ -115,7 +115,10 @@ everything in the table above, from public per-item data. What is not: the own-r
 current models (test-retest, position bias, prompt framing, and the dollar cost per ranking
 decision), which needs vendor calls through the portfolio gateway's batch support. The plan for
 that half is [PLAN.md](PLAN.md) section 3.3, and the schedule change is recorded in
-[PLAN.md](PLAN.md) section 13.
+[PLAN.md](PLAN.md) section 13. Everything about that half that can be settled without spending
+anything is settled: the prompts, the option rotations, the panel, the answer parsers and the
+three experiment analyses are written and tested against fixtures, so when the runner is wired
+up there is nothing left to decide. Nothing in this repository can make a vendor call.
 
 ## How it is built
 
