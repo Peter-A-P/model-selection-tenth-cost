@@ -319,7 +319,9 @@ measured and committed; everything unticked is blocked on vendor calls or on a d
 - [x] Q3 and dimensionality diagnostics reported. `docs/diagnostics.md`
 - [x] `items_needed` power function validated against the simulation. Validation table in
       `out/simulation-2pl.json`; **it is optimistic at large effects**, see section 13.6
-- [ ] Handed to project 03. Waiting on the `v0.1.0` tag
+- [x] Handed to project 03. `mselect` v0.1.0 tagged 2026-09-11 with the interface 03's plan
+      calls (`items_needed(delta, 0.8, ability)` works with no bank argument), plus
+      `dependence()` for the local-dependence correction and `reliability()` for the noise floor
 - [ ] Cost per ranking decision reported in dollars. **Blocked**: needs the own-run panel
 - [x] README opens with the one-liner and the results table
 - [x] Practitioner write-up published. `docs/writeup.md`
@@ -425,3 +427,18 @@ independence, which section 13.3's Q3 numbers show is false, and it assumes the 
 difference maps onto the accuracy difference through the test characteristic curve, which the
 construct gap above says it does not do exactly. Project 03 should treat the number it returns
 as a floor, not a promise, until the own-run panel refines it.
+
+### 13.7 The dependence handover is a correction factor, not a list of blocks
+
+PLAN.md section 8 promised project 03 "a note on which item blocks are locally dependent, so
+that 03 does not treat them as independent evidence". Building it showed that a list of blocks
+is the wrong shape. Chaining every pair above the Q3 flag of 0.2 swallows each benchmark whole,
+because 8 to 31 percent of pairs are above it, and "treat all 13,937 MMLU items as one piece of
+evidence" is true in a useless way.
+
+So the handover is two things instead. Tight blocks, at a Q3 above 0.8, name the 474 items that
+are effectively the same question asked twice: 115 blocks, the largest of 47 items. The diffuse
+part is handed over as a design effect per benchmark, which is what actually changes an
+interval: a hundred MATH items carry about six items' worth of independent evidence, a hundred
+GSM8K items about ten, a hundred MMLU items about forty-seven. `mselect.dependence()` returns it
+and `mselect/bank/v1/dependent-blocks.json` stores it.

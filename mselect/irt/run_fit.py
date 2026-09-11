@@ -17,12 +17,16 @@ import numpy as np
 import polars as pl
 from numpy.typing import NDArray
 
-from mselect import paths
+from mselect import handover, paths
 from mselect.data import bank as bank_io
 from mselect.data import benchmarks as benchmark_meta
+from mselect.data.bank import load_params
 from mselect.irt import dif, dimensionality, fitstats, q3
 from mselect.irt import fit as fitting
-from mselect.irt.model import Items
+
+# `load_params` lives in `data.bank` so that the packaged bank can be loaded without importing
+# the fitter. It is re-exported here because that is where callers first looked for it.
+__all__ = ["FIT_VERSION", "diagnose_bank", "fit_bank", "load_params"]
 
 FIT_VERSION = "1"  # bumped when the estimator changes in a way that moves parameters
 
@@ -93,26 +97,6 @@ def fit_bank(
     return fit.describe()
 
 
-def load_params(
-    bank: bank_io.Bank, kind: str = "2pl"
-) -> tuple[Items, pl.DataFrame, dict[str, object]]:
-    """Item parameters for a bank, refusing to load parameters fitted to different bytes."""
-    frame = pl.read_parquet(_params_path(bank, kind))
-    meta = json.loads((bank.path / f"params-{kind}.json").read_text(encoding="utf-8"))
-    if meta["bank_hash"] != bank.bank_hash:
-        raise ValueError(
-            f"parameters were fitted to bank {meta['bank_hash']}, not {bank.bank_hash}: refit"
-        )
-    if frame["item_id"].to_list() != bank.item_ids:
-        raise ValueError("parameter file is not aligned with the bank's item order")
-    items = Items(
-        frame["a"].to_numpy(),
-        np.nan_to_num(frame["b"].to_numpy(), nan=0.0),
-        frame["c"].to_numpy(),
-    )
-    return items, frame, meta
-
-
 def diagnose_bank(
     *,
     version: str = "v1",
@@ -147,6 +131,8 @@ def diagnose_bank(
 
     benchmarks = sorted(set(bank.benchmarks.tolist()))
     local_dependence: dict[str, object] = {}
+    blocks: dict[str, list[handover.DependentBlock]] = {}
+    dependence_by_benchmark: dict[str, handover.Dependence] = {}
     for name in benchmarks:
         index = q3.sample_items(bank.benchmarks, name, size=q3_sample, seed=seed)
         if index.size < 20:
@@ -156,6 +142,16 @@ def diagnose_bank(
         except ValueError as exc:
             local_dependence[name] = {"skipped": str(exc)}
             continue
+        blocks[name] = handover.blocks_from_q3(dependence, bank.item_ids, name)
+        stats_q3 = dependence.summary()
+        dependence_by_benchmark[name] = handover.Dependence(
+            benchmark=name,
+            mean_q3=float(stats_q3["mean"]),
+            expected_under_independence=float(stats_q3["expected_under_independence"]),
+            share_above_flag=float(stats_q3["share_above_flag"]),
+            n_models=int(dependence.n_models),
+            items_sampled=int(index.size),
+        )
         summary = dependence.summary()
         summary["n_models"] = float(dependence.n_models)
         top = [
@@ -164,6 +160,27 @@ def diagnose_bank(
         ]
         local_dependence[name] = {"summary": summary, "worst_pairs": top}
         progress(f"Q3 {name}: {summary.get('share_above_flag', 0):.1%} of pairs above 0.2")
+
+    handover.write_blocks(
+        bank.path / handover.BLOCKS_FILE,
+        blocks,
+        dependence_by_benchmark,
+        bank_version=bank.version,
+        bank_hash=bank.bank_hash,
+        seed=seed,
+    )
+    total_blocks = sum(len(per_benchmark) for per_benchmark in blocks.values())
+    worst = min(
+        (record for record in dependence_by_benchmark.values()),
+        key=lambda record: record.effective_items(100),
+        default=None,
+    )
+    progress(
+        f"handover: {total_blocks} near-duplicate item blocks, and 100 items are worth as few as "
+        f"{worst.effective_items(100):.0f} independent ones ({worst.benchmark})"
+        if worst is not None
+        else f"handover: {total_blocks} near-duplicate item blocks"
+    )
 
     dimensions: dict[str, object] = {}
     for name in benchmarks:
@@ -270,6 +287,16 @@ def diagnose_bank(
             "share_negative": float((items.a < 0.0).mean()),
         },
         "local_dependence": local_dependence,
+        "dependent_blocks": {
+            "count": sum(len(per_benchmark) for per_benchmark in blocks.values()),
+            "largest": max(
+                (block.size for per_benchmark in blocks.values() for block in per_benchmark),
+                default=0,
+            ),
+            "items_in_a_block": sum(
+                block.size for per_benchmark in blocks.values() for block in per_benchmark
+            ),
+        },
         "dimensionality": dimensions,
         "benchmark_ability_correlations": correlations,
         "dif": dif_results,

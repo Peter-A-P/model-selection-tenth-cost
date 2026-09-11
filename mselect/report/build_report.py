@@ -16,7 +16,7 @@ from typing import Any
 import numpy as np
 import polars as pl
 
-from mselect import paths
+from mselect import handover, paths
 from mselect.data import bank as bank_io
 from mselect.data import benchmarks as benchmark_meta
 from mselect.irt import run_fit
@@ -384,6 +384,34 @@ def diagnostics_document(
             f"{s['mean']:+.3f} | {s['expected_under_independence']:+.3f} | {s['p95']:.3f} | "
             f"{s['max']:.3f} | {s['share_above_flag']:.1%} |"
         )
+
+    lines += [
+        "",
+        "### What that means for anyone using this bank",
+        "",
+        "Diffuse dependence of this size changes confidence intervals, so the handover file "
+        "`mselect/bank/v1/dependent-blocks.json` states it in the unit a consumer can act on. "
+        "The design effect is the standard one for equicorrelated units, 1 + (n - 1) r, with r "
+        "the mean residual correlation measured above; `mselect.dependence()` returns it.",
+        "",
+        "| Benchmark | Mean Q3 | 100 items are worth this many independent ones | Variance inflation |",
+        "|---|---:|---:|---:|",
+    ]
+    for name, record in sorted(handover.dependence().items()):
+        lines.append(
+            f"| {benchmark_meta.title(name)} | {record.mean_q3:+.3f} | "
+            f"{record.effective_items(100):.0f} | x{record.variance_inflation(100):.1f} |"
+        )
+    blocks = handover.dependent_blocks()
+    if blocks:
+        involved = sum(block.size for block in blocks)
+        lines += [
+            "",
+            f"Separately, {len(blocks)} tight blocks covering {involved} items have a Q3 above "
+            f"{handover.BLOCK_THRESHOLD} inside the block: items whose residuals move together so "
+            "closely that they are effectively the same question asked twice. The largest holds "
+            f"{max(block.size for block in blocks)} items. Those are listed in full in the same file.",
+        ]
 
     lines += [
         "",

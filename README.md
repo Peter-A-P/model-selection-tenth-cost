@@ -51,8 +51,10 @@ correlation above 0.2: they share passages, templates, subjects and formats. Eve
 error from a fixed-length benchmark is therefore optimistic, including some of the ones in the
 table above. The benchmarks also do not measure one single ability: per-benchmark abilities
 correlate between 0.42 and 0.96, so the composite is a summary, not a measurement of one thing.
-[docs/diagnostics.md](docs/diagnostics.md) reports both in full, and project 03 is handed the
-dependent blocks so it does not treat them as independent evidence.
+[docs/diagnostics.md](docs/diagnostics.md) reports both in full. The consequence is stated in
+the unit that matters: on this bank a hundred MATH items carry about six items' worth of
+independent evidence, a hundred MMLU items about forty-seven, and `mselect.dependence()` hands
+that correction to anything importing the bank.
 
 **And the efficiency claim has a ceiling, which the table above shows rather than hides.**
 Adaptive selection wins decisively where it matters for a screening decision: ten items rank the
@@ -91,6 +93,10 @@ Three more limits worth stating before the method is used for anything:
 - **Says how many items you need.** `items_needed(effect, power, ability)` turns "detect a
   three-point regression" into a number of items, derived from the bank's information function
   and checked against the simulation.
+- **Hands the result to the next project.** `import mselect` gives the power function, the frozen
+  bank, the adaptive estimator, the reliability figure and the local-dependence correction, with
+  the caveats attached rather than left in a document. [CHANGELOG.md](CHANGELOG.md) says what
+  v0.1.0 contains and, as plainly, what it does not.
 
 ## Reproduce it
 

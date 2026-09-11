@@ -1,0 +1,1371 @@
+{
+  "bank_version": "v1",
+  "bank_hash": "1d4c357935c70875",
+  "block_threshold": 0.8,
+  "reporting_flag": 0.2,
+  "sample_seed": 0,
+  "caveat": "Q3 is computed on a reproducible sample of each benchmark's items, not on all of them. A block between two items that were not both sampled cannot appear here, so the block list is a lower bound, and the mean is a sample estimate.",
+  "dependence": [
+    {
+      "benchmark": "commonsense",
+      "mean_q3": 0.0131,
+      "expected_under_independence": -0.0025,
+      "share_above_flag": 0.111,
+      "n_models": 91,
+      "items_sampled": 400,
+      "variance_inflation_at_100_items": 2.29,
+      "effective_items_per_100": 43.6
+    },
+    {
+      "benchmark": "gpqa",
+      "mean_q3": 0.0246,
+      "expected_under_independence": -0.0025,
+      "share_above_flag": 0.1015,
+      "n_models": 64,
+      "items_sampled": 400,
+      "variance_inflation_at_100_items": 3.43,
+      "effective_items_per_100": 29.1
+    },
+    {
+      "benchmark": "gsm8k",
+      "mean_q3": 0.0879,
+      "expected_under_independence": -0.0025,
+      "share_above_flag": 0.1896,
+      "n_models": 90,
+      "items_sampled": 400,
+      "variance_inflation_at_100_items": 9.7,
+      "effective_items_per_100": 10.3
+    },
+    {
+      "benchmark": "legalbench",
+      "mean_q3": 0.0542,
+      "expected_under_independence": -0.0025,
+      "share_above_flag": 0.1863,
+      "n_models": 89,
+      "items_sampled": 400,
+      "variance_inflation_at_100_items": 6.37,
+      "effective_items_per_100": 15.7
+    },
+    {
+      "benchmark": "math",
+      "mean_q3": 0.1459,
+      "expected_under_independence": -0.0025,
+      "share_above_flag": 0.3094,
+      "n_models": 91,
+      "items_sampled": 400,
+      "variance_inflation_at_100_items": 15.45,
+      "effective_items_per_100": 6.5
+    },
+    {
+      "benchmark": "med_qa",
+      "mean_q3": 0.0193,
+      "expected_under_independence": -0.0025,
+      "share_above_flag": 0.084,
+      "n_models": 91,
+      "items_sampled": 400,
+      "variance_inflation_at_100_items": 2.92,
+      "effective_items_per_100": 34.3
+    },
+    {
+      "benchmark": "mmlu",
+      "mean_q3": 0.0116,
+      "expected_under_independence": -0.0025,
+      "share_above_flag": 0.1109,
+      "n_models": 50,
+      "items_sampled": 400,
+      "variance_inflation_at_100_items": 2.15,
+      "effective_items_per_100": 46.6
+    },
+    {
+      "benchmark": "mmlu_pro",
+      "mean_q3": 0.0135,
+      "expected_under_independence": -0.0025,
+      "share_above_flag": 0.081,
+      "n_models": 68,
+      "items_sampled": 400,
+      "variance_inflation_at_100_items": 2.34,
+      "effective_items_per_100": 42.8
+    }
+  ],
+  "blocks": [
+    {
+      "benchmark": "commonsense",
+      "size": 10,
+      "max_q3": 1.0,
+      "items": [
+        "11c7c896435384d4",
+        "2ada4e19d13c0e4d",
+        "34155d6b85136d30",
+        "50dc18d9b2534392",
+        "6225238cb471ab28",
+        "793f9f2bd534249a",
+        "92cae309d9a9fb80",
+        "b296f34235f8f063",
+        "dd9de477a37c75b1",
+        "e3b579fd5168fa05"
+      ]
+    },
+    {
+      "benchmark": "commonsense",
+      "size": 7,
+      "max_q3": 0.972,
+      "items": [
+        "c0cdc3c879e0c90a",
+        "d18f257ceeb5b5da",
+        "d6eeca8abbdf2451",
+        "df6c47c8dd4d729e",
+        "e3bc928afd1e7849",
+        "ea0595794c69bc07",
+        "fe6164cd19d8ea2d"
+      ]
+    },
+    {
+      "benchmark": "commonsense",
+      "size": 6,
+      "max_q3": 1.0,
+      "items": [
+        "06b528f3994e2aab",
+        "2e84096835038c7e",
+        "441a41274f6c8517",
+        "4c26028fafead5ac",
+        "5f72267d2df19e43",
+        "ca311b5fb49cda99"
+      ]
+    },
+    {
+      "benchmark": "commonsense",
+      "size": 6,
+      "max_q3": 1.0,
+      "items": [
+        "53a9fb9e9958d9b0",
+        "56f2dfae6acad2a0",
+        "7bcc9ad7a183b51f",
+        "dc672a6d017cc739",
+        "ee0849e13ff39b01",
+        "f5d18aa5f3aeb10c"
+      ]
+    },
+    {
+      "benchmark": "commonsense",
+      "size": 6,
+      "max_q3": 0.858,
+      "items": [
+        "1e5f74ac2fcfd908",
+        "3e60dfde1dd87bb8",
+        "7ac601902bf039f5",
+        "bdbcb89de5bc9ab8",
+        "e482ec0fdf3dcb0a",
+        "e94a1760c80fd5ac"
+      ]
+    },
+    {
+      "benchmark": "commonsense",
+      "size": 5,
+      "max_q3": 1.0,
+      "items": [
+        "254a7613a3dca5ed",
+        "4546112ee9899532",
+        "b01d56aa80c4c439",
+        "b57dd271755d32c0",
+        "fff52585bfa774ed"
+      ]
+    },
+    {
+      "benchmark": "commonsense",
+      "size": 5,
+      "max_q3": 0.991,
+      "items": [
+        "314814557a0436f1",
+        "61914c46c2e1b88d",
+        "66745c6ec1fcee99",
+        "88fbe05dd1b2af51",
+        "a7b7f38344abc96d"
+      ]
+    },
+    {
+      "benchmark": "commonsense",
+      "size": 5,
+      "max_q3": 0.978,
+      "items": [
+        "3019fa5771028350",
+        "3181ead9eeb53264",
+        "52fdb2a80cb75127",
+        "cb7679b5f57addfc",
+        "ee452905ccc9df61"
+      ]
+    },
+    {
+      "benchmark": "commonsense",
+      "size": 4,
+      "max_q3": 1.0,
+      "items": [
+        "08f312a8d90592b6",
+        "816f29b2f6df9729",
+        "88e24a119c829ebe",
+        "e8cbd107f5eebaec"
+      ]
+    },
+    {
+      "benchmark": "commonsense",
+      "size": 4,
+      "max_q3": 1.0,
+      "items": [
+        "1c23805a3e7bc10f",
+        "9bd5e033ccba2f28",
+        "e4dbe1e03e9874d8",
+        "f555ee9289b1723f"
+      ]
+    },
+    {
+      "benchmark": "commonsense",
+      "size": 4,
+      "max_q3": 1.0,
+      "items": [
+        "29a6aca6d6e3e394",
+        "39469d6708a34165",
+        "a97bb744d600c42b",
+        "ac03a1195fd5d618"
+      ]
+    },
+    {
+      "benchmark": "commonsense",
+      "size": 4,
+      "max_q3": 1.0,
+      "items": [
+        "9624d3c50c29a229",
+        "bfc8e3fb8f4d60c8",
+        "dd138b416fa0853f",
+        "e7ebebb1387efae5"
+      ]
+    },
+    {
+      "benchmark": "commonsense",
+      "size": 4,
+      "max_q3": 1.0,
+      "items": [
+        "9d5acb42ec421c7f",
+        "bc9aa7ca0241a283",
+        "e4dc7264469eca30",
+        "e9342c0db34337a1"
+      ]
+    },
+    {
+      "benchmark": "commonsense",
+      "size": 4,
+      "max_q3": 0.973,
+      "items": [
+        "281cdc6c0a84f850",
+        "3d246d21ab0cd822",
+        "5e1289d3011a3c0f",
+        "b5304f6a2646d79f"
+      ]
+    },
+    {
+      "benchmark": "commonsense",
+      "size": 3,
+      "max_q3": 1.0,
+      "items": [
+        "0753d1071f6585bd",
+        "c62e40a535935ec0",
+        "d6a4502af445c2b3"
+      ]
+    },
+    {
+      "benchmark": "commonsense",
+      "size": 3,
+      "max_q3": 1.0,
+      "items": [
+        "078ea42b14d0f271",
+        "7d03d0a2e2ce013c",
+        "b039afaa630a0f63"
+      ]
+    },
+    {
+      "benchmark": "commonsense",
+      "size": 3,
+      "max_q3": 1.0,
+      "items": [
+        "1afd67c2f45f926b",
+        "7a0964924509ed9d",
+        "b650de05517f9a4c"
+      ]
+    },
+    {
+      "benchmark": "commonsense",
+      "size": 3,
+      "max_q3": 1.0,
+      "items": [
+        "1e841383eb970a8f",
+        "45d805476ed29ab9",
+        "92d0e4b4a82dcda3"
+      ]
+    },
+    {
+      "benchmark": "commonsense",
+      "size": 3,
+      "max_q3": 1.0,
+      "items": [
+        "5acfb030c5af7bcf",
+        "8da7f1a2c17a0470",
+        "9ab89f5fd4151f11"
+      ]
+    },
+    {
+      "benchmark": "commonsense",
+      "size": 3,
+      "max_q3": 1.0,
+      "items": [
+        "7b80751141f61dd5",
+        "bb0e186cb2b81bb8",
+        "e25447d79c4c7dc1"
+      ]
+    },
+    {
+      "benchmark": "commonsense",
+      "size": 3,
+      "max_q3": 1.0,
+      "items": [
+        "87934bf098e3a893",
+        "900b55c9b9bd7606",
+        "b51d5678301e2e72"
+      ]
+    },
+    {
+      "benchmark": "commonsense",
+      "size": 3,
+      "max_q3": 1.0,
+      "items": [
+        "a1fd207721b80f30",
+        "aad711f888a1fef0",
+        "bfd585f8af488149"
+      ]
+    },
+    {
+      "benchmark": "commonsense",
+      "size": 3,
+      "max_q3": 0.942,
+      "items": [
+        "813b27e344f9d000",
+        "b746afec64b1607e",
+        "b89894902fb15e93"
+      ]
+    },
+    {
+      "benchmark": "commonsense",
+      "size": 3,
+      "max_q3": 0.87,
+      "items": [
+        "137afa94d238fc10",
+        "638480b302145c28",
+        "9d595c0c70df8d3b"
+      ]
+    },
+    {
+      "benchmark": "commonsense",
+      "size": 2,
+      "max_q3": 1.0,
+      "items": [
+        "0ac162d14569aff2",
+        "eae29aecacf73ce9"
+      ]
+    },
+    {
+      "benchmark": "commonsense",
+      "size": 2,
+      "max_q3": 1.0,
+      "items": [
+        "1bcd402fbd0a009a",
+        "e34f779a1315ebb8"
+      ]
+    },
+    {
+      "benchmark": "commonsense",
+      "size": 2,
+      "max_q3": 1.0,
+      "items": [
+        "1e295e5ac953a307",
+        "e58cd3e62ab4a356"
+      ]
+    },
+    {
+      "benchmark": "commonsense",
+      "size": 2,
+      "max_q3": 1.0,
+      "items": [
+        "27ed48138c7d0abf",
+        "d2ade2232b25c2f4"
+      ]
+    },
+    {
+      "benchmark": "commonsense",
+      "size": 2,
+      "max_q3": 1.0,
+      "items": [
+        "37107a5ec5209d8f",
+        "5cd4a88423ab5cdc"
+      ]
+    },
+    {
+      "benchmark": "commonsense",
+      "size": 2,
+      "max_q3": 1.0,
+      "items": [
+        "5757af9b41c25b78",
+        "ec763fb2774296f5"
+      ]
+    },
+    {
+      "benchmark": "commonsense",
+      "size": 2,
+      "max_q3": 1.0,
+      "items": [
+        "7f6d8817a133c14c",
+        "e78368582421d1b9"
+      ]
+    },
+    {
+      "benchmark": "commonsense",
+      "size": 2,
+      "max_q3": 1.0,
+      "items": [
+        "c717c60c80c84f02",
+        "d5cfb04de7ed45c6"
+      ]
+    },
+    {
+      "benchmark": "commonsense",
+      "size": 2,
+      "max_q3": 0.972,
+      "items": [
+        "7c4623243dba4d23",
+        "e082c4d5d0efc648"
+      ]
+    },
+    {
+      "benchmark": "commonsense",
+      "size": 2,
+      "max_q3": 0.929,
+      "items": [
+        "70efc50962e5be80",
+        "b11e77b5ad972c52"
+      ]
+    },
+    {
+      "benchmark": "commonsense",
+      "size": 2,
+      "max_q3": 0.866,
+      "items": [
+        "0d4b95fe09e43464",
+        "8164e4ce99024b9b"
+      ]
+    },
+    {
+      "benchmark": "commonsense",
+      "size": 2,
+      "max_q3": 0.862,
+      "items": [
+        "7f0b104a17c50440",
+        "8e7e26c2f9fd5029"
+      ]
+    },
+    {
+      "benchmark": "commonsense",
+      "size": 2,
+      "max_q3": 0.833,
+      "items": [
+        "9454f213bd2f6262",
+        "b2aadfd20d175e15"
+      ]
+    },
+    {
+      "benchmark": "commonsense",
+      "size": 2,
+      "max_q3": 0.802,
+      "items": [
+        "43ebbd0e33a56e6a",
+        "bb0eec627e525745"
+      ]
+    },
+    {
+      "benchmark": "gpqa",
+      "size": 6,
+      "max_q3": 0.855,
+      "items": [
+        "03d769d8762a370f",
+        "228f118cb635cdf3",
+        "295ada52a72f51e6",
+        "3873e1168f0796e3",
+        "d2c8f59b97852d43",
+        "f31465f266a0d79e"
+      ]
+    },
+    {
+      "benchmark": "gpqa",
+      "size": 3,
+      "max_q3": 1.0,
+      "items": [
+        "292611a4ad1be4bc",
+        "7ffb4319ef74eeec",
+        "9b0211e15488c472"
+      ]
+    },
+    {
+      "benchmark": "gpqa",
+      "size": 2,
+      "max_q3": 0.893,
+      "items": [
+        "1705090f7f4293f0",
+        "180a7e6f68ff0f22"
+      ]
+    },
+    {
+      "benchmark": "gpqa",
+      "size": 2,
+      "max_q3": 0.886,
+      "items": [
+        "08df3fb395df86f5",
+        "adc619d1a31ed011"
+      ]
+    },
+    {
+      "benchmark": "gsm8k",
+      "size": 8,
+      "max_q3": 0.942,
+      "items": [
+        "086a0d5e38015302",
+        "2b0f20b5958aa64c",
+        "46d15046afba2f97",
+        "6ca4ed633865ea99",
+        "7c02dc93678540e7",
+        "8a4d53cb96b8c507",
+        "a9a6b66c5c5587f9",
+        "ec200c1fc13fedfe"
+      ]
+    },
+    {
+      "benchmark": "gsm8k",
+      "size": 5,
+      "max_q3": 0.901,
+      "items": [
+        "08ed85e921025558",
+        "0dd9671b591b5b27",
+        "3dd7e4b86de6ccec",
+        "3f3b41d08bd17df5",
+        "ef33c86e0ce24212"
+      ]
+    },
+    {
+      "benchmark": "gsm8k",
+      "size": 3,
+      "max_q3": 0.949,
+      "items": [
+        "03c13622a61f708f",
+        "164f5d9cebe50690",
+        "c620be0873925c1b"
+      ]
+    },
+    {
+      "benchmark": "gsm8k",
+      "size": 3,
+      "max_q3": 0.832,
+      "items": [
+        "408a575cce1c546c",
+        "672ab57032683d90",
+        "c5a572a9c65ac129"
+      ]
+    },
+    {
+      "benchmark": "gsm8k",
+      "size": 2,
+      "max_q3": 0.928,
+      "items": [
+        "02c7df37046168dc",
+        "5795f38cbe6b807d"
+      ]
+    },
+    {
+      "benchmark": "gsm8k",
+      "size": 2,
+      "max_q3": 0.866,
+      "items": [
+        "7ab3f270647b05d6",
+        "8fe1bc5585b88c7d"
+      ]
+    },
+    {
+      "benchmark": "gsm8k",
+      "size": 2,
+      "max_q3": 0.845,
+      "items": [
+        "1441789e68ed2c97",
+        "c205e4361fc3b15d"
+      ]
+    },
+    {
+      "benchmark": "gsm8k",
+      "size": 2,
+      "max_q3": 0.821,
+      "items": [
+        "477d77ba42206b05",
+        "69aa44c46dcbebce"
+      ]
+    },
+    {
+      "benchmark": "gsm8k",
+      "size": 2,
+      "max_q3": 0.815,
+      "items": [
+        "5484088c3b4bb519",
+        "ea772d4e184bea8b"
+      ]
+    },
+    {
+      "benchmark": "gsm8k",
+      "size": 2,
+      "max_q3": 0.811,
+      "items": [
+        "202f0fef14e9c8e2",
+        "48dd3cb86216ab7b"
+      ]
+    },
+    {
+      "benchmark": "gsm8k",
+      "size": 2,
+      "max_q3": 0.806,
+      "items": [
+        "a9b7628f94bd6a7f",
+        "d7dc019bb8d65e71"
+      ]
+    },
+    {
+      "benchmark": "legalbench",
+      "size": 26,
+      "max_q3": 1.0,
+      "items": [
+        "0141887ae97dcd47",
+        "0186bf10ad6f89c7",
+        "1b7341d66c24ede4",
+        "201e5778f07bb623",
+        "2164ef3631b2075d",
+        "22a9057011290305",
+        "4529b17680ad16df",
+        "51f82bf93cd7cdc1",
+        "60c7a6527783c953",
+        "634e7298bf65a3ba",
+        "63a834fc67bd31f7",
+        "6ef127840ad74cf3",
+        "7eeaeffee0f799ba",
+        "812964cf8397091b",
+        "87e037d335cc8ac0",
+        "96cf0d0d6fa5af8a",
+        "a103bb117d45a107",
+        "b1597cb8ff5e26a4",
+        "b3ff94118828f5a4",
+        "b96d616cc32ec64e",
+        "c6a59af74e15efe2",
+        "cedc3772d00eb7ed",
+        "d1d335701a325847",
+        "da00fd93f632302e",
+        "eb8925bc9d0ae8a8",
+        "f10b342dcd22ddc1"
+      ]
+    },
+    {
+      "benchmark": "legalbench",
+      "size": 11,
+      "max_q3": 1.0,
+      "items": [
+        "0a17c1ebd3615628",
+        "1b2509516c3e71e2",
+        "6c6763f16053b628",
+        "8570302cec51e161",
+        "bf0c63df60a5327c",
+        "c8b139758610eff5",
+        "d18acf96f3ed40ba",
+        "d34239e0afa43918",
+        "dc0062751edbc27f",
+        "e8c782661a027c09",
+        "f6d3117294c68c6a"
+      ]
+    },
+    {
+      "benchmark": "legalbench",
+      "size": 9,
+      "max_q3": 0.924,
+      "items": [
+        "09f7150128251b4d",
+        "1965b085fe7d6370",
+        "390c16205da7d062",
+        "88d82a13a3ad7aeb",
+        "916a741866d989a9",
+        "a7ac42944a39a26a",
+        "c9803cde124beaa0",
+        "caa88b9a985390f2",
+        "dcd205e68e3fad93"
+      ]
+    },
+    {
+      "benchmark": "legalbench",
+      "size": 4,
+      "max_q3": 0.84,
+      "items": [
+        "1519146daa343d80",
+        "34f027843ed9e39c",
+        "59fa73048fdd039c",
+        "bd2b50b003a9b5fa"
+      ]
+    },
+    {
+      "benchmark": "legalbench",
+      "size": 3,
+      "max_q3": 0.916,
+      "items": [
+        "76aae7b0da62f8de",
+        "b9f790ae4931252d",
+        "bae20b1775a6d8a2"
+      ]
+    },
+    {
+      "benchmark": "legalbench",
+      "size": 2,
+      "max_q3": 1.0,
+      "items": [
+        "1f3a9104f4d71b62",
+        "c85be388b35b45e3"
+      ]
+    },
+    {
+      "benchmark": "legalbench",
+      "size": 2,
+      "max_q3": 1.0,
+      "items": [
+        "4344a6eec0fac5f1",
+        "d41e3b7e20eac284"
+      ]
+    },
+    {
+      "benchmark": "legalbench",
+      "size": 2,
+      "max_q3": 0.89,
+      "items": [
+        "94812a1d79cf908f",
+        "b7b0cc9c401bad3c"
+      ]
+    },
+    {
+      "benchmark": "legalbench",
+      "size": 2,
+      "max_q3": 0.859,
+      "items": [
+        "5ceb733a9760a59f",
+        "af70172902af91f0"
+      ]
+    },
+    {
+      "benchmark": "legalbench",
+      "size": 2,
+      "max_q3": 0.85,
+      "items": [
+        "54c05f3cce080f2c",
+        "6ded352ffc518934"
+      ]
+    },
+    {
+      "benchmark": "legalbench",
+      "size": 2,
+      "max_q3": 0.848,
+      "items": [
+        "b0bcd8b7cf2e3987",
+        "d8f0e23b12c6cbec"
+      ]
+    },
+    {
+      "benchmark": "legalbench",
+      "size": 2,
+      "max_q3": 0.818,
+      "items": [
+        "2e656564d38a549a",
+        "997968190b89a8b5"
+      ]
+    },
+    {
+      "benchmark": "legalbench",
+      "size": 2,
+      "max_q3": 0.815,
+      "items": [
+        "0d403dba8e38cf5c",
+        "6022b8481e4f7e87"
+      ]
+    },
+    {
+      "benchmark": "legalbench",
+      "size": 2,
+      "max_q3": 0.807,
+      "items": [
+        "1e6fb202fc40eb03",
+        "cb5dfbbaf3b0e741"
+      ]
+    },
+    {
+      "benchmark": "legalbench",
+      "size": 2,
+      "max_q3": 0.804,
+      "items": [
+        "8d216d99c86013d4",
+        "b832e341d7fa7d9e"
+      ]
+    },
+    {
+      "benchmark": "legalbench",
+      "size": 2,
+      "max_q3": 0.802,
+      "items": [
+        "336544a2c2019485",
+        "b06b2287d41e1191"
+      ]
+    },
+    {
+      "benchmark": "legalbench",
+      "size": 2,
+      "max_q3": 0.802,
+      "items": [
+        "9412177789e2c981",
+        "c9976accab7a340b"
+      ]
+    },
+    {
+      "benchmark": "legalbench",
+      "size": 2,
+      "max_q3": 0.801,
+      "items": [
+        "1357a6a7e82d6b35",
+        "e8691760ac685ae7"
+      ]
+    },
+    {
+      "benchmark": "math",
+      "size": 13,
+      "max_q3": 0.961,
+      "items": [
+        "15767463258ec9ea",
+        "21c8a0ddd92407fd",
+        "309ac7ede04eb835",
+        "31990f513b17c505",
+        "3bec69737c3a1acd",
+        "3f4f3653f3c4cc46",
+        "5721f6e09f31855e",
+        "64fcc665bd9177e2",
+        "8e0055b5d72a9bf0",
+        "92f3f9df7214a1e8",
+        "959d8a553db5821b",
+        "cb36a5bcc7a04f65",
+        "dabc3ab93994e57c"
+      ]
+    },
+    {
+      "benchmark": "math",
+      "size": 5,
+      "max_q3": 0.892,
+      "items": [
+        "15f0021364894ab4",
+        "5dfea949b39cf0a3",
+        "6113222af41b6fdd",
+        "b1084cc8db2678c3",
+        "ee46f5c1ab20a4d1"
+      ]
+    },
+    {
+      "benchmark": "math",
+      "size": 3,
+      "max_q3": 0.916,
+      "items": [
+        "47bdc7c85caafb7e",
+        "4fffecbe38e978ed",
+        "ef4d3c6f8b1d5d3d"
+      ]
+    },
+    {
+      "benchmark": "math",
+      "size": 2,
+      "max_q3": 0.856,
+      "items": [
+        "131a2a8ed0817aee",
+        "16c04ff76c8c27cb"
+      ]
+    },
+    {
+      "benchmark": "math",
+      "size": 2,
+      "max_q3": 0.821,
+      "items": [
+        "2c2bb29adf3d2e45",
+        "d9be51626c08a698"
+      ]
+    },
+    {
+      "benchmark": "med_qa",
+      "size": 7,
+      "max_q3": 0.938,
+      "items": [
+        "58583d4d5d0cbf2e",
+        "8e2b405c4dfbd637",
+        "a88d19cb993c6090",
+        "b635f4ae35e738f6",
+        "c3d0942d8ed1a0c5",
+        "da7f0ce7267b8e8b",
+        "e9aa6ed6f63bf770"
+      ]
+    },
+    {
+      "benchmark": "med_qa",
+      "size": 6,
+      "max_q3": 0.847,
+      "items": [
+        "438b667a83db2015",
+        "54bf0fe02ebd8b74",
+        "966f0104b6f58e7f",
+        "9ab9f59ac185c9aa",
+        "b8e689a01291570e",
+        "d226d0a6b8a97b77"
+      ]
+    },
+    {
+      "benchmark": "med_qa",
+      "size": 3,
+      "max_q3": 0.874,
+      "items": [
+        "01fe71fd0f5db9bf",
+        "36dcda91faaeb0b8",
+        "3fbddbb468793178"
+      ]
+    },
+    {
+      "benchmark": "med_qa",
+      "size": 3,
+      "max_q3": 0.847,
+      "items": [
+        "8fcd05dab5579dbb",
+        "e47872120558cd57",
+        "fb14867e63c1b7ee"
+      ]
+    },
+    {
+      "benchmark": "med_qa",
+      "size": 2,
+      "max_q3": 1.0,
+      "items": [
+        "7163ce22d0eee74c",
+        "c5f5942a78437c85"
+      ]
+    },
+    {
+      "benchmark": "med_qa",
+      "size": 2,
+      "max_q3": 0.906,
+      "items": [
+        "c87aa7c0872fe028",
+        "ed7436b5c647cd38"
+      ]
+    },
+    {
+      "benchmark": "med_qa",
+      "size": 2,
+      "max_q3": 0.898,
+      "items": [
+        "1d56694116ee5584",
+        "ae6e789c615b0016"
+      ]
+    },
+    {
+      "benchmark": "mmlu",
+      "size": 47,
+      "max_q3": 1.0,
+      "items": [
+        "01e222517db74c8b",
+        "03c519043bd49eb5",
+        "05c1cc2625625a1b",
+        "0a28d81094a813b6",
+        "0bd2a1f836da5610",
+        "136d6460e4251c6c",
+        "149623e699c216a8",
+        "1a64711a3b94f4c9",
+        "1f8696d838a00744",
+        "2eaa3c1a6c23d269",
+        "32e5670fa1055fb8",
+        "3949ac16d03c9178",
+        "3a46bce90cbb3f02",
+        "442ca6d424f2fc00",
+        "44e19fb199ce9e66",
+        "4e3b6ded12e051ee",
+        "5a2bee44849dc224",
+        "690f7809ee72d063",
+        "71c28a7e5c55e4a5",
+        "7b2b2e48dbb259cc",
+        "7ee6a4314d54e3aa",
+        "81e9203e2460cd17",
+        "8289d32254c50485",
+        "8662d3e85b3ce897",
+        "89e3880ac10a5749",
+        "8eab8cc790bae5b8",
+        "8f703a7ff76822f1",
+        "8ff4f294400b6005",
+        "9848743477d2a1f4",
+        "9d445dccb0967686",
+        "abb8e2c5d10a071b",
+        "b062f07c94be30d8",
+        "b3a581f59b4f4960",
+        "b525ff836b295814",
+        "be5ab0552fec30a3",
+        "cb422d9c757f035e",
+        "cbe1615f8e4f7828",
+        "d20f4bfdba5d4ab8",
+        "d3176984c34edc7c",
+        "d5feb4d02ec5c866",
+        "e16415732aad51d9",
+        "e1942f08cd573003",
+        "eb5f8e8ca1457ec3",
+        "ec48ab928c534eea",
+        "ef274e8bf5893f74",
+        "efa8820b793b1e94",
+        "f5313d256ec31f49"
+      ]
+    },
+    {
+      "benchmark": "mmlu",
+      "size": 17,
+      "max_q3": 1.0,
+      "items": [
+        "01ebe003e54541b6",
+        "2585ec55248ca17e",
+        "398a1f4636fff1f2",
+        "42d3d20b9e50d6db",
+        "44010d4b77e520ec",
+        "61b19e94da63a074",
+        "856e09b916641e10",
+        "a99cc641ea1900ef",
+        "b04566d350f7c3aa",
+        "bea6c748c8765262",
+        "c029f585ebec921b",
+        "c7e01ba167833a33",
+        "d1b7114b86f2477c",
+        "d8d7621c0ab5e370",
+        "ebb9ccea3a50bd93",
+        "ee7f5f166eb68b77",
+        "f48970501b1ffb0a"
+      ]
+    },
+    {
+      "benchmark": "mmlu",
+      "size": 16,
+      "max_q3": 1.0,
+      "items": [
+        "00ce7e6ad10b8c18",
+        "024a3f35da6ef4ce",
+        "06f41003cd4f6406",
+        "0b6ce79797d3403c",
+        "40701c96b7b80f0e",
+        "4dba25130d1981b6",
+        "624d32775880bfec",
+        "6524ff8cd172b28d",
+        "8243825a44981d80",
+        "851af3ebba93a344",
+        "87108fb9da7be5b6",
+        "b531d6ecd3cdcdb7",
+        "c6d449df5958e66e",
+        "e2f75c9e4d8ace34",
+        "ed0ebcee799cd020",
+        "f7f923f1cfa85322"
+      ]
+    },
+    {
+      "benchmark": "mmlu",
+      "size": 7,
+      "max_q3": 0.82,
+      "items": [
+        "1478a7f0418a8317",
+        "531671446aa6828c",
+        "6610314f58db29b6",
+        "b5b8168a210ef5a6",
+        "cc0247cbba11d20b",
+        "e929d9c996ad05a2",
+        "f77c5614a7fe7313"
+      ]
+    },
+    {
+      "benchmark": "mmlu",
+      "size": 5,
+      "max_q3": 0.998,
+      "items": [
+        "09e400685c471b90",
+        "2303af5a83fc6781",
+        "6ad87b2dc4551197",
+        "9c5659c040f67aed",
+        "aa0a9126ad833a36"
+      ]
+    },
+    {
+      "benchmark": "mmlu",
+      "size": 5,
+      "max_q3": 0.998,
+      "items": [
+        "5bd540c430d98582",
+        "6783aca397cfde81",
+        "94580e58594a1f9f",
+        "c8c31005c3671193",
+        "cec3b45cc60c2d5a"
+      ]
+    },
+    {
+      "benchmark": "mmlu",
+      "size": 5,
+      "max_q3": 0.997,
+      "items": [
+        "042d791cf5baaeb5",
+        "66be88b79063edec",
+        "8cca28e74854abbf",
+        "acffe5071c00efab",
+        "d658dbff73b50c08"
+      ]
+    },
+    {
+      "benchmark": "mmlu",
+      "size": 4,
+      "max_q3": 1.0,
+      "items": [
+        "46be491155cca114",
+        "7bdcfb7fae2dcf2a",
+        "ad6141e2cbb43c18",
+        "de0fa2a80451e5e8"
+      ]
+    },
+    {
+      "benchmark": "mmlu",
+      "size": 3,
+      "max_q3": 1.0,
+      "items": [
+        "0869f3259aa38c5a",
+        "31cbf586e021a18a",
+        "5a9809facce605d7"
+      ]
+    },
+    {
+      "benchmark": "mmlu",
+      "size": 3,
+      "max_q3": 0.954,
+      "items": [
+        "9273e9424e6f0a4f",
+        "a27b7e757b2d5b73",
+        "ccbd176d668ed1aa"
+      ]
+    },
+    {
+      "benchmark": "mmlu",
+      "size": 3,
+      "max_q3": 0.83,
+      "items": [
+        "04598c501003914d",
+        "3c4f50c154af3422",
+        "a53304e91a852917"
+      ]
+    },
+    {
+      "benchmark": "mmlu",
+      "size": 2,
+      "max_q3": 1.0,
+      "items": [
+        "7add089939b744c5",
+        "ee3d56e83ffb56f5"
+      ]
+    },
+    {
+      "benchmark": "mmlu",
+      "size": 2,
+      "max_q3": 0.998,
+      "items": [
+        "6aea919c0076b0eb",
+        "b17fb3880a9c0e58"
+      ]
+    },
+    {
+      "benchmark": "mmlu",
+      "size": 2,
+      "max_q3": 0.996,
+      "items": [
+        "6aae8933e27b1e33",
+        "fbf01fd16cd04af5"
+      ]
+    },
+    {
+      "benchmark": "mmlu",
+      "size": 2,
+      "max_q3": 0.95,
+      "items": [
+        "36d8e7bf3bb7c813",
+        "8f23924764c648ae"
+      ]
+    },
+    {
+      "benchmark": "mmlu",
+      "size": 2,
+      "max_q3": 0.939,
+      "items": [
+        "ea29f56b3182010a",
+        "eee9b3f8ea679139"
+      ]
+    },
+    {
+      "benchmark": "mmlu",
+      "size": 2,
+      "max_q3": 0.927,
+      "items": [
+        "155ba387b4cc5869",
+        "e5ef5900b12d655d"
+      ]
+    },
+    {
+      "benchmark": "mmlu",
+      "size": 2,
+      "max_q3": 0.897,
+      "items": [
+        "0e7ac394a499e58d",
+        "ee3fc4d7367686bf"
+      ]
+    },
+    {
+      "benchmark": "mmlu",
+      "size": 2,
+      "max_q3": 0.811,
+      "items": [
+        "f1391e564f27e99b",
+        "fe51d01b66bcf081"
+      ]
+    },
+    {
+      "benchmark": "mmlu",
+      "size": 2,
+      "max_q3": 0.805,
+      "items": [
+        "1ce47e054ed07cee",
+        "6f4f70b1a710d94a"
+      ]
+    },
+    {
+      "benchmark": "mmlu_pro",
+      "size": 10,
+      "max_q3": 1.0,
+      "items": [
+        "1d2e9fa3c6b322b6",
+        "2996a631e6e41cae",
+        "816dd3df4c166600",
+        "86ad988b5377e9ae",
+        "91f5aced1e449353",
+        "b5d1065be6b89f54",
+        "bb085d8cd4f27f73",
+        "e2f6d46d9d604c1f",
+        "ecca5fd2f6c49eac",
+        "f384b23878881490"
+      ]
+    },
+    {
+      "benchmark": "mmlu_pro",
+      "size": 3,
+      "max_q3": 1.0,
+      "items": [
+        "173a08ab3ace2ebc",
+        "9f6835862a5d67c4",
+        "fb0bd35dc3025870"
+      ]
+    },
+    {
+      "benchmark": "mmlu_pro",
+      "size": 3,
+      "max_q3": 1.0,
+      "items": [
+        "5296794156c4a1d8",
+        "5defb4ade970bc1b",
+        "dbc8341671b9636a"
+      ]
+    },
+    {
+      "benchmark": "mmlu_pro",
+      "size": 2,
+      "max_q3": 1.0,
+      "items": [
+        "09736b99a713ad4d",
+        "a3f678b6cf9bf591"
+      ]
+    },
+    {
+      "benchmark": "mmlu_pro",
+      "size": 2,
+      "max_q3": 1.0,
+      "items": [
+        "2b7a5bb26f75980b",
+        "654b252372edce7b"
+      ]
+    },
+    {
+      "benchmark": "mmlu_pro",
+      "size": 2,
+      "max_q3": 1.0,
+      "items": [
+        "bce307b221fff468",
+        "c0287618854f1dae"
+      ]
+    },
+    {
+      "benchmark": "mmlu_pro",
+      "size": 2,
+      "max_q3": 0.884,
+      "items": [
+        "77fd24adc70f1b48",
+        "bc3f40258ec9c05f"
+      ]
+    },
+    {
+      "benchmark": "mmlu_pro",
+      "size": 2,
+      "max_q3": 0.878,
+      "items": [
+        "22bfce1090bc49c7",
+        "bad72b408f555d34"
+      ]
+    },
+    {
+      "benchmark": "mmlu_pro",
+      "size": 2,
+      "max_q3": 0.835,
+      "items": [
+        "a33113813703d355",
+        "c3790d658144d064"
+      ]
+    },
+    {
+      "benchmark": "mmlu_pro",
+      "size": 2,
+      "max_q3": 0.832,
+      "items": [
+        "9b23991820b15178",
+        "a71c510455e2cab5"
+      ]
+    },
+    {
+      "benchmark": "mmlu_pro",
+      "size": 2,
+      "max_q3": 0.808,
+      "items": [
+        "ad3740b30dfe2a52",
+        "b17104cb9880f2de"
+      ]
+    },
+    {
+      "benchmark": "mmlu_pro",
+      "size": 2,
+      "max_q3": 0.805,
+      "items": [
+        "89e2ea458d430d14",
+        "dd6c6e71d2de6569"
+      ]
+    }
+  ]
+}

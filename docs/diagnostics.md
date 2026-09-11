@@ -19,6 +19,23 @@ Q3 is the correlation between item residuals once ability is accounted for. Unde
 | Massive Multitask Language Understanding | 50 | 79,800 | +0.012 | -0.003 | 0.311 | 1.000 | 11.1% |
 | MMLU-Pro | 68 | 79,800 | +0.013 | -0.003 | 0.242 | 1.000 | 8.1% |
 
+### What that means for anyone using this bank
+
+Diffuse dependence of this size changes confidence intervals, so the handover file `mselect/bank/v1/dependent-blocks.json` states it in the unit a consumer can act on. The design effect is the standard one for equicorrelated units, 1 + (n - 1) r, with r the mean residual correlation measured above; `mselect.dependence()` returns it.
+
+| Benchmark | Mean Q3 | 100 items are worth this many independent ones | Variance inflation |
+|---|---:|---:|---:|
+| OpenBookQA | +0.013 | 44 | x2.3 |
+| GPQA (graduate-level Q&A) | +0.025 | 29 | x3.4 |
+| GSM8K (grade-school word problems) | +0.088 | 10 | x9.7 |
+| LegalBench | +0.054 | 16 | x6.4 |
+| MATH (competition mathematics) | +0.146 | 6 | x15.4 |
+| MedQA (US medical licensing questions) | +0.019 | 34 | x2.9 |
+| Massive Multitask Language Understanding | +0.012 | 47 | x2.1 |
+| MMLU-Pro | +0.013 | 43 | x2.3 |
+
+Separately, 115 tight blocks covering 474 items have a Q3 above 0.8 inside the block: items whose residuals move together so closely that they are effectively the same question asked twice. The largest holds 47 items. Those are listed in full in the same file.
+
 This is the honest limitation of the whole project. Benchmark items are not independent given ability: they share passages, templates, subject matter and formats. Every standard error from a fixed-length test is therefore optimistic, the more so the more items come from the same block. Project 03 is told which blocks these are so that it does not treat them as independent evidence.
 
 ## Dimensionality

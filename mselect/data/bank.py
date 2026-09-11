@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass
+from functools import cache
 from pathlib import Path
 
 import numpy as np
@@ -15,7 +16,7 @@ import polars as pl
 from numpy.typing import NDArray
 
 from mselect import paths
-from mselect.irt.model import Floats
+from mselect.irt.model import Floats, Items
 
 
 @dataclass(frozen=True, slots=True)
@@ -110,3 +111,47 @@ def full_suite_scores(bank: Bank) -> Floats:
     counts = observed.sum(axis=1)
     totals = np.where(observed, x, 0.0).sum(axis=1)
     return np.where(counts > 0, totals / np.maximum(counts, 1), np.nan)
+
+
+def load_params(bank: Bank, kind: str = "2pl") -> tuple[Items, pl.DataFrame, dict[str, object]]:
+    """Item parameters for a bank, refusing to load parameters fitted to different bytes.
+
+    The two checks are the point of the function. A parameter file carries the hash of the bank
+    it was fitted to, and its rows are in the bank's item order; if either disagrees, the
+    parameters belong to a different bank and using them would silently mismatch every item.
+    """
+    frame = pl.read_parquet(bank.path / f"params-{kind}.parquet")
+    meta = json.loads((bank.path / f"params-{kind}.json").read_text(encoding="utf-8"))
+    if meta["bank_hash"] != bank.bank_hash:
+        raise ValueError(
+            f"parameters were fitted to bank {meta['bank_hash']}, not {bank.bank_hash}: refit"
+        )
+    if frame["item_id"].to_list() != bank.item_ids:
+        raise ValueError("parameter file is not aligned with the bank's item order")
+    items = Items(
+        frame["a"].to_numpy(),
+        np.nan_to_num(frame["b"].to_numpy(), nan=0.0),
+        frame["c"].to_numpy(),
+    )
+    return items, frame, meta
+
+
+DEFAULT_VERSION = "v1"
+
+
+@cache
+def default_bank(version: str = DEFAULT_VERSION) -> Bank:
+    """The bank that ships inside the package, loaded once per process."""
+    return load(version)
+
+
+@cache
+def default_items(version: str = DEFAULT_VERSION, kind: str = "2pl") -> Items:
+    """The fitted item parameters that ship inside the package, loaded once per process.
+
+    This is what makes `power.items_needed(3, 0.8, 0.0)` work with no arguments about banks:
+    a caller who has not fitted anything gets the frozen, versioned bank this project published,
+    which is the only sensible default and the one project 03 imports.
+    """
+    items, _, _ = load_params(default_bank(version), kind)
+    return items

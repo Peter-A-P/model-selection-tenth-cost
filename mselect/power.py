@@ -30,6 +30,20 @@ from scipy import stats
 from mselect.irt.model import Floats, Items, information, prob
 
 
+def _items_or_default(items: Items | None) -> Items:
+    """The caller's bank, or the calibrated one this package ships with.
+
+    Imported inside the function rather than at module scope: `power` is the interface other
+    projects import, and it should not drag Polars and a Parquet read into every import of it
+    when the caller is passing their own parameters anyway.
+    """
+    if items is not None:
+        return items
+    from mselect.data.bank import default_items
+
+    return default_items()
+
+
 @dataclass(frozen=True, slots=True)
 class ItemsNeeded:
     """The answer, with everything that went into it, because a bare number is a bug."""
@@ -78,7 +92,7 @@ def items_needed(
     power: float = 0.8,
     ability: float = 0.0,
     *,
-    items: Items,
+    items: Items | None = None,
     alpha: float = 0.05,
     paired: bool = True,
     max_items: int | None = None,
@@ -89,7 +103,12 @@ def items_needed(
     `effect` is in percentage points of full-suite accuracy, the unit a benchmark table is read
     in: 3 means "a three point drop". `paired` is the two-model comparison (the release-gate
     question, old model against new); set it False when one side is a fixed reference.
+
+    `items` defaults to the calibrated bank that ships with the package, so a caller who just
+    wants the number writes `items_needed(3, 0.8, ability)` and gets it. Pass your own `Items`
+    to ask the same question of a different bank.
     """
+    items = _items_or_default(items)
     if not 0.0 < power < 1.0:
         raise ValueError("power must be between 0 and 1")
     if effect <= 0.0:
@@ -137,11 +156,12 @@ def detectable_effect(
     power: float = 0.8,
     ability: float = 0.0,
     *,
-    items: Items,
+    items: Items | None = None,
     alpha: float = 0.05,
     paired: bool = True,
 ) -> float:
     """The inverse question: with this many items, how small a drop can be seen at all?"""
+    items = _items_or_default(items)
     slope = curve_slope(items, ability)
     info = adaptive_information(items, ability, n_items)
     z = stats.norm.isf(alpha / 2.0) + stats.norm.isf(1.0 - power)
@@ -155,11 +175,12 @@ def power_at(
     effect: float,
     ability: float = 0.0,
     *,
-    items: Items,
+    items: Items | None = None,
     alpha: float = 0.05,
     paired: bool = True,
 ) -> float:
     """Power to detect `effect` accuracy points with `n_items` items: the simulation check."""
+    items = _items_or_default(items)
     slope = curve_slope(items, ability)
     if slope <= 1e-6:
         return float("nan")
