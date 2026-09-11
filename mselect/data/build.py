@@ -402,7 +402,10 @@ def build_ollm_bank(
     out_dir = paths.ensure((root or paths.BANK) / version)
     panel = ollm.load_panel(paths.OLLM_CACHE)
     selected = list(tasks) if tasks is not None else list(ollm.TASKS)
-    audit_models = ollm.AUDIT_MODELS if audit is None else audit
+    # `audit=None` verifies every model. The sample default lives in `ollm.AUDIT_MODELS` for a
+    # quick look; a bank that gets published is worth checking in full, and the cache makes the
+    # second run of it free.
+    audit_models = len(panel.members) if audit is None else audit
 
     all_items: list[dict[str, object]] = []
     rows: list[dict[str, object]] = []
@@ -416,10 +419,19 @@ def build_ollm_bank(
             by_doc = dict(zip(aligned.doc_ids, aligned.item_ids, strict=True))
             expected = len(aligned.doc_ids)
 
+            misaligned = set(aligned.mismatched)
             kept = 0
             for member in panel.members:
+                if member.fullname in misaligned:
+                    # The audit found this model's doc_id to item mapping differs from the
+                    # reference. Its answers cannot be matched to items, so this task is a hole
+                    # for it rather than a guess.
+                    dropped_models.setdefault(member.fullname, []).append(
+                        f"{task.suffix}: item alignment differs from {aligned.reference}"
+                    )
+                    continue
                 try:
-                    frame = ollm.read_task(client, member, task, with_hashes=False)
+                    frame = ollm.read_task(client, member, task)
                 except ollm.FetchError as exc:
                     # A submission whose run of one task did not survive the Parquet conversion.
                     # It keeps its other 35 tasks and leaves a hole in this one, which is what

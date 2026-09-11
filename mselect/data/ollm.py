@@ -90,6 +90,7 @@ class Task:
     benchmark: str  # the family it contributes to in the bank
     metric: str  # the Parquet column that is 0 or 1
     kind: str  # "multiple_choice" or "free_response"; 3PL is fitted only for the former
+    content: tuple[str, ...]  # the `doc` fields that are the question, and give the item its id
 
     @property
     def label(self) -> str:
@@ -142,17 +143,26 @@ _MATH: Final = (
 # `leaderboard_bbh_fewshot_*` and non-hard `leaderboard_math_*` configs are an earlier naming
 # that only some submissions carry, and are left out for the same reason.
 TASKS: Final[tuple[Task, ...]] = (
-    *(Task(f"leaderboard_bbh_{name}", "bbh", "acc_norm", "multiple_choice") for name in _BBH),
-    Task("leaderboard_gpqa_main", "gpqa", "acc_norm", "multiple_choice"),
     *(
-        Task(f"leaderboard_musr_{name}", "musr", "acc_norm", "multiple_choice")
+        Task(f"leaderboard_bbh_{name}", "bbh", "acc_norm", "multiple_choice", ("input",))
+        for name in _BBH
+    ),
+    Task("leaderboard_gpqa_main", "gpqa", "acc_norm", "multiple_choice", ("Question",)),
+    *(
+        Task(
+            f"leaderboard_musr_{name}",
+            "musr",
+            "acc_norm",
+            "multiple_choice",
+            ("narrative", "question"),
+        )
         for name in ("murder_mysteries", "object_placements", "team_allocation")
     ),
     *(
-        Task(f"leaderboard_math_{name}", "math_hard", "exact_match", "free_response")
+        Task(f"leaderboard_math_{name}", "math_hard", "exact_match", "free_response", ("problem",))
         for name in _MATH
     ),
-    Task("leaderboard_mmlu_pro", "mmlu_pro", "acc", "multiple_choice"),
+    Task("leaderboard_mmlu_pro", "mmlu_pro", "acc", "multiple_choice", ("question",)),
 )
 
 BENCHMARKS: Final = tuple(dict.fromkeys(task.benchmark for task in TASKS))
@@ -503,16 +513,14 @@ def stratified_panel(
 # tidiness: this module now writes nothing anywhere, to Hugging Face or to anyone else.
 
 
-def read_task(
-    client: Client, submission: Submission, task: Task, *, with_hashes: bool
-) -> pl.DataFrame:
-    """One model's responses to one task: `doc_id`, the 0/1 metric, and optionally the hashes.
+def read_task(client: Client, submission: Submission, task: Task) -> pl.DataFrame:
+    """One model's responses to one task: `doc_id` and the 0/1 metric, and nothing else.
 
     The frame comes back sorted by `doc_id` because the stored row order follows the evaluation
     batching and differs between models, which would otherwise make two models' answers to the
     same item look like answers to different ones.
     """
-    columns = ["doc_id", task.metric] + (["doc_hash", "target_hash"] if with_hashes else [])
+    columns = ["doc_id", task.metric]
     key = f"{submission.parquet_url(task)}#{','.join(columns)}"
     cached = client.cache.get(key)
     if cached is not None:
@@ -604,20 +612,82 @@ class TaskItems:
     mismatched: list[str]
 
 
-def item_id(task: Task, doc_hash: str, target_hash: str) -> str:
-    """The item's identity: the task, lm-eval's hash of the document, and of its answer key.
+def item_id(task: Task, content: Sequence[str], target: str) -> str:
+    """The item's identity: the task, the question's own text, and its answer key.
 
-    The answer key is part of the identity for the reason bank v1 gave: the same question with
-    a different key is a different measurement, and a bank that cannot tell them apart cannot
-    report a mis-keyed item.
+    Both halves are hashed here from the text, not taken from the hash columns the harness
+    writes, and both times for a measured reason.
+
+    `doc_hash` is a hash of lm-eval-harness's serialisation of the document, so it changes when
+    the harness changes. On `leaderboard_math_num_theory_hard` a quarter of the panel disagrees
+    with the reference model about every one of the 154 `doc_hash` values while the problem text
+    at each `doc_id` is character-for-character identical. An identity built on it would have
+    split every one of those items in two.
+
+    `target_hash` has the same problem one level down. Two releases of the MATH-Hard dataset
+    write the same answer with different spacing inside the LaTeX, so
+    `\\frac{1+\\sqrt{5}}{4}` and `\\frac{1 + \\sqrt{5}}{4}` hash differently: 46 of 280
+    answers on `leaderboard_math_intermediate_algebra_hard`. Those are the same answer to the
+    same question. So the key is compared with every space removed, which is the right
+    normalisation for a thing that is an answer rather than a sentence, while the question keeps
+    its word boundaries and only has runs of whitespace collapsed.
+
+    The key stays part of the identity for the reason bank v1 gave: the same question with a
+    genuinely different key is a different measurement, and a bank that cannot tell those apart
+    cannot report a mis-keyed item.
     """
     digest = hashlib.sha256()
     digest.update(task.suffix.encode())
-    digest.update(b"\x00")
-    digest.update(doc_hash.encode())
+    for field in content:
+        digest.update(b"\x01")
+        digest.update(" ".join(field.split()).encode())
     digest.update(b"\x02")
-    digest.update(target_hash.encode())
+    digest.update("".join(target.split()).encode())
     return digest.hexdigest()[:16]
+
+
+def read_identity(client: Client, submission: Submission, task: Task) -> pl.DataFrame:
+    """One model's view of what each `doc_id` in a task actually is: `doc_id` and `item_id`.
+
+    Reads the question fields out of the `doc` struct and the answer-key hash beside it, which
+    is a few hundred kilobytes of a file that can be seventy megabytes. The question text is
+    hashed here and then discarded: it is never written to the cache, the bank or the
+    repository.
+    """
+    columns = ["doc_id", "target", *(f"doc.{field}" for field in task.content)]
+    key = f"{submission.parquet_url(task)}#identity:{','.join(columns)}"
+    cached = client.cache.get(key)
+    if cached is not None:
+        return cached
+
+    handle = _RemoteFile(submission.parquet_url(task), client.raw)
+    reader = pq.ParquetFile(handle, pre_buffer=True)
+    frame = pl.from_arrow(reader.read(columns=columns))
+    if not isinstance(frame, pl.DataFrame):  # pragma: no cover - a projection is always a table
+        raise FetchError(f"{submission.repo}/{task.suffix} did not read as a table")
+    frame = frame.sort("doc_id")
+    identities = [
+        item_id(
+            task,
+            [str(row["doc"][field]) for field in task.content],
+            str(row["target"]),
+        )
+        for row in frame.iter_rows(named=True)
+    ]
+    out = pl.DataFrame({"doc_id": frame["doc_id"], "item_id": pl.Series(identities)})
+    client.cache.put(
+        key,
+        out,
+        {
+            "url": submission.parquet_url(task),
+            "remote_bytes": handle.size,
+            "transferred_bytes": handle.transferred,
+            "columns": columns,
+            "rows": out.height,
+            "note": "question text hashed into item_id and discarded; not stored",
+        },
+    )
+    return out
 
 
 def audit_alignment(
@@ -630,19 +700,17 @@ def audit_alignment(
 ) -> TaskItems:
     """Take the item identities from one model, then check other models agree about them.
 
-    The cheap column set (`doc_id` and the score) is only safe if `doc_id` means the same item
-    for every model. It should: the harness walks a fixed dataset in order. This checks it on a
-    seeded sample rather than trusting it, and any model whose mapping differs is named.
+    The cheap column set that every model is read with (`doc_id` and the score) is only safe if
+    `doc_id` means the same item for every model. It should: the harness walks a fixed dataset
+    in order. This checks it on a seeded sample rather than trusting it, by reading the question
+    text itself, and any model whose mapping differs is named and dropped from that task.
     """
     if not panel:
         raise FetchError(f"{task.suffix}: an empty panel has nothing to align")
     reference = panel[0]
-    frame = read_task(client, reference, task, with_hashes=True)
+    frame = read_identity(client, reference, task)
     doc_ids = [int(value) for value in frame["doc_id"].to_list()]
-    identities = [
-        item_id(task, str(doc), str(target))
-        for doc, target in zip(frame["doc_hash"], frame["target_hash"], strict=True)
-    ]
+    identities = [str(value) for value in frame["item_id"].to_list()]
     expected = dict(zip(doc_ids, identities, strict=True))
 
     rng = random.Random(f"{seed}:{task.suffix}")
@@ -656,14 +724,12 @@ def audit_alignment(
     def check(submission: Submission) -> None:
         nonlocal checked
         try:
-            other = read_task(client, submission, task, with_hashes=True)
+            other = read_identity(client, submission, task)
         except FetchError:  # no run of this task to align; the row-count check drops it later
             return
         mapping = {
-            int(doc): item_id(task, str(doc_hash), str(target))
-            for doc, doc_hash, target in zip(
-                other["doc_id"], other["doc_hash"], other["target_hash"], strict=True
-            )
+            int(doc): str(item)
+            for doc, item in zip(other["doc_id"], other["item_id"], strict=True)
         }
         with lock:
             checked += 1
@@ -703,7 +769,7 @@ def fetch_task(
 
     def one(submission: Submission) -> None:
         try:
-            read_task(client, submission, task, with_hashes=False)
+            read_task(client, submission, task)
         except FetchError as exc:
             with lock:
                 failures.append(f"{submission.fullname}: {exc}")
@@ -820,7 +886,7 @@ def _probe(client: Client, chosen: Sequence[Submission]) -> tuple[list[str], lis
 
     def one(submission: Submission) -> None:
         try:
-            read_task(client, submission, PROBE, with_hashes=False)
+            read_task(client, submission, PROBE)
         except (FetchError, OSError) as exc:
             with lock:
                 failures.append(submission.fullname)

@@ -71,11 +71,39 @@ def test_an_empty_pool_is_an_empty_panel_rather_than_an_error() -> None:
 def test_item_identity_depends_on_the_answer_key() -> None:
     """The same question with a different key is a different measurement, as in bank v1."""
     task = ollm.TASKS[0]
-    same = ollm.item_id(task, "docdigest", "targetdigest")
-    assert same == ollm.item_id(task, "docdigest", "targetdigest")
-    assert same != ollm.item_id(task, "docdigest", "OTHER")
-    assert same != ollm.item_id(task, "OTHER", "targetdigest")
-    assert same != ollm.item_id(ollm.TASKS[1], "docdigest", "targetdigest")
+    same = ollm.item_id(task, ["What is 2 + 2?"], "targetdigest")
+    assert same == ollm.item_id(task, ["What is 2 + 2?"], "targetdigest")
+    assert same != ollm.item_id(task, ["What is 2 + 2?"], "OTHER")
+    assert same != ollm.item_id(task, ["What is 2 + 3?"], "targetdigest")
+    assert same != ollm.item_id(ollm.TASKS[1], ["What is 2 + 2?"], "targetdigest")
+
+
+def test_item_identity_ignores_whitespace_but_not_the_question() -> None:
+    """Reformatting is not a new item; a different question is. Bank v1 normalises the same way."""
+    task = ollm.TASKS[0]
+    assert ollm.item_id(task, ["a  b\n c"], "k") == ollm.item_id(task, ["a b c"], "k")
+    assert ollm.item_id(task, ["a", "b"], "k") != ollm.item_id(task, ["ab"], "k")
+
+
+def test_the_same_answer_spaced_differently_is_the_same_item() -> None:
+    """Two releases of MATH-Hard write the same answer with different spacing in the LaTeX.
+
+    46 of 280 answers on one task differ that way and nothing else, so keying items on the
+    harness's target hash split each of them into two half-answered items.
+    """
+    task = ollm.TASKS[0]
+    tight = r"\frac{1+\sqrt{5}}{4}"
+    loose = r"\frac{1 + \sqrt{5}}{4}"
+    assert ollm.item_id(task, ["q"], tight) == ollm.item_id(task, ["q"], loose)
+    # A genuinely different key is still a different item.
+    assert ollm.item_id(task, ["q"], tight) != ollm.item_id(task, ["q"], r"\frac{2}{4}")
+
+
+def test_every_task_declares_which_document_fields_are_the_question() -> None:
+    """An identity built on lm-eval's own doc_hash is not stable across harness versions."""
+    for task in ollm.TASKS:
+        assert task.content, f"{task.suffix} has no content field"
+        assert all(field for field in task.content)
 
 
 def test_every_task_in_the_set_is_distinct_and_scored_binary() -> None:
@@ -162,15 +190,14 @@ def test_the_reader_takes_three_columns_and_leaves_the_rest_on_the_server(tmp_pa
     cache = ollm.Cache(tmp_path / "cache")
     client = ollm.Client(cache, "token-for-the-fake-transport")
     client._client = httpx.Client(transport=_range_transport(payload, seen))
-    task = ollm.Task("leaderboard_fixture", "fixture", "acc_norm", "multiple_choice")
+    task = ollm.Task("leaderboard_fixture", "fixture", "acc_norm", "multiple_choice", ("text",))
     member = _submission("reader", 10.0)
 
-    frame = ollm.read_task(client, member, task, with_hashes=True)
+    frame = ollm.read_task(client, member, task)
 
     assert frame["doc_id"].to_list() == [0, 1, 2], "rows must be sorted into document order"
     assert frame["score"].to_list() == [0.0, 1.0, 1.0]
-    assert frame["doc_hash"].to_list() == ["hash-zero", "hash-one", "hash-two"]
-    assert "doc" not in frame.columns
+    assert "doc" not in frame.columns and "doc_hash" not in frame.columns
     pulled = sum(
         int(header.removeprefix("bytes=").split("-")[1])
         - int(header.removeprefix("bytes=").split("-")[0])
@@ -183,7 +210,7 @@ def test_the_reader_takes_three_columns_and_leaves_the_rest_on_the_server(tmp_pa
 
     # And the second read is free: it comes from the cache, with no further requests.
     before = len(seen)
-    again = ollm.read_task(client, member, task, with_hashes=True)
+    again = ollm.read_task(client, member, task)
     assert len(seen) == before
     assert again.equals(frame)
     assert cache.provenance.exists()
