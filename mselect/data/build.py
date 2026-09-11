@@ -460,6 +460,8 @@ def build_ollm_bank(
                     "models_audited": aligned.audited,
                     "models_misaligned": aligned.mismatched,
                     "models_kept": kept,
+                    "answer_key_drift_items": aligned.key_drift_items,
+                    "answer_key_drift_models": aligned.key_drift_models,
                 }
             )
             if aligned.mismatched:

@@ -2,8 +2,8 @@
 
 Three things here can be wrong in ways that would silently corrupt bank v2 rather than fail:
 the panel can be drawn from the wrong part of the ability range, the range reader can pull the
-wrong bytes, and an item's identity can stop depending on its answer key. Each gets a test that
-fails if it happens.
+wrong bytes, and an item's identity can start depending on something the evaluation harness is
+free to change between versions. Each gets a test that fails if it happens.
 
 The reader is exercised against a real Parquet file served by a fake transport that honours
 Range headers, so the column projection, the redirect handling and the sort are all covered
@@ -12,6 +12,7 @@ without a token and without a request leaving the machine.
 
 from __future__ import annotations
 
+import inspect
 import io
 import json
 
@@ -68,35 +69,33 @@ def test_an_empty_pool_is_an_empty_panel_rather_than_an_error() -> None:
     assert ollm.stratified_panel([], size=10) == []
 
 
-def test_item_identity_depends_on_the_answer_key() -> None:
-    """The same question with a different key is a different measurement, as in bank v1."""
+def test_item_identity_is_the_question_and_nothing_else() -> None:
+    """A different question is a different item; the same one asked twice is not."""
     task = ollm.TASKS[0]
-    same = ollm.item_id(task, ["What is 2 + 2?"], "targetdigest")
-    assert same == ollm.item_id(task, ["What is 2 + 2?"], "targetdigest")
-    assert same != ollm.item_id(task, ["What is 2 + 2?"], "OTHER")
-    assert same != ollm.item_id(task, ["What is 2 + 3?"], "targetdigest")
-    assert same != ollm.item_id(ollm.TASKS[1], ["What is 2 + 2?"], "targetdigest")
+    same = ollm.item_id(task, ["What is 2 + 2?"])
+    assert same == ollm.item_id(task, ["What is 2 + 2?"])
+    assert same != ollm.item_id(task, ["What is 2 + 3?"])
+    assert same != ollm.item_id(ollm.TASKS[1], ["What is 2 + 2?"])
 
 
-def test_item_identity_ignores_whitespace_but_not_the_question() -> None:
-    """Reformatting is not a new item; a different question is. Bank v1 normalises the same way."""
+def test_item_identity_ignores_reformatting_but_not_field_boundaries() -> None:
+    """Bank v1 normalises the same way: NFC and collapsed whitespace, word boundaries kept."""
     task = ollm.TASKS[0]
-    assert ollm.item_id(task, ["a  b\n c"], "k") == ollm.item_id(task, ["a b c"], "k")
-    assert ollm.item_id(task, ["a", "b"], "k") != ollm.item_id(task, ["ab"], "k")
+    assert ollm.item_id(task, ["a  b\n c"]) == ollm.item_id(task, ["a b c"])
+    assert ollm.item_id(task, ["a", "b"]) != ollm.item_id(task, ["ab"])
 
 
-def test_the_same_answer_spaced_differently_is_the_same_item() -> None:
-    """Two releases of MATH-Hard write the same answer with different spacing in the LaTeX.
+def test_the_answer_key_is_reported_not_hashed_into_the_item() -> None:
+    """Two releases of MATH-Hard spell the same answer differently.
 
-    46 of 280 answers on one task differ that way and nothing else, so keying items on the
-    harness's target hash split each of them into two half-answered items.
+    They write it as `\\infty` and `\\iny`, and as `-\\frac{1}{{}2x}` and `-\\frac1{2x}`.
+    Hashing the key with the question split 33 of 307 algebra items and dropped 74 of the 400
+    models on that task, for a difference that is typographic. The key is carried beside the
+    identity instead, so the drift can be counted and reported.
     """
-    task = ollm.TASKS[0]
-    tight = r"\frac{1+\sqrt{5}}{4}"
-    loose = r"\frac{1 + \sqrt{5}}{4}"
-    assert ollm.item_id(task, ["q"], tight) == ollm.item_id(task, ["q"], loose)
-    # A genuinely different key is still a different item.
-    assert ollm.item_id(task, ["q"], tight) != ollm.item_id(task, ["q"], r"\frac{2}{4}")
+    parameters = list(inspect.signature(ollm.item_id).parameters)
+    assert parameters == ["task", "content"], "the key must not reach the identity"
+    assert "answer key is not part of the identity" in (ollm.item_id.__doc__ or "")
 
 
 def test_every_task_declares_which_document_fields_are_the_question() -> None:

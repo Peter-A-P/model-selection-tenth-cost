@@ -77,6 +77,13 @@ WORKERS: Final = 8
 # costs the `doc_hash` column, which on MMLU-Pro is most of the download.
 AUDIT_MODELS: Final = 40
 
+# The identity cache stores a derived frame, not the source bytes, so its key names the
+# derivation as well as the columns. Bump this whenever `item_id` or `read_identity` changes
+# what it computes, or a rebuild will read yesterday's identities back off disk and mix two
+# schemes in one bank without a word. 1: lm-eval doc_hash and target_hash. 2: the question text
+# hashed here, with the answer key hashed in. 3: the question text alone, key reported beside it.
+IDENTITY_SCHEME: Final = 3
+
 
 class FetchError(RuntimeError):
     """A source could not be fetched or did not look the way this module requires."""
@@ -608,54 +615,57 @@ class TaskItems:
     reference: str  # the model the doc_id to item mapping came from
     doc_ids: list[int]
     item_ids: list[str]
-    audited: int  # how many other models had exactly the same mapping
-    mismatched: list[str]
+    audited: int  # how many other models were checked against it
+    mismatched: list[str]  # models whose doc_id to item mapping differs; dropped from this task
+    key_drift_items: int  # items whose answer key some model spells differently
+    key_drift_models: int  # how many models spell at least one key differently
 
 
-def item_id(task: Task, content: Sequence[str], target: str) -> str:
-    """The item's identity: the task, the question's own text, and its answer key.
+def normalise(text: str) -> str:
+    """Runs of whitespace collapsed, so reformatting is not a different question."""
+    return " ".join(text.split())
 
-    Both halves are hashed here from the text, not taken from the hash columns the harness
-    writes, and both times for a measured reason.
 
-    `doc_hash` is a hash of lm-eval-harness's serialisation of the document, so it changes when
-    the harness changes. On `leaderboard_math_num_theory_hard` a quarter of the panel disagrees
-    with the reference model about every one of the 154 `doc_hash` values while the problem text
-    at each `doc_id` is character-for-character identical. An identity built on it would have
-    split every one of those items in two.
+def item_id(task: Task, content: Sequence[str]) -> str:
+    """The item's identity: the task and the question's own text. Nothing else.
 
-    `target_hash` has the same problem one level down. Two releases of the MATH-Hard dataset
-    write the same answer with different spacing inside the LaTeX, so
-    `\\frac{1+\\sqrt{5}}{4}` and `\\frac{1 + \\sqrt{5}}{4}` hash differently: 46 of 280
-    answers on `leaderboard_math_intermediate_algebra_hard`. Those are the same answer to the
-    same question. So the key is compared with every space removed, which is the right
-    normalisation for a thing that is an answer rather than a sentence, while the question keeps
-    its word boundaries and only has runs of whitespace collapsed.
+    Two decisions here, both forced by measurement rather than taste.
 
-    The key stays part of the identity for the reason bank v1 gave: the same question with a
-    genuinely different key is a different measurement, and a bank that cannot tell those apart
-    cannot report a mis-keyed item.
+    **The question text is hashed by this project, not taken from the harness.**
+    lm-eval-harness writes a `doc_hash` column, which looks like exactly this and is not: it
+    hashes the harness's serialisation of the document, so it moves when the harness moves. On
+    `leaderboard_math_num_theory_hard` a quarter of the panel disagrees with the reference model
+    about every one of the 154 `doc_hash` values while the problem text at each `doc_id` is
+    character-for-character identical.
+
+    **The answer key is not part of the identity, which is a departure from bank v1.** Bank v1
+    hashes the key with the question because the same question can arrive from two HELM
+    scenarios with different keys, and telling those apart is what the mis-keyed-item check
+    needs. Here each task is one dataset, and what varies between models is not the key but its
+    spelling: two releases of MATH-Hard write the same answer as `\\infty` and `\\iny`, and as
+    `-\\frac{1}{{}2x}` and `-\\frac1{2x}`. Keeping the key in the identity split 33 of 307
+    algebra items and cost 74 of the 400 models on that task alone, for a difference that is
+    typographic. The drift is not hidden: `audit_alignment` counts the items whose key any model
+    spells differently, and the manifest reports it per task.
     """
     digest = hashlib.sha256()
     digest.update(task.suffix.encode())
     for field in content:
         digest.update(b"\x01")
-        digest.update(" ".join(field.split()).encode())
-    digest.update(b"\x02")
-    digest.update("".join(target.split()).encode())
+        digest.update(normalise(field).encode())
     return digest.hexdigest()[:16]
 
 
 def read_identity(client: Client, submission: Submission, task: Task) -> pl.DataFrame:
-    """One model's view of what each `doc_id` in a task actually is: `doc_id` and `item_id`.
+    """What each `doc_id` in a task is, for one model: `doc_id`, `item_id` and the answer key.
 
-    Reads the question fields out of the `doc` struct and the answer-key hash beside it, which
-    is a few hundred kilobytes of a file that can be seventy megabytes. The question text is
-    hashed here and then discarded: it is never written to the cache, the bank or the
-    repository.
+    Reads the question fields out of the `doc` struct and the answer beside it, which is a few
+    hundred kilobytes of a file that can be seventy megabytes. The question text is hashed here
+    and then discarded: it is never written to the cache, the bank or the repository. The key is
+    kept, with its whitespace removed, only so that a disagreement about it can be counted.
     """
     columns = ["doc_id", "target", *(f"doc.{field}" for field in task.content)]
-    key = f"{submission.parquet_url(task)}#identity:{','.join(columns)}"
+    key = f"{submission.parquet_url(task)}#identity{IDENTITY_SCHEME}:{','.join(columns)}"
     cached = client.cache.get(key)
     if cached is not None:
         return cached
@@ -667,14 +677,23 @@ def read_identity(client: Client, submission: Submission, task: Task) -> pl.Data
         raise FetchError(f"{submission.repo}/{task.suffix} did not read as a table")
     frame = frame.sort("doc_id")
     identities = [
-        item_id(
-            task,
-            [str(row["doc"][field]) for field in task.content],
-            str(row["target"]),
-        )
+        item_id(task, [str(row["doc"][field]) for field in task.content])
         for row in frame.iter_rows(named=True)
     ]
-    out = pl.DataFrame({"doc_id": frame["doc_id"], "item_id": pl.Series(identities)})
+    out = pl.DataFrame(
+        {
+            "doc_id": frame["doc_id"],
+            "item_id": pl.Series(identities),
+            "answer_key": pl.Series(
+                ["".join(str(value).split()) for value in frame["target"].to_list()]
+            ),
+        }
+    )
+    if out["item_id"].n_unique() != out.height:
+        raise FetchError(
+            f"{submission.repo}/{task.suffix}: two documents hash to the same item, so the "
+            f"content fields {task.content} do not identify an item in this task"
+        )
     client.cache.put(
         key,
         out,
@@ -712,6 +731,9 @@ def audit_alignment(
     doc_ids = [int(value) for value in frame["doc_id"].to_list()]
     identities = [str(value) for value in frame["item_id"].to_list()]
     expected = dict(zip(doc_ids, identities, strict=True))
+    expected_keys = dict(zip(identities, frame["answer_key"].to_list(), strict=True))
+    drifted_items: set[str] = set()
+    drifted_models: set[str] = set()
 
     rng = random.Random(f"{seed}:{task.suffix}")
     others = list(panel[1:])
@@ -731,10 +753,18 @@ def audit_alignment(
             int(doc): str(item)
             for doc, item in zip(other["doc_id"], other["item_id"], strict=True)
         }
+        different = {
+            str(item)
+            for item, key in zip(other["item_id"], other["answer_key"], strict=True)
+            if str(item) in expected_keys and expected_keys[str(item)] != key
+        }
         with lock:
             checked += 1
             if mapping != expected:
                 mismatched.append(submission.fullname)
+            if different:
+                drifted_items.update(different)
+                drifted_models.add(submission.fullname)
 
     _each(check, sample)
     mismatched.sort()
@@ -745,6 +775,8 @@ def audit_alignment(
         item_ids=identities,
         audited=checked,
         mismatched=mismatched,
+        key_drift_items=len(drifted_items),
+        key_drift_models=len(drifted_models),
     )
 
 
