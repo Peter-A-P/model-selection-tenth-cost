@@ -571,3 +571,61 @@ someone else's evaluation harness inherits that harness's version drift, and an 
 looks like a content hash may be a hash of a serialisation. The defence is to hash the question
 itself and to check that every model agrees about what each position means. That is what bank
 v2 now does; it is not what its first draft did, and its first draft would have shipped.
+
+## 15. The own-run runner, 2026-09-11
+
+### 15.1 The vendor call is a seam, not an import
+
+Section 5 puts the vendor call inside `runner/`. It is now behind a one-method `Caller`
+protocol instead, and `runner/administer.py` holds the part that has to be right: what to
+ask, how to score it, and what to record. Nothing in it imports the gateway, holds a
+credential or can make a request.
+
+The reason is testability, and it is the same reason `prompts.py` was written before any
+runner existed. The scoring rules are where a mistake does real damage: a reply the parser
+could not read, recorded as a wrong answer, becomes an item statistic, and
+`docs/items-that-measure-nothing.md` would then be a report about this repository rather
+than about the benchmark. Those rules are now exercised against a fake caller, with no
+network, no key and no dollar, and the adversarial reply fixtures run in CI like any other
+test.
+
+Three rules are enforced there rather than assumed:
+
+- An unparseable reply is recorded as unparsed and never as incorrect. The unparsed share is
+  a number this project reports.
+- An item whose answer key is not among its own options cannot be scored at all, and is
+  recorded with the reason. That is a broken item, not eleven wrong models.
+- Replies are matched to prompts by position, and a caller that returns a different number of
+  them raises rather than scoring one item against another item's answer.
+
+### 15.2 What is left, and what it waits on
+
+`administer.py` and `records.py` are built and tested. The gateway adapter, the roughly sixty
+lines that turn a `Prompt` into a `boundary.ChatRequest` and a `ChatResponse` back into a
+`Reply`, is not, and deliberately: `boundary` is a git dependency on a private repository and
+its `v0.2.0` tag does not exist yet. Adding the dependency against an untagged commit would
+put an unverifiable pin in `pyproject.toml` and would need a token in this repository's CI for
+code that cannot run. The pin goes in when the tag does, which is the same staging the
+`pyproject.toml` comment already described.
+
+Batching is an implementation detail of that adapter and not of the experiment, which is why
+it is invisible in `administer.py`. That matters for scheduling: the gateway's Message
+Batches support halves the Anthropic share of the bill and changes nothing else, so if it
+were ever late or broken, the panel can run one call at a time for a few dollars more rather
+than wait. The batch endpoint is the default; it is not a blocker.
+
+### 15.3 Resuming is reading your own record file
+
+`records.py` appends one JSON object per line and never rewrites. The file is the resume
+state: `done()` returns the cells already recorded and `administer` skips them, so "run it
+again" is the answer to an interrupted run rather than a second bill. A half-written last
+line is skipped rather than raised on, because that is the normal shape of a file whose
+process was killed, and the cell it belongs to is simply asked again.
+
+A cell whose call failed is not done: an error is usually a timeout or a rate limit and
+resuming should pick it up. A cell whose reply was unparseable is done, because asking the
+same question at temperature zero again will not read any better.
+
+Records live under `out/`, which is gitignored. What this project commits is the 0 or 1 per
+cell, not the replies, for the same reason it does not commit item text (section 13.5): a
+reply can quote the question back.
