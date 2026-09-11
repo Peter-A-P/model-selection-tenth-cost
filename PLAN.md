@@ -1,7 +1,8 @@
 # Plan: Model Selection at a Tenth of the Cost
 
 **Written:** 2026-09-06. **Amended:** 2026-09-10, section 13.
-**Status:** the public-data half is built and measured; the own-run panel is not started.
+**Status:** the public-data half is built, measured and public (2026-09-11, MIT, three tags);
+the own-run panel is not started and waits on project 04's `v0.2.0` tag.
 **Build window:** planned 4 weeks, 2026-11-02 to 2026-11-29; started early on 2026-09-10
 because the work needs no vendor spend until section 3.3. Standard practitioner version; a
 publishable version is a deferred extension (section 12).
@@ -308,12 +309,15 @@ measured and committed; everything unticked is blocked on vendor calls or on a d
       intervals. **Reproduced at a far smaller share than 10%, and with a crossover the plan did
       not anticipate**: 10 adaptive items match 127 random ones (tau 0.778), and above about 200
       items the baselines win. Section 13.6 and `docs/rejected.md`
-- [ ] Validation on the own-run panel of models the calibration never saw. **Blocked**: needs the
-      gateway's batch support and this project's spend caps. Held-out validation within the
-      public panel is done instead (leave-one-model-out, item parameters refitted without the
-      held-out model)
+- [ ] Validation on the own-run panel of models the calibration never saw. **Blocked on one
+      thing as of 2026-09-11**: project 04's `v0.2.0` tag, which its own plan says waits on one
+      live batch call and one live local call. The spend caps this line used to wait on were
+      confirmed by Peter the same day (US$40 a month, US$30 a run, in 04's `config/caps.yaml`),
+      and the batch support was written rather than deferred to October. Held-out validation
+      within the public panel is done instead (leave-one-model-out, item parameters refitted
+      without the held-out model)
 - [ ] Position bias, framing effects and test-retest reliability each measured with intervals.
-      **Blocked on the same thing.** A free partial arrived anyway: repeated HELM administrations
+      **Blocked on the same one thing.** A free partial arrived anyway: repeated HELM administrations
       of the same model and item agree 95.3% of the time (n = 8,431)
 - [x] A list of items that measure nothing, with evidence per item. `docs/items-that-measure-nothing.md`
 - [x] Q3 and dimensionality diagnostics reported. `docs/diagnostics.md`
@@ -326,7 +330,8 @@ measured and committed; everything unticked is blocked on vendor calls or on a d
 - [x] README opens with the one-liner and the results table
 - [x] Practitioner write-up published. `docs/writeup.md`
 - [x] One rejected approach documented with evidence. `docs/rejected.md`
-- [ ] `mselect` v0.1.0 tagged; repository public. **Peter's decision**, not the build's
+- [x] `mselect` v0.1.0 tagged; repository public. **Decided by Peter 2026-09-11**: the
+      repository is public, MIT licensed, with `v0.1.0`, `v0.2.0` and `v0.3.0` tagged
 
 ## 12. Deferred: the publishable version
 
@@ -396,9 +401,12 @@ call. It does not replace the test-retest experiment in section 4.3, which contr
 and prompt.
 
 Blocked: everything in section 3.3 and 4.3 that needs vendor calls. Those go through the
-portfolio gateway (project 04), whose Message Batches support lands in its v0.2 in October, and
-they need this project's own spend caps and Peter's go. Until then the own-run rows in the
-README say so rather than being quietly dropped.
+portfolio gateway (project 04). **Updated 2026-09-11**: two of the three things this paragraph
+waited on have arrived. The Message Batches support is written and merged in 04 rather than
+pencilled in for October, and this project's spend caps are confirmed by Peter at US$40 a month
+and US$30 a run. What is left is 04's `v0.2.0` tag, which its plan holds for one live batch call
+and one live local call, and Peter's go for the spend. Until then the own-run rows in the README
+say so rather than being quietly dropped.
 
 ### 13.5 Item text is not committed
 
