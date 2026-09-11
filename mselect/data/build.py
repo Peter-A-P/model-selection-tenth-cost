@@ -278,33 +278,6 @@ def _hash_files(files: Iterable[Path]) -> str:
     return digest.hexdigest()[:16]
 
 
-def _ollm_items(task_items: ollm.TaskItems) -> list[dict[str, object]]:
-    """The item table rows for one task.
-
-    No preview and no option count. The leaderboard's per-item files carry the full question,
-    but this bank does not fetch that column and would not commit it if it did: bank v1 already
-    withholds item text, and here the identity is lm-eval-harness's own hash of the document, so
-    there is nothing to preview. `instance_id` is the task and the document's position in it,
-    which is what a reader needs in order to find the item in the source dataset.
-    """
-    task = task_items.task
-    return [
-        {
-            "item_id": item,
-            "benchmark": task.benchmark,
-            "kind": task.kind,
-            "scenario_key": task.suffix,
-            "instance_id": f"{task.label}#{doc}",
-            "n_options": None,
-            "has_key": True,
-            "preview": "",
-            "source_project": ollm.ORG,
-            "source_release": "latest",
-        }
-        for doc, item in zip(task_items.doc_ids, task_items.item_ids, strict=True)
-    ]
-
-
 def _ollm_family(model_type: str) -> str:
     """The leaderboard's own type label, reduced to base, merge, tuned or other.
 
@@ -379,99 +352,131 @@ def _dense_matrix(
     return x
 
 
+def _ollm_task(
+    client: ollm.Client,
+    task: ollm.Task,
+    panel: ollm.Panel,
+    progress: Callable[[str], None],
+) -> tuple[pl.DataFrame, list[dict[str, object]], dict[str, object]]:
+    """One task's responses and items, taken from each model's own view of the documents.
+
+    There is no reference model here, and that is the point. Each model's `doc_id` is mapped to
+    an item through that model's own document text, so a dataset revision that changes a question
+    produces two items rather than a disagreement: the models that saw the old wording answer one,
+    the models that saw the new wording answer the other, and the response floor decides whether
+    either is worth keeping. MMLU-Pro shipped exactly such a revision partway through the
+    leaderboard's life.
+    """
+    frames: list[pl.DataFrame] = []
+    registry: dict[str, dict[str, object]] = {}
+    keys: dict[str, str] = {}
+    drifted: set[str] = set()
+    missing: list[str] = []
+
+    for member in panel.members:
+        try:
+            identity = ollm.read_identity(client, member, task)
+            scores = ollm.read_task(client, member, task)
+        except ollm.FetchError as exc:
+            missing.append(f"{member.fullname}: {exc}")
+            continue
+        joined = identity.join(scores, on="doc_id", how="inner")
+        correct = ollm.binary(joined, f"{member.fullname}/{task.suffix}")
+        frames.append(
+            pl.DataFrame(
+                {
+                    "model_id": pl.Series([member.fullname] * joined.height, dtype=pl.Utf8),
+                    "item_id": joined["item_id"],
+                    "correct": correct,
+                }
+            )
+        )
+        for item, doc, key in zip(
+            joined["item_id"].to_list(),
+            joined["doc_id"].to_list(),
+            joined["answer_key"].to_list(),
+            strict=True,
+        ):
+            if item not in registry:
+                registry[item] = {
+                    "item_id": item,
+                    "benchmark": task.benchmark,
+                    "kind": task.kind,
+                    "scenario_key": task.suffix,
+                    "instance_id": f"{task.label}#{doc}",
+                    "n_options": None,
+                    "has_key": bool(key),
+                    "preview": "",
+                    "source_project": ollm.ORG,
+                    "source_release": "latest",
+                }
+                keys[item] = str(key)
+            elif keys[item] != key:
+                drifted.add(item)
+
+    responses = (
+        pl.concat(frames)
+        if frames
+        else pl.DataFrame(
+            {"model_id": pl.Series([], dtype=pl.Utf8), "item_id": pl.Series([], dtype=pl.Utf8)}
+        ).with_columns(pl.Series("correct", [], dtype=pl.Int8))
+    )
+    per_item = responses.group_by("item_id").len()
+    models = responses["model_id"].n_unique()
+    everywhere = int((per_item["len"] == models).sum()) if models else 0
+    summary: dict[str, object] = {
+        "task": task.suffix,
+        "benchmark": task.benchmark,
+        "metric": task.metric,
+        "content_fields": list(task.content),
+        "models_read": models,
+        "models_missing": missing,
+        "items": len(registry),
+        "items_every_model_answered": everywhere,
+        "items_under_half_the_panel": int((per_item["len"] < models / 2).sum()) if models else 0,
+        "answer_key_drift_items": len(drifted),
+    }
+    progress(
+        f"{task.suffix}: {len(registry):,} items, {models} models, "
+        f"{everywhere:,} items answered by all of them"
+    )
+    return responses, list(registry.values()), summary
+
+
 def build_ollm_bank(
     *,
     version: str = "v2",
+    min_models: int = 100,
     tasks: Iterable[ollm.Task] | None = None,
-    audit: int | None = None,
     progress: Callable[[str], None] = lambda _: None,
     root: Path | None = None,
 ) -> BuildSummary:
     """Freeze a bank from the Open LLM Leaderboard cache.
 
     The output has the same shape as `build_bank`, so the fit, the diagnostics, the simulation
-    and the report are unchanged. Two things the HELM build must handle do not arise here, and
-    two new ones do. Every model in the panel answered every item, so there are no repeated
-    cells to collapse by majority and no response floor to apply: an item either has the whole
-    panel or the build has a bug. What is new is the alignment audit, because item identity
-    comes from a column this build reads for only some models, and the row-count check, because
-    a model whose task file has a different number of rows was evaluated against a different
-    version of the dataset and does not belong in the same matrix.
+    and the report are unchanged. The floor is higher than bank v1's because this panel is
+    larger and because a dataset revision leaves a tail of items that only the models on one side
+    of it ever saw; an item answered by fewer than a quarter of 400 models has parameters too
+    loose to be worth publishing.
     """
     cache = ollm.Cache(paths.ensure(paths.OLLM_CACHE))
     out_dir = paths.ensure((root or paths.BANK) / version)
     panel = ollm.load_panel(paths.OLLM_CACHE)
     selected = list(tasks) if tasks is not None else list(ollm.TASKS)
-    # `audit=None` verifies every model. The sample default lives in `ollm.AUDIT_MODELS` for a
-    # quick look; a bank that gets published is worth checking in full, and the cache makes the
-    # second run of it free.
-    audit_models = len(panel.members) if audit is None else audit
 
     all_items: list[dict[str, object]] = []
-    rows: list[dict[str, object]] = []
-    audits: list[dict[str, object]] = []
-    dropped_models: dict[str, list[str]] = {}
+    frames: list[pl.DataFrame] = []
+    summaries: list[dict[str, object]] = []
 
     with ollm.Client(cache, ollm.token_from_env()) as client:
         for index, task in enumerate(selected, start=1):
-            aligned = ollm.audit_alignment(client, task, panel.members, audit=audit_models)
-            all_items.extend(_ollm_items(aligned))
-            by_doc = dict(zip(aligned.doc_ids, aligned.item_ids, strict=True))
-            expected = len(aligned.doc_ids)
+            progress(f"[{index}/{len(selected)}] {task.suffix}")
+            responses, items, summary = _ollm_task(client, task, panel, progress)
+            frames.append(responses)
+            all_items.extend(items)
+            summaries.append(summary)
 
-            misaligned = set(aligned.mismatched)
-            kept = 0
-            for member in panel.members:
-                if member.fullname in misaligned:
-                    # The audit found this model's doc_id to item mapping differs from the
-                    # reference. Its answers cannot be matched to items, so this task is a hole
-                    # for it rather than a guess.
-                    dropped_models.setdefault(member.fullname, []).append(
-                        f"{task.suffix}: item alignment differs from {aligned.reference}"
-                    )
-                    continue
-                try:
-                    frame = ollm.read_task(client, member, task)
-                except ollm.FetchError as exc:
-                    # A submission whose run of one task did not survive the Parquet conversion.
-                    # It keeps its other 35 tasks and leaves a hole in this one, which is what
-                    # the density figure in the manifest is for.
-                    dropped_models.setdefault(member.fullname, []).append(f"{task.suffix}: {exc}")
-                    continue
-                if frame.height != expected:
-                    dropped_models.setdefault(member.fullname, []).append(
-                        f"{task.suffix}: {frame.height} rows, expected {expected}"
-                    )
-                    continue
-                scores = ollm.binary(frame, f"{member.fullname}/{task.suffix}")
-                for doc, score in zip(frame["doc_id"].to_list(), scores.to_list(), strict=True):
-                    item = by_doc.get(int(doc))
-                    if item is None:  # pragma: no cover - the row-count check gets here first
-                        continue
-                    rows.append({"model_id": member.fullname, "item_id": item, "correct": score})
-                kept += 1
-            audits.append(
-                {
-                    "task": task.suffix,
-                    "benchmark": task.benchmark,
-                    "metric": task.metric,
-                    "items": expected,
-                    "reference_model": aligned.reference,
-                    "models_audited": aligned.audited,
-                    "models_misaligned": aligned.mismatched,
-                    "models_kept": kept,
-                    "answer_key_drift_items": aligned.key_drift_items,
-                    "answer_key_drift_models": aligned.key_drift_models,
-                }
-            )
-            if aligned.mismatched:
-                progress(f"  {task.suffix}: MISALIGNED {aligned.mismatched}")
-            progress(
-                f"[{index}/{len(selected)}] {task.suffix}: {expected:,} items, "
-                f"{kept}/{len(panel.members)} models"
-            )
-
-    frame = pl.DataFrame(rows, schema={"model_id": pl.Utf8, "item_id": pl.Utf8, "correct": pl.Int8})
+    frame = pl.concat(frames) if frames else pl.DataFrame()
     responses, repeated_cells, agreement = _collapse_repeats(frame)
 
     counts = responses.group_by("item_id").len().rename({"len": "n_models"})
@@ -479,9 +484,11 @@ def build_ollm_bank(
         pl.DataFrame(all_items)
         .unique(subset=["item_id"], keep="first")
         .join(counts, on="item_id", how="inner")
+        .filter(pl.col("n_models") >= min_models)
         .sort("item_id")
     )
     dropped_items = len(all_items) - items_frame.height
+    responses = responses.join(items_frame.select("item_id"), on="item_id", how="semi")
     answered = {
         str(row["model_id"]): int(row["len"])
         for row in responses.group_by("model_id").len().iter_rows(named=True)
@@ -514,7 +521,7 @@ def build_ollm_bank(
         "bank_version": version,
         "built": datetime.now(UTC).date().isoformat(),
         "bank_hash": bank_hash,
-        "min_models_per_item": len(panel.members),
+        "min_models_per_item": min_models,
         "n_models": models_frame.height,
         "n_items": items_frame.height,
         "n_responses": responses.height,
@@ -531,8 +538,7 @@ def build_ollm_bank(
             "leaderboard_average_low": min(averages),
             "leaderboard_average_high": max(averages),
         },
-        "alignment_audit": audits,
-        "models_with_unexpected_row_counts": dropped_models,
+        "per_task": summaries,
         "sources": [
             {
                 "task": task.suffix,

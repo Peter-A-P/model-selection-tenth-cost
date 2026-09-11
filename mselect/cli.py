@@ -80,15 +80,12 @@ def bank_build(
     version: str = typer.Option("v1", help="Bank version to write under mselect/bank/."),
     min_models: int = typer.Option(40, help="Keep an item only with at least this many responses."),
     source: str = typer.Option("helm", help="helm (bank v1) or ollm (bank v2)."),
-    audit: int = typer.Option(
-        0, help="ollm only: models per task whose item alignment is verified (0 means all)."
-    ),
 ) -> None:
     """Assemble the response matrix from the cache and freeze the bank."""
     from mselect.data import build
 
     if source == "ollm":
-        summary = build.build_ollm_bank(version=version, audit=audit or None, progress=_say)
+        summary = build.build_ollm_bank(version=version, min_models=min_models, progress=_say)
     else:
         summary = build.build_bank(version=version, min_models=min_models, progress=_say)
     _say(summary.describe())

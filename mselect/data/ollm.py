@@ -22,11 +22,14 @@ Three facts about the format drive the whole design:
    Parquet, of which the two columns this project needs are under two. Every read here is a
    column projection over HTTP range requests, so a build transfers about 800 MB rather than
    28 GB. `_RemoteFile` is that range reader.
-3. `doc_hash` is lm-eval-harness's own content hash of the item, and it is stable across
-   models; `doc_id` is the item's position in the task, and is stable too, but the *row order*
-   is not (it follows the batching). So rows are keyed by `doc_id` and identity comes from
-   `doc_hash`, and `audit_alignment` checks that the mapping between them is the same for
-   every audited model rather than assuming it.
+3. The stored row order follows the evaluation batching and differs between models, so rows are
+   keyed by `doc_id`. What a `doc_id` means is read from that model's own copy of the document
+   and hashed here, by `read_identity`. lm-eval-harness's `doc_hash` column looks like exactly
+   that identifier and is not one: it hashes the harness's serialisation rather than the
+   document, so it moves when the harness moves. There is no reference model either, because
+   MMLU-Pro shipped a dataset revision partway through the leaderboard's life and there is no
+   correct one to be; the items are the union across the panel and the response floor decides
+   what survives.
 
 Everything fetched is cached under `data/raw/ollm/` as the projected columns, not the source
 file, with a provenance line per fetch recording the remote file's size and the rows taken.
@@ -72,11 +75,6 @@ RETRY_STATUS: Final = frozenset({408, 429, 500, 502, 503, 504})
 RETRIES: Final = 6
 BACKOFF_CAP_S: Final = 60.0
 WORKERS: Final = 8
-
-# How many models per task have their `doc_id` to `doc_hash` mapping checked against the
-# reference model's. Every model's row count is checked; this is the stronger check, and it
-# costs the `doc_hash` column, which on MMLU-Pro is most of the download.
-AUDIT_MODELS: Final = 40
 
 # The identity cache stores a derived frame, not the source bytes, so its key names the
 # derivation as well as the columns. Bump this whenever `item_id` or `read_identity` changes
@@ -614,20 +612,6 @@ def binary(frame: pl.DataFrame, where: str) -> pl.Series:
     return values.cast(pl.Int8)
 
 
-@dataclass(frozen=True, slots=True)
-class TaskItems:
-    """The item identities of one task, taken from the reference model and then audited."""
-
-    task: Task
-    reference: str  # the model the doc_id to item mapping came from
-    doc_ids: list[int]
-    item_ids: list[str]
-    audited: int  # how many other models were checked against it
-    mismatched: list[str]  # models whose doc_id to item mapping differs; dropped from this task
-    key_drift_items: int  # items whose answer key some model spells differently
-    key_drift_models: int  # how many models spell at least one key differently
-
-
 def _flatten(value: object) -> str:
     """One document field as text. A list of options keeps its order, which the dataset fixes."""
     if isinstance(value, list):
@@ -659,8 +643,8 @@ def item_id(task: Task, content: Sequence[str], disambiguator: str = "") -> str:
     spelling: two releases of MATH-Hard write the same answer as `\\infty` and `\\iny`, and as
     `-\\frac{1}{{}2x}` and `-\\frac1{2x}`. Keeping the key in the identity split 33 of 307
     algebra items and cost 74 of the 400 models on that task alone, for a difference that is
-    typographic. The drift is not hidden: `audit_alignment` counts the items whose key any model
-    spells differently, and the manifest reports it per task.
+    typographic. The drift is not hidden: the build counts the items whose key the panel spells
+    more than one way, and the manifest reports it per task.
 
     `disambiguator` is how the few genuine exceptions are handled, and `task_identities` is what
     fills it in. `leaderboard_bbh_causal_judgement` asks two of its questions twice, each time
@@ -750,76 +734,6 @@ def read_identity(client: Client, submission: Submission, task: Task) -> pl.Data
         },
     )
     return out
-
-
-def audit_alignment(
-    client: Client,
-    task: Task,
-    panel: Sequence[Submission],
-    *,
-    audit: int = AUDIT_MODELS,
-    seed: int = 0,
-) -> TaskItems:
-    """Take the item identities from one model, then check other models agree about them.
-
-    The cheap column set that every model is read with (`doc_id` and the score) is only safe if
-    `doc_id` means the same item for every model. It should: the harness walks a fixed dataset
-    in order. This checks it on a seeded sample rather than trusting it, by reading the question
-    text itself, and any model whose mapping differs is named and dropped from that task.
-    """
-    if not panel:
-        raise FetchError(f"{task.suffix}: an empty panel has nothing to align")
-    reference = panel[0]
-    frame = read_identity(client, reference, task)
-    doc_ids = [int(value) for value in frame["doc_id"].to_list()]
-    identities = [str(value) for value in frame["item_id"].to_list()]
-    expected = dict(zip(doc_ids, identities, strict=True))
-    expected_keys = dict(zip(identities, frame["answer_key"].to_list(), strict=True))
-    drifted_items: set[str] = set()
-    drifted_models: set[str] = set()
-
-    rng = random.Random(f"{seed}:{task.suffix}")
-    others = list(panel[1:])
-    rng.shuffle(others)
-    sample = others[:audit]
-    mismatched: list[str] = []
-    checked = 0
-    lock = threading.Lock()
-
-    def check(submission: Submission) -> None:
-        nonlocal checked
-        try:
-            other = read_identity(client, submission, task)
-        except FetchError:  # no run of this task to align; the row-count check drops it later
-            return
-        mapping = {
-            int(doc): str(item) for doc, item in zip(other["doc_id"], other["item_id"], strict=True)
-        }
-        different = {
-            str(item)
-            for item, key in zip(other["item_id"], other["answer_key"], strict=True)
-            if str(item) in expected_keys and expected_keys[str(item)] != key
-        }
-        with lock:
-            checked += 1
-            if mapping != expected:
-                mismatched.append(submission.fullname)
-            if different:
-                drifted_items.update(different)
-                drifted_models.add(submission.fullname)
-
-    _each(check, sample)
-    mismatched.sort()
-    return TaskItems(
-        task=task,
-        reference=reference.fullname,
-        doc_ids=doc_ids,
-        item_ids=identities,
-        audited=checked,
-        mismatched=mismatched,
-        key_drift_items=len(drifted_items),
-        key_drift_models=len(drifted_models),
-    )
 
 
 def _each[T](fn: Callable[[T], object], items: Sequence[T], *, workers: int = WORKERS) -> int:
