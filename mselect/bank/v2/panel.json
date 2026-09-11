@@ -1,0 +1,3617 @@
+{
+  "size": 400,
+  "seed": 0,
+  "strata": 40,
+  "per_organisation": 8,
+  "selected": "2026-09-11",
+  "rejected": [
+    "JungZoona/T3Q-Qwen2.5-14B-Instruct-1M-e3: https://huggingface.co/datasets/open-llm-leaderboard/JungZoona__T3Q-Qwen2.5-14B-Instruct-1M-e3-details/resolve/refs%2Fconvert%2Fparquet/JungZoona__T3Q-Qwen2.5-14B-Instruct-1M-e3__leaderboard_bbh_boolean_expressions/latest/0000.parquet returned HTTP 404",
+    "Marsouuu/lareneg3Bv2-ECE-PRYMMAL-Martial: https://huggingface.co/datasets/open-llm-leaderboard/Marsouuu__lareneg3Bv2-ECE-PRYMMAL-Martial-details/resolve/refs%2Fconvert%2Fparquet/Marsouuu__lareneg3Bv2-ECE-PRYMMAL-Martial__leaderboard_bbh_boolean_expressions/latest/0000.parquet returned HTTP 404",
+    "bosonai/Higgs-Llama-3-70B: https://huggingface.co/datasets/open-llm-leaderboard/bosonai__Higgs-Llama-3-70B-details/resolve/refs%2Fconvert%2Fparquet/bosonai__Higgs-Llama-3-70B__leaderboard_bbh_boolean_expressions/latest/0000.parquet returned HTTP 404",
+    "huggyllama/llama-65b: https://huggingface.co/datasets/open-llm-leaderboard/huggyllama__llama-65b-details/resolve/refs%2Fconvert%2Fparquet/huggyllama__llama-65b__leaderboard_bbh_boolean_expressions/latest/0000.parquet returned HTTP 404",
+    "jaspionjader/bh-34: https://huggingface.co/datasets/open-llm-leaderboard/jaspionjader__bh-34-details/resolve/refs%2Fconvert%2Fparquet/jaspionjader__bh-34__leaderboard_bbh_boolean_expressions/latest/0000.parquet returned HTTP 404",
+    "pankajmathur/orca_mini_v9_2_14B: https://huggingface.co/datasets/open-llm-leaderboard/pankajmathur__orca_mini_v9_2_14B-details/resolve/refs%2Fconvert%2Fparquet/pankajmathur__orca_mini_v9_2_14B__leaderboard_bbh_boolean_expressions/latest/0000.parquet returned HTTP 404"
+  ],
+  "members": [
+    {
+      "fullname": "152334H/miqu-1-70b-sf",
+      "repo": "open-llm-leaderboard/152334H__miqu-1-70b-sf-details",
+      "average": 29.097407726236643,
+      "model_type": "\ud83d\udd36 fine-tuned on domain-specific datasets",
+      "params_b": 68.977,
+      "precision": "float16",
+      "upload_date": "2024-01-30"
+    },
+    {
+      "fullname": "AGI-0/Art-v0-3B",
+      "repo": "open-llm-leaderboard/AGI-0__Art-v0-3B-details",
+      "average": 12.132145545921874,
+      "model_type": "\ud83d\udd36 fine-tuned on domain-specific datasets",
+      "params_b": 3.086,
+      "precision": "bfloat16",
+      "upload_date": "2024-12-30"
+    },
+    {
+      "fullname": "AI4free/t2",
+      "repo": "open-llm-leaderboard/AI4free__t2-details",
+      "average": 11.33461581083953,
+      "model_type": "\ud83e\udd1d base merges and moerges",
+      "params_b": 7.613,
+      "precision": "bfloat16",
+      "upload_date": ""
+    },
+    {
+      "fullname": "Alepach/notHumpback-M0",
+      "repo": "open-llm-leaderboard/Alepach__notHumpback-M0-details",
+      "average": 5.137220097878128,
+      "model_type": "\ud83d\udcac chat models (RLHF, DPO, IFT, ...)",
+      "params_b": 3.213,
+      "precision": "bfloat16",
+      "upload_date": "2024-12-29"
+    },
+    {
+      "fullname": "AuraIndustries/Aura-8B",
+      "repo": "open-llm-leaderboard/AuraIndustries__Aura-8B-details",
+      "average": 27.363297533889394,
+      "model_type": "\ud83d\udcac chat models (RLHF, DPO, IFT, ...)",
+      "params_b": 8.03,
+      "precision": "bfloat16",
+      "upload_date": "2024-12-08"
+    },
+    {
+      "fullname": "Aurel9/testmerge-7b",
+      "repo": "open-llm-leaderboard/Aurel9__testmerge-7b-details",
+      "average": 20.96930213435916,
+      "model_type": "\ud83e\udd1d base merges and moerges",
+      "params_b": 7.242,
+      "precision": "bfloat16",
+      "upload_date": "2024-11-16"
+    },
+    {
+      "fullname": "Azure99/Blossom-V6-7B",
+      "repo": "open-llm-leaderboard/Azure99__Blossom-V6-7B-details",
+      "average": 31.04565038906736,
+      "model_type": "\ud83d\udcac chat models (RLHF, DPO, IFT, ...)",
+      "params_b": 7.616,
+      "precision": "bfloat16",
+      "upload_date": "2025-01-27"
+    },
+    {
+      "fullname": "Azure99/blossom-v5-32b",
+      "repo": "open-llm-leaderboard/Azure99__blossom-v5-32b-details",
+      "average": 27.724659940062114,
+      "model_type": "\ud83d\udcac chat models (RLHF, DPO, IFT, ...)",
+      "params_b": 32.512,
+      "precision": "bfloat16",
+      "upload_date": "2024-04-29"
+    },
+    {
+      "fullname": "BramVanroy/fietje-2-instruct",
+      "repo": "open-llm-leaderboard/BramVanroy__fietje-2-instruct-details",
+      "average": 10.48571837435655,
+      "model_type": "\ud83d\udcac chat models (RLHF, DPO, IFT, ...)",
+      "params_b": 2.775,
+      "precision": "bfloat16",
+      "upload_date": "2024-04-27"
+    },
+    {
+      "fullname": "CYFRAGOVPL/Llama-PLLuM-8B-base",
+      "repo": "open-llm-leaderboard/CYFRAGOVPL__Llama-PLLuM-8B-base-details",
+      "average": 14.51887667865397,
+      "model_type": "\ud83d\udfe9 continuously pretrained",
+      "params_b": 8.03,
+      "precision": "bfloat16",
+      "upload_date": "2025-02-07"
+    },
+    {
+      "fullname": "CombinHorizon/huihui-ai-abliterated-Qwen2.5-32B-Inst-BaseMerge-TIES",
+      "repo": "open-llm-leaderboard/CombinHorizon__huihui-ai-abliterated-Qwen2.5-32B-Inst-BaseMerge-TIES-details",
+      "average": 45.6578470977455,
+      "model_type": "\ud83e\udd1d base merges and moerges",
+      "params_b": 32.764,
+      "precision": "bfloat16",
+      "upload_date": "2024-12-07"
+    },
+    {
+      "fullname": "CoolSpring/Qwen2-0.5B-Abyme-merge2",
+      "repo": "open-llm-leaderboard/CoolSpring__Qwen2-0.5B-Abyme-merge2-details",
+      "average": 6.320258162859158,
+      "model_type": "\ud83e\udd1d base merges and moerges",
+      "params_b": 0.63,
+      "precision": "bfloat16",
+      "upload_date": "2024-07-27"
+    },
+    {
+      "fullname": "Cran-May/SCE-3-24B",
+      "repo": "open-llm-leaderboard/Cran-May__SCE-3-24B-details",
+      "average": 30.620429636222998,
+      "model_type": "\ud83d\udcac chat models (RLHF, DPO, IFT, ...)",
+      "params_b": 23.572,
+      "precision": "bfloat16",
+      "upload_date": "2025-02-03"
+    },
+    {
+      "fullname": "CreitinGameplays/Llama-3.1-8B-R1-v0.1",
+      "repo": "open-llm-leaderboard/CreitinGameplays__Llama-3.1-8B-R1-v0.1-details",
+      "average": 10.034841772545372,
+      "model_type": "\ud83d\udd36 fine-tuned on domain-specific datasets",
+      "params_b": 8.03,
+      "precision": "bfloat16",
+      "upload_date": "2025-02-19"
+    },
+    {
+      "fullname": "CultriX/Qwen2.5-14B-Hyperionv4",
+      "repo": "open-llm-leaderboard/CultriX__Qwen2.5-14B-Hyperionv4-details",
+      "average": 37.67001853618524,
+      "model_type": "\ud83e\udd1d base merges and moerges",
+      "params_b": 14.766,
+      "precision": "bfloat16",
+      "upload_date": "2025-01-19"
+    },
+    {
+      "fullname": "CultriX/Qwen2.5-14B-Ultimav2",
+      "repo": "open-llm-leaderboard/CultriX__Qwen2.5-14B-Ultimav2-details",
+      "average": 38.835600416037856,
+      "model_type": "\ud83e\udd1d base merges and moerges",
+      "params_b": 14.766,
+      "precision": "bfloat16",
+      "upload_date": "2025-02-04"
+    },
+    {
+      "fullname": "CultriX/Qwen2.5-14B-Unity",
+      "repo": "open-llm-leaderboard/CultriX__Qwen2.5-14B-Unity-details",
+      "average": 38.29922923584618,
+      "model_type": "\ud83e\udd1d base merges and moerges",
+      "params_b": 14.766,
+      "precision": "bfloat16",
+      "upload_date": "2024-12-21"
+    },
+    {
+      "fullname": "CultriX/SeQwence-14B",
+      "repo": "open-llm-leaderboard/CultriX__SeQwence-14B-details",
+      "average": 36.886272868734814,
+      "model_type": "\ud83d\udd36 fine-tuned on domain-specific datasets",
+      "params_b": 14.766,
+      "precision": "bfloat16",
+      "upload_date": "2024-11-20"
+    },
+    {
+      "fullname": "CultriX/SeQwence-14B-v5",
+      "repo": "open-llm-leaderboard/CultriX__SeQwence-14B-v5-details",
+      "average": 37.60854208566567,
+      "model_type": "\ud83e\udd1d base merges and moerges",
+      "params_b": 14.766,
+      "precision": "bfloat16",
+      "upload_date": ""
+    },
+    {
+      "fullname": "CultriX/SeQwence-14Bv1",
+      "repo": "open-llm-leaderboard/CultriX__SeQwence-14Bv1-details",
+      "average": 38.625628460880606,
+      "model_type": "\ud83e\udd1d base merges and moerges",
+      "params_b": 14.766,
+      "precision": "bfloat16",
+      "upload_date": "2024-11-24"
+    },
+    {
+      "fullname": "Daemontatox/PathFinderAi3.0",
+      "repo": "open-llm-leaderboard/Daemontatox__PathFinderAi3.0-details",
+      "average": 40.45869427281298,
+      "model_type": "\ud83d\udd36 fine-tuned on domain-specific datasets",
+      "params_b": 32.764,
+      "precision": "bfloat16",
+      "upload_date": "2024-12-31"
+    },
+    {
+      "fullname": "Daemontatox/ReasonTest",
+      "repo": "open-llm-leaderboard/Daemontatox__ReasonTest-details",
+      "average": 25.858232794071,
+      "model_type": "\ud83d\udd36 fine-tuned on domain-specific datasets",
+      "params_b": 3.808,
+      "precision": "bfloat16",
+      "upload_date": ""
+    },
+    {
+      "fullname": "Daemontatox/Research_PathfinderAI",
+      "repo": "open-llm-leaderboard/Daemontatox__Research_PathfinderAI-details",
+      "average": 9.365878628802648,
+      "model_type": "\ud83d\udd36 fine-tuned on domain-specific datasets",
+      "params_b": 1.777,
+      "precision": "bfloat16",
+      "upload_date": ""
+    },
+    {
+      "fullname": "Daemontatox/TinySphinx",
+      "repo": "open-llm-leaderboard/Daemontatox__TinySphinx-details",
+      "average": 8.167167127412911,
+      "model_type": "\ud83d\udd36 fine-tuned on domain-specific datasets",
+      "params_b": 0.247,
+      "precision": "float16",
+      "upload_date": ""
+    },
+    {
+      "fullname": "Daemontatox/mini-Cogito-R1",
+      "repo": "open-llm-leaderboard/Daemontatox__mini-Cogito-R1-details",
+      "average": 11.629717650498435,
+      "model_type": "\ud83d\udd36 fine-tuned on domain-specific datasets",
+      "params_b": 1.777,
+      "precision": "bfloat16",
+      "upload_date": "2025-02-22"
+    },
+    {
+      "fullname": "Danielbrdz/Barcenas-Llama3-8b-ORPO",
+      "repo": "open-llm-leaderboard/Danielbrdz__Barcenas-Llama3-8b-ORPO-details",
+      "average": 26.51900505359198,
+      "model_type": "\ud83d\udcac chat models (RLHF, DPO, IFT, ...)",
+      "params_b": 8.03,
+      "precision": "float16",
+      "upload_date": "2024-04-29"
+    },
+    {
+      "fullname": "DavidAU/DeepSeek-MOE-4X8B-R1-Distill-Llama-3.1-Deep-Thinker-Uncensored-24B",
+      "repo": "open-llm-leaderboard/DavidAU__DeepSeek-MOE-4X8B-R1-Distill-Llama-3.1-Deep-Thinker-Uncensored-24B-details",
+      "average": 20.033732738998072,
+      "model_type": "\ud83d\udd36 fine-tuned on domain-specific datasets",
+      "params_b": 24.942,
+      "precision": "bfloat16",
+      "upload_date": "2025-02-15"
+    },
+    {
+      "fullname": "DavidAU/Qwen2.5-MOE-2X7B-DeepSeek-Abliterated-Censored-19B",
+      "repo": "open-llm-leaderboard/DavidAU__Qwen2.5-MOE-2X7B-DeepSeek-Abliterated-Censored-19B-details",
+      "average": 13.021728019791546,
+      "model_type": "\ud83d\udd36 fine-tuned on domain-specific datasets",
+      "params_b": 19.022,
+      "precision": "bfloat16",
+      "upload_date": "2025-03-06"
+    },
+    {
+      "fullname": "DeepAutoAI/Explore_Llama-3.1-8B-Inst",
+      "repo": "open-llm-leaderboard/DeepAutoAI__Explore_Llama-3.1-8B-Inst-details",
+      "average": 28.926700693431915,
+      "model_type": "\ud83e\udd1d base merges and moerges",
+      "params_b": 8.03,
+      "precision": "bfloat16",
+      "upload_date": "2024-09-21"
+    },
+    {
+      "fullname": "DeepAutoAI/d2nwg_Llama-3.1-8B-Instruct-v0.0",
+      "repo": "open-llm-leaderboard/DeepAutoAI__d2nwg_Llama-3.1-8B-Instruct-v0.0-details",
+      "average": 29.338965494504436,
+      "model_type": "\ud83e\udd1d base merges and moerges",
+      "params_b": 8.03,
+      "precision": "bfloat16",
+      "upload_date": "2024-09-10"
+    },
+    {
+      "fullname": "DoppelReflEx/MN-12B-Mimicore-GreenSnake",
+      "repo": "open-llm-leaderboard/DoppelReflEx__MN-12B-Mimicore-GreenSnake-details",
+      "average": 25.0150134402288,
+      "model_type": "\ud83e\udd1d base merges and moerges",
+      "params_b": 12.248,
+      "precision": "bfloat16",
+      "upload_date": "2025-01-27"
+    },
+    {
+      "fullname": "DoppelReflEx/MiniusLight-24B",
+      "repo": "open-llm-leaderboard/DoppelReflEx__MiniusLight-24B-details",
+      "average": 26.210340083042343,
+      "model_type": "\ud83e\udd1d base merges and moerges",
+      "params_b": 23.572,
+      "precision": "bfloat16",
+      "upload_date": "2025-03-07"
+    },
+    {
+      "fullname": "DreadPoor/Aspire_V2-8B-Model_Stock",
+      "repo": "open-llm-leaderboard/DreadPoor__Aspire_V2-8B-Model_Stock-details",
+      "average": 29.023157905941588,
+      "model_type": "\ud83e\udd1d base merges and moerges",
+      "params_b": 8.03,
+      "precision": "bfloat16",
+      "upload_date": ""
+    },
+    {
+      "fullname": "DreadPoor/BaeZel_V3-8B-Model_Stock",
+      "repo": "open-llm-leaderboard/DreadPoor__BaeZel_V3-8B-Model_Stock-details",
+      "average": 30.719194809944852,
+      "model_type": "\ud83e\udd1d base merges and moerges",
+      "params_b": 8.03,
+      "precision": "bfloat16",
+      "upload_date": ""
+    },
+    {
+      "fullname": "DreadPoor/Heart_Stolen-8B-Model_Stock",
+      "repo": "open-llm-leaderboard/DreadPoor__Heart_Stolen-8B-Model_Stock-details",
+      "average": 29.411035925290932,
+      "model_type": "\ud83e\udd1d base merges and moerges",
+      "params_b": 8.03,
+      "precision": "bfloat16",
+      "upload_date": "2024-09-09"
+    },
+    {
+      "fullname": "DreadPoor/Promissum_Mane-8B-LINEAR-lorablated",
+      "repo": "open-llm-leaderboard/DreadPoor__Promissum_Mane-8B-LINEAR-lorablated-details",
+      "average": 28.82332716689665,
+      "model_type": "\ud83e\udd1d base merges and moerges",
+      "params_b": 8.03,
+      "precision": "bfloat16",
+      "upload_date": ""
+    },
+    {
+      "fullname": "DreadPoor/Summer_Rain-8B-TIES",
+      "repo": "open-llm-leaderboard/DreadPoor__Summer_Rain-8B-TIES-details",
+      "average": 25.49119270489429,
+      "model_type": "\ud83e\udd1d base merges and moerges",
+      "params_b": 8.03,
+      "precision": "bfloat16",
+      "upload_date": ""
+    },
+    {
+      "fullname": "DreadPoor/WIP_Damascus-8B-TIES",
+      "repo": "open-llm-leaderboard/DreadPoor__WIP_Damascus-8B-TIES-details",
+      "average": 24.97055556390754,
+      "model_type": "\ud83e\udd1d base merges and moerges",
+      "params_b": 8.03,
+      "precision": "bfloat16",
+      "upload_date": ""
+    },
+    {
+      "fullname": "EVA-UNIT-01/EVA-Qwen2.5-72B-v0.2",
+      "repo": "open-llm-leaderboard/EVA-UNIT-01__EVA-Qwen2.5-72B-v0.2-details",
+      "average": 44.221596025457025,
+      "model_type": "\ud83d\udd36 fine-tuned on domain-specific datasets",
+      "params_b": 72.706,
+      "precision": "bfloat16",
+      "upload_date": "2024-11-21"
+    },
+    {
+      "fullname": "EleutherAI/pythia-1.4b",
+      "repo": "open-llm-leaderboard/EleutherAI__pythia-1.4b-details",
+      "average": 6.008531439497028,
+      "model_type": "\ud83d\udfe2 pretrained",
+      "params_b": 1.515,
+      "precision": "float16",
+      "upload_date": "2023-02-09"
+    },
+    {
+      "fullname": "Enno-Ai/EnnoAi-Pro-French-Llama-3-8B-v0.4",
+      "repo": "open-llm-leaderboard/Enno-Ai__EnnoAi-Pro-French-Llama-3-8B-v0.4-details",
+      "average": 15.68446940398294,
+      "model_type": "\ud83d\udcac chat models (RLHF, DPO, IFT, ...)",
+      "params_b": 8.031,
+      "precision": "bfloat16",
+      "upload_date": "2024-06-27"
+    },
+    {
+      "fullname": "Epiculous/NovaSpark",
+      "repo": "open-llm-leaderboard/Epiculous__NovaSpark-details",
+      "average": 25.253737990368,
+      "model_type": "\ud83d\udd36 fine-tuned on domain-specific datasets",
+      "params_b": 8.03,
+      "precision": "bfloat16",
+      "upload_date": "2024-10-13"
+    },
+    {
+      "fullname": "EpistemeAI/DeepThinkers-Phi4",
+      "repo": "open-llm-leaderboard/EpistemeAI__DeepThinkers-Phi4-details",
+      "average": 39.40710857221479,
+      "model_type": "\ud83d\udd36 fine-tuned on domain-specific datasets",
+      "params_b": 14.66,
+      "precision": "bfloat16",
+      "upload_date": "2025-02-28"
+    },
+    {
+      "fullname": "EpistemeAI/FineLlama3.1-8B-Instruct",
+      "repo": "open-llm-leaderboard/EpistemeAI__FineLlama3.1-8B-Instruct-details",
+      "average": 11.239255981586004,
+      "model_type": "\ud83d\udd36 fine-tuned on domain-specific datasets",
+      "params_b": 14.483,
+      "precision": "4bit",
+      "upload_date": ""
+    },
+    {
+      "fullname": "EpistemeAI/Fireball-12B-v1.13a-philosophers",
+      "repo": "open-llm-leaderboard/EpistemeAI__Fireball-12B-v1.13a-philosophers-details",
+      "average": 14.466040850876615,
+      "model_type": "\ud83d\udd36 fine-tuned on domain-specific datasets",
+      "params_b": 12.0,
+      "precision": "bfloat16",
+      "upload_date": "2024-08-28"
+    },
+    {
+      "fullname": "EpistemeAI/Mistral-Nemo-Instruct-12B-Philosophy-Math",
+      "repo": "open-llm-leaderboard/EpistemeAI__Mistral-Nemo-Instruct-12B-Philosophy-Math-details",
+      "average": 16.60399677564458,
+      "model_type": "\ud83d\udd36 fine-tuned on domain-specific datasets",
+      "params_b": 12.248,
+      "precision": "float16",
+      "upload_date": "2024-09-15"
+    },
+    {
+      "fullname": "EpistemeAI/Reasoning-Llama-3.2-3B-Math-Instruct-RE1",
+      "repo": "open-llm-leaderboard/EpistemeAI__Reasoning-Llama-3.2-3B-Math-Instruct-RE1-details",
+      "average": 17.78003203358188,
+      "model_type": "\ud83d\udd36 fine-tuned on domain-specific datasets",
+      "params_b": 3.213,
+      "precision": "bfloat16",
+      "upload_date": ""
+    },
+    {
+      "fullname": "Etherll/Herplete-LLM-Llama-3.1-8b",
+      "repo": "open-llm-leaderboard/Etherll__Herplete-LLM-Llama-3.1-8b-details",
+      "average": 26.260139418825688,
+      "model_type": "\ud83d\udd36 fine-tuned on domain-specific datasets",
+      "params_b": 8.03,
+      "precision": "bfloat16",
+      "upload_date": "2024-08-24"
+    },
+    {
+      "fullname": "Etherll/SuperHermes",
+      "repo": "open-llm-leaderboard/Etherll__SuperHermes-details",
+      "average": 26.91930524281158,
+      "model_type": "\ud83d\udd36 fine-tuned on domain-specific datasets",
+      "params_b": 8.03,
+      "precision": "bfloat16",
+      "upload_date": "2024-10-27"
+    },
+    {
+      "fullname": "FINGU-AI/Phi-4-RRStock",
+      "repo": "open-llm-leaderboard/FINGU-AI__Phi-4-RRStock-details",
+      "average": 26.415394122718638,
+      "model_type": "\ud83e\udd1d base merges and moerges",
+      "params_b": 6.652,
+      "precision": "float16",
+      "upload_date": "2025-02-05"
+    },
+    {
+      "fullname": "FINGU-AI/QwQ-Buddy-32B-Alpha",
+      "repo": "open-llm-leaderboard/FINGU-AI__QwQ-Buddy-32B-Alpha-details",
+      "average": 35.1782720586928,
+      "model_type": "\ud83e\udd1d base merges and moerges",
+      "params_b": 19.662,
+      "precision": "float16",
+      "upload_date": "2025-02-05"
+    },
+    {
+      "fullname": "FINGU-AI/RomboUltima-32B",
+      "repo": "open-llm-leaderboard/FINGU-AI__RomboUltima-32B-details",
+      "average": 44.731545333278405,
+      "model_type": "\ud83e\udd1d base merges and moerges",
+      "params_b": 17.645,
+      "precision": "float16",
+      "upload_date": "2025-02-02"
+    },
+    {
+      "fullname": "FlofloB/100k_fineweb_continued_pretraining_Qwen2.5-0.5B-Instruct_Unsloth_merged_16bit",
+      "repo": "open-llm-leaderboard/FlofloB__100k_fineweb_continued_pretraining_Qwen2.5-0.5B-Instruct_Unsloth_merged_16bit-details",
+      "average": 8.550830451075553,
+      "model_type": "\ud83d\udfe9 continuously pretrained",
+      "params_b": 0.5,
+      "precision": "float16",
+      "upload_date": "2024-11-28"
+    },
+    {
+      "fullname": "FlofloB/40k_continued_pretraining_Qwen2.5-0.5B-Instruct_Unsloth_merged_16bit",
+      "repo": "open-llm-leaderboard/FlofloB__40k_continued_pretraining_Qwen2.5-0.5B-Instruct_Unsloth_merged_16bit-details",
+      "average": 8.381580312764262,
+      "model_type": "\ud83d\udfe9 continuously pretrained",
+      "params_b": 0.5,
+      "precision": "float16",
+      "upload_date": "2024-11-25"
+    },
+    {
+      "fullname": "FlofloB/smollm2-135M_pretrained_1000k_fineweb",
+      "repo": "open-llm-leaderboard/FlofloB__smollm2-135M_pretrained_1000k_fineweb-details",
+      "average": 4.20780841481479,
+      "model_type": "\ud83d\udfe2 pretrained",
+      "params_b": 0.135,
+      "precision": "float16",
+      "upload_date": "2025-01-11"
+    },
+    {
+      "fullname": "FlofloB/smollm2-135M_pretrained_800k_fineweb_uncovai_selected",
+      "repo": "open-llm-leaderboard/FlofloB__smollm2-135M_pretrained_800k_fineweb_uncovai_selected-details",
+      "average": 4.118739390912178,
+      "model_type": "\ud83d\udfe2 pretrained",
+      "params_b": 0.135,
+      "precision": "float16",
+      "upload_date": "2025-01-11"
+    },
+    {
+      "fullname": "FuJhen/mistral-instruct-7B-DPO",
+      "repo": "open-llm-leaderboard/FuJhen__mistral-instruct-7B-DPO-details",
+      "average": 19.029530782130646,
+      "model_type": "\ud83d\udcac chat models (RLHF, DPO, IFT, ...)",
+      "params_b": 14.496,
+      "precision": "bfloat16",
+      "upload_date": "2024-09-12"
+    },
+    {
+      "fullname": "HelpingAI/Dhanishtha-Large",
+      "repo": "open-llm-leaderboard/HelpingAI__Dhanishtha-Large-details",
+      "average": 19.889172686673326,
+      "model_type": "\ud83d\udd36 fine-tuned on domain-specific datasets",
+      "params_b": 7.613,
+      "precision": "bfloat16",
+      "upload_date": "2025-02-24"
+    },
+    {
+      "fullname": "HeraiHench/Phi-4-slerp-ReasoningRP-14B",
+      "repo": "open-llm-leaderboard/HeraiHench__Phi-4-slerp-ReasoningRP-14B-details",
+      "average": 8.51238737192275,
+      "model_type": "\ud83e\udd1d base merges and moerges",
+      "params_b": 9.207,
+      "precision": "float16",
+      "upload_date": ""
+    },
+    {
+      "fullname": "HuggingFaceH4/zephyr-orpo-141b-A35b-v0.1",
+      "repo": "open-llm-leaderboard/HuggingFaceH4__zephyr-orpo-141b-A35b-v0.1-details",
+      "average": 34.125963384670946,
+      "model_type": "\ud83d\udcac chat models (RLHF, DPO, IFT, ...)",
+      "params_b": 140.621,
+      "precision": "float16",
+      "upload_date": "2024-04-10"
+    },
+    {
+      "fullname": "HuggingFaceTB/SmolLM-1.7B-Instruct",
+      "repo": "open-llm-leaderboard/HuggingFaceTB__SmolLM-1.7B-Instruct-details",
+      "average": 5.490688803655309,
+      "model_type": "\ud83d\udcac chat models (RLHF, DPO, IFT, ...)",
+      "params_b": 1.71,
+      "precision": "bfloat16",
+      "upload_date": "2024-07-15"
+    },
+    {
+      "fullname": "INSAIT-Institute/BgGPT-Gemma-2-27B-IT-v1.0",
+      "repo": "open-llm-leaderboard/INSAIT-Institute__BgGPT-Gemma-2-27B-IT-v1.0-details",
+      "average": 1.6780628068086922,
+      "model_type": "\ud83d\udfe9 continuously pretrained",
+      "params_b": 27.227,
+      "precision": "float16",
+      "upload_date": "2024-11-15"
+    },
+    {
+      "fullname": "Jacoby746/Inf-Silent-Kunoichi-v0.1-2x7B",
+      "repo": "open-llm-leaderboard/Jacoby746__Inf-Silent-Kunoichi-v0.1-2x7B-details",
+      "average": 20.186181285193417,
+      "model_type": "\ud83e\udd1d base merges and moerges",
+      "params_b": 12.879,
+      "precision": "float16",
+      "upload_date": "2024-09-19"
+    },
+    {
+      "fullname": "JayHyeon/Qwen2.5-0.5B-Instruct-SFT-MDPO-1epoch_v1",
+      "repo": "open-llm-leaderboard/JayHyeon__Qwen2.5-0.5B-Instruct-SFT-MDPO-1epoch_v1-details",
+      "average": 7.896219502136105,
+      "model_type": "\ud83d\udd36 fine-tuned on domain-specific datasets",
+      "params_b": 0.494,
+      "precision": "bfloat16",
+      "upload_date": "2024-12-26"
+    },
+    {
+      "fullname": "JayHyeon/Qwen2.5-0.5B-SFT-2e-5",
+      "repo": "open-llm-leaderboard/JayHyeon__Qwen2.5-0.5B-SFT-2e-5-details",
+      "average": 6.9691100972452,
+      "model_type": "\ud83d\udd36 fine-tuned on domain-specific datasets",
+      "params_b": 0.63,
+      "precision": "bfloat16",
+      "upload_date": "2024-12-28"
+    },
+    {
+      "fullname": "JayHyeon/Qwen2.5-0.5B-SFT-2e-5-2ep-DPO_1e-6-3ep_0alp_0lam",
+      "repo": "open-llm-leaderboard/JayHyeon__Qwen2.5-0.5B-SFT-2e-5-2ep-DPO_1e-6-3ep_0alp_0lam-details",
+      "average": 7.772250160016548,
+      "model_type": "\ud83d\udd36 fine-tuned on domain-specific datasets",
+      "params_b": 0.63,
+      "precision": "bfloat16",
+      "upload_date": "2024-12-31"
+    },
+    {
+      "fullname": "JayHyeon/Qwen2.5-0.5B-SFT-2e-5-2ep-DPO_3e-7-3ep_0alp_0lam",
+      "repo": "open-llm-leaderboard/JayHyeon__Qwen2.5-0.5B-SFT-2e-5-2ep-DPO_3e-7-3ep_0alp_0lam-details",
+      "average": 7.580039598446345,
+      "model_type": "\ud83d\udd36 fine-tuned on domain-specific datasets",
+      "params_b": 0.63,
+      "precision": "bfloat16",
+      "upload_date": "2025-01-06"
+    },
+    {
+      "fullname": "JayHyeon/Qwen2.5-0.5B-SFT-2e-5-2ep-IRPO_5e-6-1ep_1alp_0lam",
+      "repo": "open-llm-leaderboard/JayHyeon__Qwen2.5-0.5B-SFT-2e-5-2ep-IRPO_5e-6-1ep_1alp_0lam-details",
+      "average": 7.608040308738378,
+      "model_type": "\ud83d\udd36 fine-tuned on domain-specific datasets",
+      "params_b": 0.494,
+      "precision": "bfloat16",
+      "upload_date": "2025-01-03"
+    },
+    {
+      "fullname": "JayHyeon/Qwen2.5-0.5B-SFT-7e-5-5ep",
+      "repo": "open-llm-leaderboard/JayHyeon__Qwen2.5-0.5B-SFT-7e-5-5ep-details",
+      "average": 6.575560410304202,
+      "model_type": "\ud83d\udd36 fine-tuned on domain-specific datasets",
+      "params_b": 0.63,
+      "precision": "bfloat16",
+      "upload_date": "2024-12-29"
+    },
+    {
+      "fullname": "JayHyeon/Qwen_0.5-DPOP_3e-7-2ep_0alp_5lam",
+      "repo": "open-llm-leaderboard/JayHyeon__Qwen_0.5-DPOP_3e-7-2ep_0alp_5lam-details",
+      "average": 7.630732587028278,
+      "model_type": "\ud83d\udd36 fine-tuned on domain-specific datasets",
+      "params_b": 0.494,
+      "precision": "bfloat16",
+      "upload_date": "2025-01-15"
+    },
+    {
+      "fullname": "JayHyeon/Qwen_0.5-DPO_1e-6-3ep_0alp_0lam",
+      "repo": "open-llm-leaderboard/JayHyeon__Qwen_0.5-DPO_1e-6-3ep_0alp_0lam-details",
+      "average": 7.62746022008641,
+      "model_type": "\ud83d\udd36 fine-tuned on domain-specific datasets",
+      "params_b": 0.63,
+      "precision": "bfloat16",
+      "upload_date": "2025-01-08"
+    },
+    {
+      "fullname": "JayHyeon/Qwen_0.5-VDPO_5e-7-1ep_3vpo_const",
+      "repo": "open-llm-leaderboard/JayHyeon__Qwen_0.5-VDPO_5e-7-1ep_3vpo_const-details",
+      "average": 7.784158197402131,
+      "model_type": "\ud83d\udd36 fine-tuned on domain-specific datasets",
+      "params_b": 0.63,
+      "precision": "bfloat16",
+      "upload_date": "2025-02-20"
+    },
+    {
+      "fullname": "JayHyeon/Qwen_0.5-rDPO_3e-6-1ep_0vpo_const_0.1",
+      "repo": "open-llm-leaderboard/JayHyeon__Qwen_0.5-rDPO_3e-6-1ep_0vpo_const_0.1-details",
+      "average": 7.0836211579470865,
+      "model_type": "\ud83d\udd36 fine-tuned on domain-specific datasets",
+      "params_b": 0.63,
+      "precision": "bfloat16",
+      "upload_date": "2025-02-26"
+    },
+    {
+      "fullname": "Josephgflowers/TinyLlama_v1.1_math_code-world-test-1",
+      "repo": "open-llm-leaderboard/Josephgflowers__TinyLlama_v1.1_math_code-world-test-1-details",
+      "average": 2.0028112750677205,
+      "model_type": "\ud83d\udd36 fine-tuned on domain-specific datasets",
+      "params_b": 1.1,
+      "precision": "float16",
+      "upload_date": "2024-06-23"
+    },
+    {
+      "fullname": "Josephgflowers/Tinyllama-STEM-Cinder-Agent-v1",
+      "repo": "open-llm-leaderboard/Josephgflowers__Tinyllama-STEM-Cinder-Agent-v1-details",
+      "average": 5.683635033220809,
+      "model_type": "\ud83d\udd36 fine-tuned on domain-specific datasets",
+      "params_b": 1.1,
+      "precision": "float16",
+      "upload_date": "2024-11-27"
+    },
+    {
+      "fullname": "JungZoona/T3Q-qwen2.5-14b-v1.0-e3",
+      "repo": "open-llm-leaderboard/JungZoona__T3Q-qwen2.5-14b-v1.0-e3-details",
+      "average": 47.091544713804204,
+      "model_type": "\ud83d\udd36 fine-tuned on domain-specific datasets",
+      "params_b": 14.77,
+      "precision": "bfloat16",
+      "upload_date": "2025-03-09"
+    },
+    {
+      "fullname": "KSU-HW-SEC/Llama3-70b-SVA-FT-1415",
+      "repo": "open-llm-leaderboard/KSU-HW-SEC__Llama3-70b-SVA-FT-1415-details",
+      "average": 36.119232723240636,
+      "model_type": "\ud83d\udd36 fine-tuned on domain-specific datasets",
+      "params_b": 70.554,
+      "precision": "bfloat16",
+      "upload_date": ""
+    },
+    {
+      "fullname": "KSU-HW-SEC/Llama3-70b-SVA-FT-final",
+      "repo": "open-llm-leaderboard/KSU-HW-SEC__Llama3-70b-SVA-FT-final-details",
+      "average": 36.09383714321667,
+      "model_type": "\ud83d\udd36 fine-tuned on domain-specific datasets",
+      "params_b": 70.554,
+      "precision": "bfloat16",
+      "upload_date": ""
+    },
+    {
+      "fullname": "KingNish/Reasoning-0.5b",
+      "repo": "open-llm-leaderboard/KingNish__Reasoning-0.5b-details",
+      "average": 7.163893227645488,
+      "model_type": "\ud83d\udd36 fine-tuned on domain-specific datasets",
+      "params_b": 0.494,
+      "precision": "float16",
+      "upload_date": "2024-10-05"
+    },
+    {
+      "fullname": "Kquant03/L3-Pneuma-8B",
+      "repo": "open-llm-leaderboard/Kquant03__L3-Pneuma-8B-details",
+      "average": 16.617570099377616,
+      "model_type": "\ud83d\udd36 fine-tuned on domain-specific datasets",
+      "params_b": 8.03,
+      "precision": "bfloat16",
+      "upload_date": "2024-10-13"
+    },
+    {
+      "fullname": "LEESM/llama-2-7b-hf-lora-oki100p",
+      "repo": "open-llm-leaderboard/LEESM__llama-2-7b-hf-lora-oki100p-details",
+      "average": 8.782858998727155,
+      "model_type": "\ud83d\udd36 fine-tuned on domain-specific datasets",
+      "params_b": 6.738,
+      "precision": "float16",
+      "upload_date": "2024-07-17"
+    },
+    {
+      "fullname": "LGAI-EXAONE/EXAONE-3.5-32B-Instruct",
+      "repo": "open-llm-leaderboard/LGAI-EXAONE__EXAONE-3.5-32B-Instruct-details",
+      "average": 37.603165755662836,
+      "model_type": "\ud83d\udcac chat models (RLHF, DPO, IFT, ...)",
+      "params_b": 32.003,
+      "precision": "float16",
+      "upload_date": "2024-12-01"
+    },
+    {
+      "fullname": "Lawnakk/BBALAW1.0",
+      "repo": "open-llm-leaderboard/Lawnakk__BBALAW1.0-details",
+      "average": 3.2556700001423438,
+      "model_type": "\ud83e\udd1d base merges and moerges",
+      "params_b": 4.353,
+      "precision": "bfloat16",
+      "upload_date": "2025-02-27"
+    },
+    {
+      "fullname": "Lawnakk/BBALAW1.63",
+      "repo": "open-llm-leaderboard/Lawnakk__BBALAW1.63-details",
+      "average": 29.37358914303694,
+      "model_type": "\ud83e\udd1d base merges and moerges",
+      "params_b": 7.613,
+      "precision": "bfloat16",
+      "upload_date": "2025-02-28"
+    },
+    {
+      "fullname": "Lawnakk/BBALAW1.64",
+      "repo": "open-llm-leaderboard/Lawnakk__BBALAW1.64-details",
+      "average": 3.1811180912654695,
+      "model_type": "\ud83e\udd1d base merges and moerges",
+      "params_b": 7.616,
+      "precision": "bfloat16",
+      "upload_date": "2025-02-28"
+    },
+    {
+      "fullname": "LeroyDyer/LCARS_AI_001",
+      "repo": "open-llm-leaderboard/LeroyDyer__LCARS_AI_001-details",
+      "average": 14.429205739419857,
+      "model_type": "\ud83d\udd36 fine-tuned on domain-specific datasets",
+      "params_b": 7.242,
+      "precision": "float16",
+      "upload_date": ""
+    },
+    {
+      "fullname": "LeroyDyer/SpydazWeb_HumanAI_M1",
+      "repo": "open-llm-leaderboard/LeroyDyer__SpydazWeb_HumanAI_M1-details",
+      "average": 10.391053333653405,
+      "model_type": "\ud83e\udd1d base merges and moerges",
+      "params_b": 7.242,
+      "precision": "float16",
+      "upload_date": ""
+    },
+    {
+      "fullname": "LeroyDyer/_Spydaz_Web_AI_AGI_R1_Math_AdvancedStudent",
+      "repo": "open-llm-leaderboard/LeroyDyer___Spydaz_Web_AI_AGI_R1_Math_AdvancedStudent-details",
+      "average": 24.34166379927646,
+      "model_type": "\ud83d\udd36 fine-tuned on domain-specific datasets",
+      "params_b": 7.242,
+      "precision": "float16",
+      "upload_date": "2025-03-07"
+    },
+    {
+      "fullname": "LeroyDyer/_Spydaz_Web_AI_ChatQA_003",
+      "repo": "open-llm-leaderboard/LeroyDyer___Spydaz_Web_AI_ChatQA_003-details",
+      "average": 6.2575600117500825,
+      "model_type": "\ud83d\udd36 fine-tuned on domain-specific datasets",
+      "params_b": 7.242,
+      "precision": "bfloat16",
+      "upload_date": ""
+    },
+    {
+      "fullname": "Lil-R/PRYMMAL-ECE-1B-SLERP-V1",
+      "repo": "open-llm-leaderboard/Lil-R__PRYMMAL-ECE-1B-SLERP-V1-details",
+      "average": 14.88329630475093,
+      "model_type": "\ud83e\udd1d base merges and moerges",
+      "params_b": 1.777,
+      "precision": "bfloat16",
+      "upload_date": "2024-10-29"
+    },
+    {
+      "fullname": "LilRg/ECE_Finetunning",
+      "repo": "open-llm-leaderboard/LilRg__ECE_Finetunning-details",
+      "average": 11.987032259556209,
+      "model_type": "\ud83d\udd36 fine-tuned on domain-specific datasets",
+      "params_b": 16.061,
+      "precision": "float16",
+      "upload_date": "2024-09-28"
+    },
+    {
+      "fullname": "LilRg/PRYMMAL-6B-slerp",
+      "repo": "open-llm-leaderboard/LilRg__PRYMMAL-6B-slerp-details",
+      "average": 3.23270592407536,
+      "model_type": "\ud83e\udd1d base merges and moerges",
+      "params_b": 3.293,
+      "precision": "bfloat16",
+      "upload_date": "2024-09-24"
+    },
+    {
+      "fullname": "Lunzima/NQLSG-Qwen2.5-14B-MegaFusion-v8",
+      "repo": "open-llm-leaderboard/Lunzima__NQLSG-Qwen2.5-14B-MegaFusion-v8-details",
+      "average": 42.7836905135922,
+      "model_type": "\ud83e\udd1d base merges and moerges",
+      "params_b": 14.766,
+      "precision": "bfloat16",
+      "upload_date": "2025-02-28"
+    },
+    {
+      "fullname": "Lunzima/NQLSG-Qwen2.5-14B-MegaFusion-v8.9",
+      "repo": "open-llm-leaderboard/Lunzima__NQLSG-Qwen2.5-14B-MegaFusion-v8.9-details",
+      "average": 42.523098714975845,
+      "model_type": "\ud83e\udd1d base merges and moerges",
+      "params_b": 14.766,
+      "precision": "bfloat16",
+      "upload_date": "2025-03-06"
+    },
+    {
+      "fullname": "Lyte/Llama-3.2-3B-Overthinker",
+      "repo": "open-llm-leaderboard/Lyte__Llama-3.2-3B-Overthinker-details",
+      "average": 21.167473631942162,
+      "model_type": "\ud83d\udd36 fine-tuned on domain-specific datasets",
+      "params_b": 3.213,
+      "precision": "float16",
+      "upload_date": "2024-10-17"
+    },
+    {
+      "fullname": "Magpie-Align/Llama-3.1-8B-Magpie-Align-SFT-v0.1",
+      "repo": "open-llm-leaderboard/Magpie-Align__Llama-3.1-8B-Magpie-Align-SFT-v0.1-details",
+      "average": 17.975799245688165,
+      "model_type": "\ud83d\udd36 fine-tuned on domain-specific datasets",
+      "params_b": 8.03,
+      "precision": "bfloat16",
+      "upload_date": "2024-07-23"
+    },
+    {
+      "fullname": "MaziyarPanahi/calme-2.1-qwen2-72b",
+      "repo": "open-llm-leaderboard/MaziyarPanahi__calme-2.1-qwen2-72b-details",
+      "average": 44.39894388647036,
+      "model_type": "\ud83d\udcac chat models (RLHF, DPO, IFT, ...)",
+      "params_b": 72.699,
+      "precision": "bfloat16",
+      "upload_date": "2024-06-08"
+    },
+    {
+      "fullname": "MaziyarPanahi/calme-2.1-qwen2.5-72b",
+      "repo": "open-llm-leaderboard/MaziyarPanahi__calme-2.1-qwen2.5-72b-details",
+      "average": 47.85672202584548,
+      "model_type": "\ud83d\udcac chat models (RLHF, DPO, IFT, ...)",
+      "params_b": 72.7,
+      "precision": "bfloat16",
+      "upload_date": "2024-09-19"
+    },
+    {
+      "fullname": "MaziyarPanahi/calme-2.1-rys-78b",
+      "repo": "open-llm-leaderboard/MaziyarPanahi__calme-2.1-rys-78b-details",
+      "average": 44.64399850290042,
+      "model_type": "\ud83d\udcac chat models (RLHF, DPO, IFT, ...)",
+      "params_b": 77.965,
+      "precision": "bfloat16",
+      "upload_date": "2024-08-06"
+    },
+    {
+      "fullname": "MaziyarPanahi/calme-2.2-qwen2.5-72b",
+      "repo": "open-llm-leaderboard/MaziyarPanahi__calme-2.2-qwen2.5-72b-details",
+      "average": 47.22457675508573,
+      "model_type": "\ud83d\udcac chat models (RLHF, DPO, IFT, ...)",
+      "params_b": 72.7,
+      "precision": "bfloat16",
+      "upload_date": "2024-09-19"
+    },
+    {
+      "fullname": "MaziyarPanahi/calme-2.2-rys-78b",
+      "repo": "open-llm-leaderboard/MaziyarPanahi__calme-2.2-rys-78b-details",
+      "average": 44.38633440385336,
+      "model_type": "\ud83d\udcac chat models (RLHF, DPO, IFT, ...)",
+      "params_b": 77.965,
+      "precision": "bfloat16",
+      "upload_date": "2024-08-06"
+    },
+    {
+      "fullname": "MaziyarPanahi/calme-2.3-llama3.1-70b",
+      "repo": "open-llm-leaderboard/MaziyarPanahi__calme-2.3-llama3.1-70b-details",
+      "average": 43.275189943129554,
+      "model_type": "\ud83d\udcac chat models (RLHF, DPO, IFT, ...)",
+      "params_b": 70.554,
+      "precision": "bfloat16",
+      "upload_date": "2024-09-10"
+    },
+    {
+      "fullname": "MaziyarPanahi/calme-2.4-qwen2-7b",
+      "repo": "open-llm-leaderboard/MaziyarPanahi__calme-2.4-qwen2-7b-details",
+      "average": 22.85144077010553,
+      "model_type": "\ud83d\udd36 fine-tuned on domain-specific datasets",
+      "params_b": 7.616,
+      "precision": "bfloat16",
+      "upload_date": "2024-06-27"
+    },
+    {
+      "fullname": "MaziyarPanahi/calme-3.3-baguette-3b",
+      "repo": "open-llm-leaderboard/MaziyarPanahi__calme-3.3-baguette-3b-details",
+      "average": 27.407100524692495,
+      "model_type": "\ud83d\udd36 fine-tuned on domain-specific datasets",
+      "params_b": 3.086,
+      "precision": "bfloat16",
+      "upload_date": "2024-11-07"
+    },
+    {
+      "fullname": "Minami-su/test-7B-00",
+      "repo": "open-llm-leaderboard/Minami-su__test-7B-00-details",
+      "average": 29.950834319546107,
+      "model_type": "\ud83d\udd36 fine-tuned on domain-specific datasets",
+      "params_b": 7.616,
+      "precision": "bfloat16",
+      "upload_date": ""
+    },
+    {
+      "fullname": "NAPS-ai/naps-gemma-2-27b-v-0.1.0",
+      "repo": "open-llm-leaderboard/NAPS-ai__naps-gemma-2-27b-v-0.1.0-details",
+      "average": 1.6796019124036488,
+      "model_type": "\ud83d\udd36 fine-tuned on domain-specific datasets",
+      "params_b": 27.227,
+      "precision": "float16",
+      "upload_date": "2024-11-11"
+    },
+    {
+      "fullname": "NAPS-ai/naps-gemma-2-27b-v0.1.0",
+      "repo": "open-llm-leaderboard/NAPS-ai__naps-gemma-2-27b-v0.1.0-details",
+      "average": 1.6796019124036488,
+      "model_type": "\ud83d\udd36 fine-tuned on domain-specific datasets",
+      "params_b": 27.227,
+      "precision": "float16",
+      "upload_date": "2024-11-11"
+    },
+    {
+      "fullname": "NbAiLab/nb-llama-3.1-8B-Instruct",
+      "repo": "open-llm-leaderboard/NbAiLab__nb-llama-3.1-8B-Instruct-details",
+      "average": 8.479797435320535,
+      "model_type": "\ud83d\udd36 fine-tuned on domain-specific datasets",
+      "params_b": 8.03,
+      "precision": "bfloat16",
+      "upload_date": ""
+    },
+    {
+      "fullname": "Nekochu/Llama-3.1-8B-German-ORPO",
+      "repo": "open-llm-leaderboard/Nekochu__Llama-3.1-8B-German-ORPO-details",
+      "average": 23.254052215833834,
+      "model_type": "\ud83d\udd36 fine-tuned on domain-specific datasets",
+      "params_b": 8.03,
+      "precision": "float16",
+      "upload_date": "2024-09-13"
+    },
+    {
+      "fullname": "NeverSleep/Lumimaid-v0.2-12B",
+      "repo": "open-llm-leaderboard/NeverSleep__Lumimaid-v0.2-12B-details",
+      "average": 18.147314436553692,
+      "model_type": "\ud83d\udd36 fine-tuned on domain-specific datasets",
+      "params_b": 12.248,
+      "precision": "bfloat16",
+      "upload_date": "2024-07-25"
+    },
+    {
+      "fullname": "Nexesenex/Llama_3.1_8b_DodoWild_v2.02",
+      "repo": "open-llm-leaderboard/Nexesenex__Llama_3.1_8b_DodoWild_v2.02-details",
+      "average": 30.733559169624357,
+      "model_type": "\ud83e\udd1d base merges and moerges",
+      "params_b": 8.03,
+      "precision": "bfloat16",
+      "upload_date": "2025-02-28"
+    },
+    {
+      "fullname": "Nexesenex/Llama_3.1_8b_Hermedive_R1_V1.01",
+      "repo": "open-llm-leaderboard/Nexesenex__Llama_3.1_8b_Hermedive_R1_V1.01-details",
+      "average": 23.809186985379387,
+      "model_type": "\ud83e\udd1d base merges and moerges",
+      "params_b": 8.03,
+      "precision": "bfloat16",
+      "upload_date": "2025-02-28"
+    },
+    {
+      "fullname": "NousResearch/Hermes-3-Llama-3.2-3B",
+      "repo": "open-llm-leaderboard/NousResearch__Hermes-3-Llama-3.2-3B-details",
+      "average": 15.242119392530277,
+      "model_type": "\ud83d\udcac chat models (RLHF, DPO, IFT, ...)",
+      "params_b": 3.213,
+      "precision": "bfloat16",
+      "upload_date": "2024-12-03"
+    },
+    {
+      "fullname": "NousResearch/Nous-Hermes-2-Mistral-7B-DPO",
+      "repo": "open-llm-leaderboard/NousResearch__Nous-Hermes-2-Mistral-7B-DPO-details",
+      "average": 21.10058697437334,
+      "model_type": "\ud83d\udcac chat models (RLHF, DPO, IFT, ...)",
+      "params_b": 7.242,
+      "precision": "bfloat16",
+      "upload_date": "2024-02-18"
+    },
+    {
+      "fullname": "Novaciano/Cultist-3.2-1B",
+      "repo": "open-llm-leaderboard/Novaciano__Cultist-3.2-1B-details",
+      "average": 12.939673802761396,
+      "model_type": "\ud83e\udd1d base merges and moerges",
+      "params_b": 1.498,
+      "precision": "bfloat16",
+      "upload_date": "2025-03-09"
+    },
+    {
+      "fullname": "NucleusAI/nucleus-22B-token-500B",
+      "repo": "open-llm-leaderboard/NucleusAI__nucleus-22B-token-500B-details",
+      "average": 1.6334163485881146,
+      "model_type": "\ud83d\udfe2 pretrained",
+      "params_b": 21.828,
+      "precision": "bfloat16",
+      "upload_date": "2023-10-06"
+    },
+    {
+      "fullname": "OEvortex/Emotional-llama-8B",
+      "repo": "open-llm-leaderboard/OEvortex__Emotional-llama-8B-details",
+      "average": 17.789126430453027,
+      "model_type": "\ud83e\udd1d base merges and moerges",
+      "params_b": 8.03,
+      "precision": "bfloat16",
+      "upload_date": "2024-05-05"
+    },
+    {
+      "fullname": "OEvortex/HelpingAI2.5-10B",
+      "repo": "open-llm-leaderboard/OEvortex__HelpingAI2.5-10B-details",
+      "average": 13.711774162686112,
+      "model_type": "\ud83d\udfe9 continuously pretrained",
+      "params_b": 10.211,
+      "precision": "float16",
+      "upload_date": "2024-11-17"
+    },
+    {
+      "fullname": "OnlyCheeini/greesychat-turbo",
+      "repo": "open-llm-leaderboard/OnlyCheeini__greesychat-turbo-details",
+      "average": 1.8020688847846804,
+      "model_type": "\ud83d\udd36 fine-tuned on domain-specific datasets",
+      "params_b": 8.03,
+      "precision": "bfloat16",
+      "upload_date": "2024-08-26"
+    },
+    {
+      "fullname": "OpenAssistant/oasst-sft-1-pythia-12b",
+      "repo": "open-llm-leaderboard/OpenAssistant__oasst-sft-1-pythia-12b-details",
+      "average": 3.6818304933986314,
+      "model_type": "\ud83d\udd36 fine-tuned on domain-specific datasets",
+      "params_b": 12.0,
+      "precision": "float16",
+      "upload_date": "2023-03-09"
+    },
+    {
+      "fullname": "OpenBuddy/openbuddy-qwq-32b-v24.2-200k",
+      "repo": "open-llm-leaderboard/OpenBuddy__openbuddy-qwq-32b-v24.2-200k-details",
+      "average": 39.56011201711714,
+      "model_type": "\ud83d\udcac chat models (RLHF, DPO, IFT, ...)",
+      "params_b": 32.764,
+      "precision": "bfloat16",
+      "upload_date": "2024-12-29"
+    },
+    {
+      "fullname": "OpenBuddy/openbuddy-zero-3b-v21.2-32k",
+      "repo": "open-llm-leaderboard/OpenBuddy__openbuddy-zero-3b-v21.2-32k-details",
+      "average": 11.713302286048615,
+      "model_type": "\ud83d\udcac chat models (RLHF, DPO, IFT, ...)",
+      "params_b": 4.769,
+      "precision": "bfloat16",
+      "upload_date": "2024-06-02"
+    },
+    {
+      "fullname": "OpenLLM-France/Lucie-7B-Instruct-v1.1",
+      "repo": "open-llm-leaderboard/OpenLLM-France__Lucie-7B-Instruct-v1.1-details",
+      "average": 10.999352587987943,
+      "model_type": "\ud83d\udd36 fine-tuned on domain-specific datasets",
+      "params_b": 6.707,
+      "precision": "float16",
+      "upload_date": "2025-02-13"
+    },
+    {
+      "fullname": "PocketDoc/Dans-PersonalityEngine-v1.0.0-8b",
+      "repo": "open-llm-leaderboard/PocketDoc__Dans-PersonalityEngine-v1.0.0-8b-details",
+      "average": 19.207416194838743,
+      "model_type": "\ud83d\udd36 fine-tuned on domain-specific datasets",
+      "params_b": 8.03,
+      "precision": "bfloat16",
+      "upload_date": "2024-10-08"
+    },
+    {
+      "fullname": "PocketDoc/Dans-SakuraKaze-V1.0.0-12b",
+      "repo": "open-llm-leaderboard/PocketDoc__Dans-SakuraKaze-V1.0.0-12b-details",
+      "average": 27.119777597401505,
+      "model_type": "\ud83d\udd36 fine-tuned on domain-specific datasets",
+      "params_b": 12.248,
+      "precision": "bfloat16",
+      "upload_date": "2025-02-13"
+    },
+    {
+      "fullname": "Pretergeek/OpenChat-3.5-0106_8.99B_40Layers-Appended",
+      "repo": "open-llm-leaderboard/Pretergeek__OpenChat-3.5-0106_8.99B_40Layers-Appended-details",
+      "average": 22.735876089495267,
+      "model_type": "\ud83e\udd1d base merges and moerges",
+      "params_b": 8.987,
+      "precision": "bfloat16",
+      "upload_date": "2024-07-26"
+    },
+    {
+      "fullname": "PrimeIntellect/INTELLECT-1-Instruct",
+      "repo": "open-llm-leaderboard/PrimeIntellect__INTELLECT-1-Instruct-details",
+      "average": 1.4059110426100174,
+      "model_type": "\ud83d\udcac chat models (RLHF, DPO, IFT, ...)",
+      "params_b": 10.211,
+      "precision": "bfloat16",
+      "upload_date": "2024-11-28"
+    },
+    {
+      "fullname": "Quazim0t0/CoT_Phi",
+      "repo": "open-llm-leaderboard/Quazim0t0__CoT_Phi-details",
+      "average": 36.20889872430018,
+      "model_type": "\ud83e\udd1d base merges and moerges",
+      "params_b": 14.66,
+      "precision": "bfloat16",
+      "upload_date": ""
+    },
+    {
+      "fullname": "Quazim0t0/Imbue-14b",
+      "repo": "open-llm-leaderboard/Quazim0t0__Imbue-14b-details",
+      "average": 38.073352610617825,
+      "model_type": "\ud83e\udd1d base merges and moerges",
+      "params_b": 14.66,
+      "precision": "bfloat16",
+      "upload_date": ""
+    },
+    {
+      "fullname": "Quazim0t0/Insom",
+      "repo": "open-llm-leaderboard/Quazim0t0__Insom-details",
+      "average": 39.54769675145718,
+      "model_type": "\ud83e\udd1d base merges and moerges",
+      "params_b": 14.66,
+      "precision": "bfloat16",
+      "upload_date": ""
+    },
+    {
+      "fullname": "Quazim0t0/Jekyl-8b-sce",
+      "repo": "open-llm-leaderboard/Quazim0t0__Jekyl-8b-sce-details",
+      "average": 24.085441896511327,
+      "model_type": "\ud83e\udd1d base merges and moerges",
+      "params_b": 8.03,
+      "precision": "bfloat16",
+      "upload_date": ""
+    },
+    {
+      "fullname": "Quazim0t0/Mouse-9B",
+      "repo": "open-llm-leaderboard/Quazim0t0__Mouse-9B-details",
+      "average": 3.736733161665297,
+      "model_type": "\ud83e\udd1d base merges and moerges",
+      "params_b": 9.207,
+      "precision": "bfloat16",
+      "upload_date": ""
+    },
+    {
+      "fullname": "Quazim0t0/Phi4Basis-14B-sce",
+      "repo": "open-llm-leaderboard/Quazim0t0__Phi4Basis-14B-sce-details",
+      "average": 40.31326092128696,
+      "model_type": "\ud83e\udd1d base merges and moerges",
+      "params_b": 14.66,
+      "precision": "bfloat16",
+      "upload_date": ""
+    },
+    {
+      "fullname": "Quazim0t0/Sumatra-20b",
+      "repo": "open-llm-leaderboard/Quazim0t0__Sumatra-20b-details",
+      "average": 39.21426941729526,
+      "model_type": "\ud83e\udd1d base merges and moerges",
+      "params_b": 21.475,
+      "precision": "bfloat16",
+      "upload_date": ""
+    },
+    {
+      "fullname": "Quazim0t0/bloom-14b-stock",
+      "repo": "open-llm-leaderboard/Quazim0t0__bloom-14b-stock-details",
+      "average": 40.29106535634419,
+      "model_type": "\ud83e\udd1d base merges and moerges",
+      "params_b": 14.66,
+      "precision": "bfloat16",
+      "upload_date": "2025-02-05"
+    },
+    {
+      "fullname": "Quazim0t0/mocha-14B",
+      "repo": "open-llm-leaderboard/Quazim0t0__mocha-14B-details",
+      "average": 39.84779848605735,
+      "model_type": "\ud83e\udd1d base merges and moerges",
+      "params_b": 14.66,
+      "precision": "bfloat16",
+      "upload_date": ""
+    },
+    {
+      "fullname": "Qwen/Qwen2-0.5B-Instruct",
+      "repo": "open-llm-leaderboard/Qwen__Qwen2-0.5B-Instruct-details",
+      "average": 6.586780633287707,
+      "model_type": "\ud83d\udcac chat models (RLHF, DPO, IFT, ...)",
+      "params_b": 0.494,
+      "precision": "bfloat16",
+      "upload_date": "2024-06-03"
+    },
+    {
+      "fullname": "Qwen/Qwen2-1.5B-Instruct",
+      "repo": "open-llm-leaderboard/Qwen__Qwen2-1.5B-Instruct-details",
+      "average": 14.141936815181689,
+      "model_type": "\ud83d\udcac chat models (RLHF, DPO, IFT, ...)",
+      "params_b": 1.544,
+      "precision": "bfloat16",
+      "upload_date": "2024-06-03"
+    },
+    {
+      "fullname": "Qwen/Qwen2.5-0.5B-Instruct",
+      "repo": "open-llm-leaderboard/Qwen__Qwen2.5-0.5B-Instruct-details",
+      "average": 10.107543850719255,
+      "model_type": "\ud83d\udcac chat models (RLHF, DPO, IFT, ...)",
+      "params_b": 0.494,
+      "precision": "float16",
+      "upload_date": "2024-09-16"
+    },
+    {
+      "fullname": "Qwen/Qwen2.5-32B-Instruct",
+      "repo": "open-llm-leaderboard/Qwen__Qwen2.5-32B-Instruct-details",
+      "average": 46.59714569921449,
+      "model_type": "\ud83d\udcac chat models (RLHF, DPO, IFT, ...)",
+      "params_b": 32.764,
+      "precision": "bfloat16",
+      "upload_date": "2024-09-17"
+    },
+    {
+      "fullname": "Qwen/Qwen2.5-72B-Instruct",
+      "repo": "open-llm-leaderboard/Qwen__Qwen2.5-72B-Instruct-details",
+      "average": 47.98045991216864,
+      "model_type": "\ud83d\udcac chat models (RLHF, DPO, IFT, ...)",
+      "params_b": 72.706,
+      "precision": "bfloat16",
+      "upload_date": "2024-09-16"
+    },
+    {
+      "fullname": "Sakalti/Neptuno-Alpha",
+      "repo": "open-llm-leaderboard/Sakalti__Neptuno-Alpha-details",
+      "average": 22.739135010323622,
+      "model_type": "\ud83d\udd36 fine-tuned on domain-specific datasets",
+      "params_b": 3.397,
+      "precision": "float16",
+      "upload_date": "2025-01-09"
+    },
+    {
+      "fullname": "Sakalti/SJT-3.7B",
+      "repo": "open-llm-leaderboard/Sakalti__SJT-3.7B-details",
+      "average": 5.0893182036401825,
+      "model_type": "\ud83d\udd36 fine-tuned on domain-specific datasets",
+      "params_b": 3.783,
+      "precision": "float16",
+      "upload_date": "2025-01-21"
+    },
+    {
+      "fullname": "Sakalti/SJT-7.5B",
+      "repo": "open-llm-leaderboard/Sakalti__SJT-7.5B-details",
+      "average": 25.88865048007519,
+      "model_type": "\ud83d\udd36 fine-tuned on domain-specific datasets",
+      "params_b": 7.456,
+      "precision": "float16",
+      "upload_date": "2025-02-01"
+    },
+    {
+      "fullname": "Sakalti/SJT-8B-V1.1",
+      "repo": "open-llm-leaderboard/Sakalti__SJT-8B-V1.1-details",
+      "average": 26.20087403142101,
+      "model_type": "\ud83d\udd36 fine-tuned on domain-specific datasets",
+      "params_b": 8.545,
+      "precision": "float16",
+      "upload_date": "2025-02-04"
+    },
+    {
+      "fullname": "Sakalti/Saka-7.2B",
+      "repo": "open-llm-leaderboard/Sakalti__Saka-7.2B-details",
+      "average": 3.869360483737708,
+      "model_type": "\ud83d\udd36 fine-tuned on domain-specific datasets",
+      "params_b": 7.292,
+      "precision": "float16",
+      "upload_date": "2025-02-06"
+    },
+    {
+      "fullname": "Sakalti/ultiima-14B-v0.4",
+      "repo": "open-llm-leaderboard/Sakalti__ultiima-14B-v0.4-details",
+      "average": 33.64162669559072,
+      "model_type": "\ud83d\udd36 fine-tuned on domain-specific datasets",
+      "params_b": 14.766,
+      "precision": "float16",
+      "upload_date": "2025-02-02"
+    },
+    {
+      "fullname": "Sakalti/ultiima-32B",
+      "repo": "open-llm-leaderboard/Sakalti__ultiima-32B-details",
+      "average": 45.40321787320272,
+      "model_type": "\ud83e\udd1d base merges and moerges",
+      "params_b": 32.764,
+      "precision": "float16",
+      "upload_date": "2024-12-23"
+    },
+    {
+      "fullname": "Sakalti/ultiima-72B-v1.5",
+      "repo": "open-llm-leaderboard/Sakalti__ultiima-72B-v1.5-details",
+      "average": 44.89912916202218,
+      "model_type": "\ud83d\udd36 fine-tuned on domain-specific datasets",
+      "params_b": 72.706,
+      "precision": "float16",
+      "upload_date": "2025-01-25"
+    },
+    {
+      "fullname": "Salesforce/LLaMA-3-8B-SFR-Iterative-DPO-R",
+      "repo": "open-llm-leaderboard/Salesforce__LLaMA-3-8B-SFR-Iterative-DPO-R-details",
+      "average": 18.527751291550988,
+      "model_type": "\ud83d\udd36 fine-tuned on domain-specific datasets",
+      "params_b": 8.03,
+      "precision": "bfloat16",
+      "upload_date": "2024-05-09"
+    },
+    {
+      "fullname": "Saxo/Linkbricks-Horizon-AI-Avengers-V1-32B",
+      "repo": "open-llm-leaderboard/Saxo__Linkbricks-Horizon-AI-Avengers-V1-32B-details",
+      "average": 47.33695645964031,
+      "model_type": "\ud83d\udd36 fine-tuned on domain-specific datasets",
+      "params_b": 32.76,
+      "precision": "bfloat16",
+      "upload_date": "2024-12-29"
+    },
+    {
+      "fullname": "Saxo/Linkbricks-Horizon-AI-Avengers-V2-32B",
+      "repo": "open-llm-leaderboard/Saxo__Linkbricks-Horizon-AI-Avengers-V2-32B-details",
+      "average": 43.33912719384693,
+      "model_type": "\ud83d\udd36 fine-tuned on domain-specific datasets",
+      "params_b": 32.76,
+      "precision": "bfloat16",
+      "upload_date": "2024-12-30"
+    },
+    {
+      "fullname": "Saxo/Linkbricks-Horizon-AI-Avengers-V6-32B",
+      "repo": "open-llm-leaderboard/Saxo__Linkbricks-Horizon-AI-Avengers-V6-32B-details",
+      "average": 46.23110024344452,
+      "model_type": "\ud83d\udd36 fine-tuned on domain-specific datasets",
+      "params_b": 32.76,
+      "precision": "bfloat16",
+      "upload_date": "2025-01-01"
+    },
+    {
+      "fullname": "SicariusSicariiStuff/Impish_Mind_8B",
+      "repo": "open-llm-leaderboard/SicariusSicariiStuff__Impish_Mind_8B-details",
+      "average": 18.124203063482273,
+      "model_type": "\ud83d\udd36 fine-tuned on domain-specific datasets",
+      "params_b": 8.03,
+      "precision": "float16",
+      "upload_date": "2024-12-05"
+    },
+    {
+      "fullname": "Steelskull/L3.3-Nevoria-R1-70b",
+      "repo": "open-llm-leaderboard/Steelskull__L3.3-Nevoria-R1-70b-details",
+      "average": 43.61308347965567,
+      "model_type": "\ud83e\udd1d base merges and moerges",
+      "params_b": 70.554,
+      "precision": "bfloat16",
+      "upload_date": "2025-01-23"
+    },
+    {
+      "fullname": "Supichi/BBA-123",
+      "repo": "open-llm-leaderboard/Supichi__BBA-123-details",
+      "average": 4.7970062398113145,
+      "model_type": "\ud83d\udd36 fine-tuned on domain-specific datasets",
+      "params_b": 17.161,
+      "precision": "bfloat16",
+      "upload_date": "2025-02-26"
+    },
+    {
+      "fullname": "Svak/MN-12B-Inferor-v0.0",
+      "repo": "open-llm-leaderboard/Svak__MN-12B-Inferor-v0.0-details",
+      "average": 25.41093424607308,
+      "model_type": "\ud83e\udd1d base merges and moerges",
+      "params_b": 12.248,
+      "precision": "float16",
+      "upload_date": "2024-11-07"
+    },
+    {
+      "fullname": "Svak/MN-12B-Inferor-v0.1",
+      "repo": "open-llm-leaderboard/Svak__MN-12B-Inferor-v0.1-details",
+      "average": 26.937535331905043,
+      "model_type": "\ud83e\udd1d base merges and moerges",
+      "params_b": 12.248,
+      "precision": "float16",
+      "upload_date": "2024-11-08"
+    },
+    {
+      "fullname": "T145/KRONOS-8B-V6",
+      "repo": "open-llm-leaderboard/T145__KRONOS-8B-V6-details",
+      "average": 27.898039972832333,
+      "model_type": "\ud83d\udcac chat models (RLHF, DPO, IFT, ...)",
+      "params_b": 8.03,
+      "precision": "bfloat16",
+      "upload_date": "2024-12-20"
+    },
+    {
+      "fullname": "T145/Llama-3.1-8B-Zeus",
+      "repo": "open-llm-leaderboard/T145__Llama-3.1-8B-Zeus-details",
+      "average": 9.076440481991643,
+      "model_type": "\ud83d\udcac chat models (RLHF, DPO, IFT, ...)",
+      "params_b": 8.03,
+      "precision": "bfloat16",
+      "upload_date": ""
+    },
+    {
+      "fullname": "T145/ZEUS-8B-V15",
+      "repo": "open-llm-leaderboard/T145__ZEUS-8B-V15-details",
+      "average": 29.370031092616262,
+      "model_type": "\ud83d\udcac chat models (RLHF, DPO, IFT, ...)",
+      "params_b": 4.015,
+      "precision": "bfloat16",
+      "upload_date": ""
+    },
+    {
+      "fullname": "TTTXXX01/Mistral-7B-Base-SimPO2-5e-7",
+      "repo": "open-llm-leaderboard/TTTXXX01__Mistral-7B-Base-SimPO2-5e-7-details",
+      "average": 16.417452751929584,
+      "model_type": "\ud83d\udcac chat models (RLHF, DPO, IFT, ...)",
+      "params_b": 7.242,
+      "precision": "bfloat16",
+      "upload_date": "2024-08-30"
+    },
+    {
+      "fullname": "TheTsar1209/qwen-carpmuscle-v0.4",
+      "repo": "open-llm-leaderboard/TheTsar1209__qwen-carpmuscle-v0.4-details",
+      "average": 37.393960224042935,
+      "model_type": "\ud83d\udcac chat models (RLHF, DPO, IFT, ...)",
+      "params_b": 14.77,
+      "precision": "bfloat16",
+      "upload_date": "2024-11-18"
+    },
+    {
+      "fullname": "TinyLlama/TinyLlama-1.1B-Chat-v0.1",
+      "repo": "open-llm-leaderboard/TinyLlama__TinyLlama-1.1B-Chat-v0.1-details",
+      "average": 3.9575773348190606,
+      "model_type": "\ud83d\udd36 fine-tuned on domain-specific datasets",
+      "params_b": 1.1,
+      "precision": "float16",
+      "upload_date": "2023-09-16"
+    },
+    {
+      "fullname": "Trappu/Nemo-Picaro-12B",
+      "repo": "open-llm-leaderboard/Trappu__Nemo-Picaro-12B-details",
+      "average": 21.362492548877267,
+      "model_type": "\ud83d\udd36 fine-tuned on domain-specific datasets",
+      "params_b": 12.248,
+      "precision": "float16",
+      "upload_date": "2024-09-10"
+    },
+    {
+      "fullname": "Triangle104/Pantheon_ChatWaifu_V0.2",
+      "repo": "open-llm-leaderboard/Triangle104__Pantheon_ChatWaifu_V0.2-details",
+      "average": 20.845639319611607,
+      "model_type": "\ud83e\udd1d base merges and moerges",
+      "params_b": 12.248,
+      "precision": "float16",
+      "upload_date": "2024-10-27"
+    },
+    {
+      "fullname": "Triangle104/Phi-4-AbliteratedRP",
+      "repo": "open-llm-leaderboard/Triangle104__Phi-4-AbliteratedRP-details",
+      "average": 37.374976244999196,
+      "model_type": "\ud83e\udd1d base merges and moerges",
+      "params_b": 14.66,
+      "precision": "float16",
+      "upload_date": "2025-01-10"
+    },
+    {
+      "fullname": "Triangle104/Phi4-RP-o1-Ablit",
+      "repo": "open-llm-leaderboard/Triangle104__Phi4-RP-o1-Ablit-details",
+      "average": 28.67748592577745,
+      "model_type": "\ud83e\udd1d base merges and moerges",
+      "params_b": 14.66,
+      "precision": "bfloat16",
+      "upload_date": "2025-02-08"
+    },
+    {
+      "fullname": "Triangle104/Rombos-Novasky-7B_V1c",
+      "repo": "open-llm-leaderboard/Triangle104__Rombos-Novasky-7B_V1c-details",
+      "average": 18.209818018566242,
+      "model_type": "\ud83e\udd1d base merges and moerges",
+      "params_b": 7.616,
+      "precision": "float16",
+      "upload_date": "2025-02-18"
+    },
+    {
+      "fullname": "VAGOsolutions/Llama-3.1-SauerkrautLM-70b-Instruct",
+      "repo": "open-llm-leaderboard/VAGOsolutions__Llama-3.1-SauerkrautLM-70b-Instruct-details",
+      "average": 43.413769840000015,
+      "model_type": "\ud83d\udd36 fine-tuned on domain-specific datasets",
+      "params_b": 70.554,
+      "precision": "bfloat16",
+      "upload_date": "2024-07-29"
+    },
+    {
+      "fullname": "Xiaojian9992024/Qwen2.5-THREADRIPPER-Small-AnniversaryEdition",
+      "repo": "open-llm-leaderboard/Xiaojian9992024__Qwen2.5-THREADRIPPER-Small-AnniversaryEdition-details",
+      "average": 34.25068817877398,
+      "model_type": "\ud83e\udd1d base merges and moerges",
+      "params_b": 7.616,
+      "precision": "bfloat16",
+      "upload_date": "2025-02-17"
+    },
+    {
+      "fullname": "YOYO-AI/Qwen2.5-14B-YOYO-1010",
+      "repo": "open-llm-leaderboard/YOYO-AI__Qwen2.5-14B-YOYO-1010-details",
+      "average": 40.008009214120385,
+      "model_type": "\ud83e\udd1d base merges and moerges",
+      "params_b": 14.77,
+      "precision": "float16",
+      "upload_date": "2025-01-25"
+    },
+    {
+      "fullname": "YOYO-AI/Qwen2.5-14B-YOYO-V4",
+      "repo": "open-llm-leaderboard/YOYO-AI__Qwen2.5-14B-YOYO-V4-details",
+      "average": 42.28551883596217,
+      "model_type": "\ud83e\udd1d base merges and moerges",
+      "params_b": 14.766,
+      "precision": "float16",
+      "upload_date": "2025-03-02"
+    },
+    {
+      "fullname": "YOYO-AI/Qwen2.5-14B-it-restore",
+      "repo": "open-llm-leaderboard/YOYO-AI__Qwen2.5-14B-it-restore-details",
+      "average": 41.50259115054908,
+      "model_type": "\ud83e\udd1d base merges and moerges",
+      "params_b": 14.766,
+      "precision": "float16",
+      "upload_date": "2025-03-09"
+    },
+    {
+      "fullname": "Youlln/2PRYMMAL-Yi1.5-6B-SLERP",
+      "repo": "open-llm-leaderboard/Youlln__2PRYMMAL-Yi1.5-6B-SLERP-details",
+      "average": 18.991811258176195,
+      "model_type": "\ud83e\udd1d base merges and moerges",
+      "params_b": 6.061,
+      "precision": "bfloat16",
+      "upload_date": "2024-09-22"
+    },
+    {
+      "fullname": "Youlln/ECE-PRYMMAL0.5B-Youri",
+      "repo": "open-llm-leaderboard/Youlln__ECE-PRYMMAL0.5B-Youri-details",
+      "average": 3.505273892929676,
+      "model_type": "\ud83e\udd1d base merges and moerges",
+      "params_b": 0.63,
+      "precision": "bfloat16",
+      "upload_date": "2024-10-07"
+    },
+    {
+      "fullname": "Yuma42/Llama3.1-SuperHawk-8B",
+      "repo": "open-llm-leaderboard/Yuma42__Llama3.1-SuperHawk-8B-details",
+      "average": 31.135471049209404,
+      "model_type": "\ud83e\udd1d base merges and moerges",
+      "params_b": 8.03,
+      "precision": "bfloat16",
+      "upload_date": "2025-03-10"
+    },
+    {
+      "fullname": "ZeroXClem/Qwen2.5-7B-CelestialHarmony-1M",
+      "repo": "open-llm-leaderboard/ZeroXClem__Qwen2.5-7B-CelestialHarmony-1M-details",
+      "average": 32.03891571870145,
+      "model_type": "\ud83e\udd1d base merges and moerges",
+      "params_b": 7.613,
+      "precision": "bfloat16",
+      "upload_date": "2025-01-30"
+    },
+    {
+      "fullname": "ZeroXClem/Qwen2.5-7B-Qandora-CySec",
+      "repo": "open-llm-leaderboard/ZeroXClem__Qwen2.5-7B-Qandora-CySec-details",
+      "average": 32.02349981666794,
+      "model_type": "\ud83d\udd36 fine-tuned on domain-specific datasets",
+      "params_b": 7.616,
+      "precision": "bfloat16",
+      "upload_date": "2024-11-12"
+    },
+    {
+      "fullname": "abacusai/Dracarys-72B-Instruct",
+      "repo": "open-llm-leaderboard/abacusai__Dracarys-72B-Instruct-details",
+      "average": 43.377212135916615,
+      "model_type": "\ud83d\udd36 fine-tuned on domain-specific datasets",
+      "params_b": 72.706,
+      "precision": "bfloat16",
+      "upload_date": "2024-08-14"
+    },
+    {
+      "fullname": "abacusai/Llama-3-Smaug-8B",
+      "repo": "open-llm-leaderboard/abacusai__Llama-3-Smaug-8B-details",
+      "average": 19.067762376529682,
+      "model_type": "\ud83d\udd36 fine-tuned on domain-specific datasets",
+      "params_b": 8.03,
+      "precision": "bfloat16",
+      "upload_date": "2024-04-19"
+    },
+    {
+      "fullname": "agentlans/Llama-3.2-1B-Instruct-CrashCourse12K",
+      "repo": "open-llm-leaderboard/agentlans__Llama-3.2-1B-Instruct-CrashCourse12K-details",
+      "average": 13.437967590003339,
+      "model_type": "\ud83d\udd36 fine-tuned on domain-specific datasets",
+      "params_b": 1.236,
+      "precision": "bfloat16",
+      "upload_date": "2025-01-05"
+    },
+    {
+      "fullname": "agentlans/Llama3.1-Daredevilish-Instruct",
+      "repo": "open-llm-leaderboard/agentlans__Llama3.1-Daredevilish-Instruct-details",
+      "average": 29.365203712781987,
+      "model_type": "\ud83e\udd1d base merges and moerges",
+      "params_b": 8.03,
+      "precision": "bfloat16",
+      "upload_date": "2025-01-22"
+    },
+    {
+      "fullname": "ai21labs/Jamba-v0.1",
+      "repo": "open-llm-leaderboard/ai21labs__Jamba-v0.1-details",
+      "average": 9.218365089520882,
+      "model_type": "\ud83d\udfe2 pretrained",
+      "params_b": 51.57,
+      "precision": "bfloat16",
+      "upload_date": "2024-03-28"
+    },
+    {
+      "fullname": "ai4bharat/Airavata",
+      "repo": "open-llm-leaderboard/ai4bharat__Airavata-details",
+      "average": 5.550973263891643,
+      "model_type": "\ud83d\udd36 fine-tuned on domain-specific datasets",
+      "params_b": 6.87,
+      "precision": "bfloat16",
+      "upload_date": "2024-01-13"
+    },
+    {
+      "fullname": "aixonlab/Zara-14b-v1.2",
+      "repo": "open-llm-leaderboard/aixonlab__Zara-14b-v1.2-details",
+      "average": 37.99891251390576,
+      "model_type": "\ud83d\udd36 fine-tuned on domain-specific datasets",
+      "params_b": 14.766,
+      "precision": "bfloat16",
+      "upload_date": "2025-01-29"
+    },
+    {
+      "fullname": "akhadangi/Llama3.2.1B.0.01-First",
+      "repo": "open-llm-leaderboard/akhadangi__Llama3.2.1B.0.01-First-details",
+      "average": 3.1098917488910103,
+      "model_type": "\ud83d\udd36 fine-tuned on domain-specific datasets",
+      "params_b": 1.236,
+      "precision": "float16",
+      "upload_date": "2025-03-10"
+    },
+    {
+      "fullname": "akhadangi/Llama3.2.1B.0.01-Last",
+      "repo": "open-llm-leaderboard/akhadangi__Llama3.2.1B.0.01-Last-details",
+      "average": 3.2621298672901786,
+      "model_type": "\ud83d\udd36 fine-tuned on domain-specific datasets",
+      "params_b": 1.236,
+      "precision": "float16",
+      "upload_date": "2025-03-10"
+    },
+    {
+      "fullname": "allenai/Llama-3.1-Tulu-3-70B",
+      "repo": "open-llm-leaderboard/allenai__Llama-3.1-Tulu-3-70B-details",
+      "average": 42.33178738532094,
+      "model_type": "\ud83d\udcac chat models (RLHF, DPO, IFT, ...)",
+      "params_b": 70.554,
+      "precision": "bfloat16",
+      "upload_date": "2024-11-20"
+    },
+    {
+      "fullname": "allknowingroger/HomerSlerp2-7B",
+      "repo": "open-llm-leaderboard/allknowingroger__HomerSlerp2-7B-details",
+      "average": 28.948900169100085,
+      "model_type": "\ud83e\udd1d base merges and moerges",
+      "params_b": 7.616,
+      "precision": "bfloat16",
+      "upload_date": "2024-11-20"
+    },
+    {
+      "fullname": "allknowingroger/Mistralmash1-7B-s",
+      "repo": "open-llm-leaderboard/allknowingroger__Mistralmash1-7B-s-details",
+      "average": 20.913865809674476,
+      "model_type": "\ud83e\udd1d base merges and moerges",
+      "params_b": 7.242,
+      "precision": "bfloat16",
+      "upload_date": "2024-08-27"
+    },
+    {
+      "fullname": "allknowingroger/Ph3unsloth-3B-slerp",
+      "repo": "open-llm-leaderboard/allknowingroger__Ph3unsloth-3B-slerp-details",
+      "average": 20.153514887760053,
+      "model_type": "\ud83e\udd1d base merges and moerges",
+      "params_b": 3.821,
+      "precision": "bfloat16",
+      "upload_date": "2024-05-31"
+    },
+    {
+      "fullname": "allknowingroger/Yunconglong-13B-slerp",
+      "repo": "open-llm-leaderboard/allknowingroger__Yunconglong-13B-slerp-details",
+      "average": 19.600104180648433,
+      "model_type": "\ud83e\udd1d base merges and moerges",
+      "params_b": 12.879,
+      "precision": "bfloat16",
+      "upload_date": ""
+    },
+    {
+      "fullname": "alpindale/WizardLM-2-8x22B",
+      "repo": "open-llm-leaderboard/alpindale__WizardLM-2-8x22B-details",
+      "average": 33.059051837739325,
+      "model_type": "\ud83d\udd36 fine-tuned on domain-specific datasets",
+      "params_b": 140.621,
+      "precision": "bfloat16",
+      "upload_date": "2024-04-16"
+    },
+    {
+      "fullname": "altomek/YiSM-34B-0rn",
+      "repo": "open-llm-leaderboard/altomek__YiSM-34B-0rn-details",
+      "average": 30.51201240834246,
+      "model_type": "\ud83e\udd1d base merges and moerges",
+      "params_b": 34.389,
+      "precision": "float16",
+      "upload_date": "2024-05-26"
+    },
+    {
+      "fullname": "anakin87/gemma-2b-orpo",
+      "repo": "open-llm-leaderboard/anakin87__gemma-2b-orpo-details",
+      "average": 7.284706228625474,
+      "model_type": "\ud83d\udcac chat models (RLHF, DPO, IFT, ...)",
+      "params_b": 2.506,
+      "precision": "bfloat16",
+      "upload_date": "2024-03-24"
+    },
+    {
+      "fullname": "anthracite-org/magnum-v2-72b",
+      "repo": "open-llm-leaderboard/anthracite-org__magnum-v2-72b-details",
+      "average": 41.78287226692161,
+      "model_type": "\ud83d\udcac chat models (RLHF, DPO, IFT, ...)",
+      "params_b": 72.706,
+      "precision": "bfloat16",
+      "upload_date": "2024-08-18"
+    },
+    {
+      "fullname": "arcee-ai/Arcee-Nova",
+      "repo": "open-llm-leaderboard/arcee-ai__Arcee-Nova-details",
+      "average": 44.05339262826514,
+      "model_type": "\ud83d\udcac chat models (RLHF, DPO, IFT, ...)",
+      "params_b": 72.706,
+      "precision": "bfloat16",
+      "upload_date": "2024-07-16"
+    },
+    {
+      "fullname": "arcee-ai/Llama-Spark",
+      "repo": "open-llm-leaderboard/arcee-ai__Llama-Spark-details",
+      "average": 27.037236901530367,
+      "model_type": "\ud83d\udd36 fine-tuned on domain-specific datasets",
+      "params_b": 8.03,
+      "precision": "bfloat16",
+      "upload_date": "2024-07-26"
+    },
+    {
+      "fullname": "asharsha30/LLAMA_Harsha_8_B_ORDP_10k",
+      "repo": "open-llm-leaderboard/asharsha30__LLAMA_Harsha_8_B_ORDP_10k-details",
+      "average": 16.221361486666726,
+      "model_type": "\ud83d\udd36 fine-tuned on domain-specific datasets",
+      "params_b": 8.03,
+      "precision": "float16",
+      "upload_date": "2024-12-01"
+    },
+    {
+      "fullname": "avemio/GRAG-NEMO-12B-ORPO-HESSIAN-AI",
+      "repo": "open-llm-leaderboard/avemio__GRAG-NEMO-12B-ORPO-HESSIAN-AI-details",
+      "average": 0.7378506308720487,
+      "model_type": "\ud83d\udcac chat models (RLHF, DPO, IFT, ...)",
+      "params_b": 12.248,
+      "precision": "bfloat16",
+      "upload_date": "2024-12-04"
+    },
+    {
+      "fullname": "baconnier/Napoleon_24B_V0.2",
+      "repo": "open-llm-leaderboard/baconnier__Napoleon_24B_V0.2-details",
+      "average": 24.007932141039515,
+      "model_type": "\ud83e\udd1d base merges and moerges",
+      "params_b": 23.572,
+      "precision": "float16",
+      "upload_date": "2025-02-17"
+    },
+    {
+      "fullname": "bamec66557/VICIOUS_MESH-12B-UNION",
+      "repo": "open-llm-leaderboard/bamec66557__VICIOUS_MESH-12B-UNION-details",
+      "average": 26.67624004599591,
+      "model_type": "\ud83e\udd1d base merges and moerges",
+      "params_b": 6.124,
+      "precision": "bfloat16",
+      "upload_date": ""
+    },
+    {
+      "fullname": "belztjti/dtfgv",
+      "repo": "open-llm-leaderboard/belztjti__dtfgv-details",
+      "average": 9.007600725168578,
+      "model_type": "\ud83d\udd36 fine-tuned on domain-specific datasets",
+      "params_b": 9.543,
+      "precision": "bfloat16",
+      "upload_date": ""
+    },
+    {
+      "fullname": "benhaotang/phi4-qwq-sky-t1",
+      "repo": "open-llm-leaderboard/benhaotang__phi4-qwq-sky-t1-details",
+      "average": 31.01825262068425,
+      "model_type": "\ud83e\udd1d base merges and moerges",
+      "params_b": 14.66,
+      "precision": "float16",
+      "upload_date": "2025-01-17"
+    },
+    {
+      "fullname": "beomi/gemma-mling-7b",
+      "repo": "open-llm-leaderboard/beomi__gemma-mling-7b-details",
+      "average": 11.392173694644192,
+      "model_type": "\ud83d\udfe9 continuously pretrained",
+      "params_b": 8.538,
+      "precision": "bfloat16",
+      "upload_date": "2024-04-15"
+    },
+    {
+      "fullname": "bigcode/starcoder2-3b",
+      "repo": "open-llm-leaderboard/bigcode__starcoder2-3b-details",
+      "average": 6.549147626379535,
+      "model_type": "\ud83d\udfe2 pretrained",
+      "params_b": 3.03,
+      "precision": "bfloat16",
+      "upload_date": "2023-11-29"
+    },
+    {
+      "fullname": "brgx53/3Blarenegv2-ECE-PRYMMAL-Martial",
+      "repo": "open-llm-leaderboard/brgx53__3Blarenegv2-ECE-PRYMMAL-Martial-details",
+      "average": 31.457001024079023,
+      "model_type": "\ud83e\udd1d base merges and moerges",
+      "params_b": 7.616,
+      "precision": "bfloat16",
+      "upload_date": "2024-11-08"
+    },
+    {
+      "fullname": "bunnycore/DeepThinker-7B-Sce-v1",
+      "repo": "open-llm-leaderboard/bunnycore__DeepThinker-7B-Sce-v1-details",
+      "average": 4.766577429203108,
+      "model_type": "\ud83e\udd1d base merges and moerges",
+      "params_b": 7.613,
+      "precision": "bfloat16",
+      "upload_date": ""
+    },
+    {
+      "fullname": "bunnycore/HyperLlama-3.1-8B",
+      "repo": "open-llm-leaderboard/bunnycore__HyperLlama-3.1-8B-details",
+      "average": 28.44897570570595,
+      "model_type": "\ud83e\udd1d base merges and moerges",
+      "params_b": 8.03,
+      "precision": "bfloat16",
+      "upload_date": "2024-09-04"
+    },
+    {
+      "fullname": "bunnycore/Llama-3.2-3B-Booval",
+      "repo": "open-llm-leaderboard/bunnycore__Llama-3.2-3B-Booval-details",
+      "average": 21.56545090409925,
+      "model_type": "\ud83d\udd36 fine-tuned on domain-specific datasets",
+      "params_b": 3.213,
+      "precision": "bfloat16",
+      "upload_date": "2024-10-27"
+    },
+    {
+      "fullname": "bunnycore/Llama-3.2-3B-RRStock",
+      "repo": "open-llm-leaderboard/bunnycore__Llama-3.2-3B-RRStock-details",
+      "average": 22.67468863966219,
+      "model_type": "\ud83e\udd1d base merges and moerges",
+      "params_b": 3.607,
+      "precision": "bfloat16",
+      "upload_date": "2025-02-03"
+    },
+    {
+      "fullname": "bunnycore/Qandora-2.5-7B-Creative",
+      "repo": "open-llm-leaderboard/bunnycore__Qandora-2.5-7B-Creative-details",
+      "average": 32.10182633953863,
+      "model_type": "\ud83e\udd1d base merges and moerges",
+      "params_b": 7.616,
+      "precision": "bfloat16",
+      "upload_date": "2024-11-20"
+    },
+    {
+      "fullname": "bunnycore/QwQen-3B-LCoT-R1",
+      "repo": "open-llm-leaderboard/bunnycore__QwQen-3B-LCoT-R1-details",
+      "average": 25.965028531766123,
+      "model_type": "\ud83d\udd36 fine-tuned on domain-specific datasets",
+      "params_b": 3.085,
+      "precision": "bfloat16",
+      "upload_date": "2025-02-23"
+    },
+    {
+      "fullname": "bunnycore/Qwen2.5-7B-Instruct-Merge-Stock-v0.1",
+      "repo": "open-llm-leaderboard/bunnycore__Qwen2.5-7B-Instruct-Merge-Stock-v0.1-details",
+      "average": 36.14483066079348,
+      "model_type": "\ud83e\udd1d base merges and moerges",
+      "params_b": 7.613,
+      "precision": "bfloat16",
+      "upload_date": "2025-03-01"
+    },
+    {
+      "fullname": "bunnycore/Qwen2.5-7B-R1-Bespoke-Task",
+      "repo": "open-llm-leaderboard/bunnycore__Qwen2.5-7B-R1-Bespoke-Task-details",
+      "average": 15.746098824658986,
+      "model_type": "\ud83e\udd1d base merges and moerges",
+      "params_b": 7.613,
+      "precision": "bfloat16",
+      "upload_date": "2025-01-24"
+    },
+    {
+      "fullname": "chargoddard/prometheus-2-llama-3-8b",
+      "repo": "open-llm-leaderboard/chargoddard__prometheus-2-llama-3-8b-details",
+      "average": 19.318861828334345,
+      "model_type": "\ud83d\udd36 fine-tuned on domain-specific datasets",
+      "params_b": 8.03,
+      "precision": "bfloat16",
+      "upload_date": "2024-05-26"
+    },
+    {
+      "fullname": "cloudyu/Llama-3-70Bx2-MOE",
+      "repo": "open-llm-leaderboard/cloudyu__Llama-3-70Bx2-MOE-details",
+      "average": 35.66646489034437,
+      "model_type": "\ud83d\udd36 fine-tuned on domain-specific datasets",
+      "params_b": 126.926,
+      "precision": "bfloat16",
+      "upload_date": "2024-05-20"
+    },
+    {
+      "fullname": "cluebbers/Llama-3.1-8B-paraphrase-type-generation-apty-sigmoid",
+      "repo": "open-llm-leaderboard/cluebbers__Llama-3.1-8B-paraphrase-type-generation-apty-sigmoid-details",
+      "average": 10.070699081571052,
+      "model_type": "\ud83d\udcac chat models (RLHF, DPO, IFT, ...)",
+      "params_b": 8.03,
+      "precision": "bfloat16",
+      "upload_date": "2024-11-15"
+    },
+    {
+      "fullname": "cpayne1303/llama-43m-beta",
+      "repo": "open-llm-leaderboard/cpayne1303__llama-43m-beta-details",
+      "average": 5.422628758277313,
+      "model_type": "\ud83d\udfe9 continuously pretrained",
+      "params_b": 0.043,
+      "precision": "float16",
+      "upload_date": "2024-11-30"
+    },
+    {
+      "fullname": "databricks/dolly-v2-7b",
+      "repo": "open-llm-leaderboard/databricks__dolly-v2-7b-details",
+      "average": 5.647360474812998,
+      "model_type": "\ud83d\udd36 fine-tuned on domain-specific datasets",
+      "params_b": 7.0,
+      "precision": "bfloat16",
+      "upload_date": "2023-04-13"
+    },
+    {
+      "fullname": "deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B",
+      "repo": "open-llm-leaderboard/deepseek-ai__DeepSeek-R1-Distill-Qwen-1.5B-details",
+      "average": 10.351036796154286,
+      "model_type": "\ud83d\udcac chat models (RLHF, DPO, IFT, ...)",
+      "params_b": 1.777,
+      "precision": "bfloat16",
+      "upload_date": "2025-01-20"
+    },
+    {
+      "fullname": "deepseek-ai/deepseek-llm-7b-chat",
+      "repo": "open-llm-leaderboard/deepseek-ai__deepseek-llm-7b-chat-details",
+      "average": 14.823156850686358,
+      "model_type": "\ud83d\udcac chat models (RLHF, DPO, IFT, ...)",
+      "params_b": 7.0,
+      "precision": "bfloat16",
+      "upload_date": "2023-11-29"
+    },
+    {
+      "fullname": "deepseek-ai/deepseek-moe-16b-chat",
+      "repo": "open-llm-leaderboard/deepseek-ai__deepseek-moe-16b-chat-details",
+      "average": 10.290615224333424,
+      "model_type": "\ud83d\udcac chat models (RLHF, DPO, IFT, ...)",
+      "params_b": 16.376,
+      "precision": "bfloat16",
+      "upload_date": "2024-01-09"
+    },
+    {
+      "fullname": "dfurman/CalmeRys-78B-Orpo-v0.1",
+      "repo": "open-llm-leaderboard/dfurman__CalmeRys-78B-Orpo-v0.1-details",
+      "average": 51.23132307602696,
+      "model_type": "\ud83d\udcac chat models (RLHF, DPO, IFT, ...)",
+      "params_b": 77.965,
+      "precision": "bfloat16",
+      "upload_date": "2024-09-24"
+    },
+    {
+      "fullname": "dfurman/Llama-3-8B-Orpo-v0.1",
+      "repo": "open-llm-leaderboard/dfurman__Llama-3-8B-Orpo-v0.1-details",
+      "average": 11.076157946218345,
+      "model_type": "\ud83d\udcac chat models (RLHF, DPO, IFT, ...)",
+      "params_b": 8.03,
+      "precision": "bfloat16",
+      "upload_date": "2024-04-26"
+    },
+    {
+      "fullname": "distilbert/distilgpt2",
+      "repo": "open-llm-leaderboard/distilbert__distilgpt2-details",
+      "average": 4.002273827220365,
+      "model_type": "\ud83d\udfe2 pretrained",
+      "params_b": 0.088,
+      "precision": "bfloat16",
+      "upload_date": "2022-03-02"
+    },
+    {
+      "fullname": "djuna/L3.1-ForStHS",
+      "repo": "open-llm-leaderboard/djuna__L3.1-ForStHS-details",
+      "average": 28.348156412970027,
+      "model_type": "\ud83e\udd1d base merges and moerges",
+      "params_b": 8.03,
+      "precision": "bfloat16",
+      "upload_date": "2024-09-10"
+    },
+    {
+      "fullname": "djuna/Q2.5-Veltha-14B",
+      "repo": "open-llm-leaderboard/djuna__Q2.5-Veltha-14B-details",
+      "average": 42.519512261718894,
+      "model_type": "\ud83e\udd1d base merges and moerges",
+      "params_b": 14.766,
+      "precision": "bfloat16",
+      "upload_date": "2024-12-22"
+    },
+    {
+      "fullname": "dnhkng/RYS-XLarge",
+      "repo": "open-llm-leaderboard/dnhkng__RYS-XLarge-details",
+      "average": 45.345219749056206,
+      "model_type": "\ud83d\udd36 fine-tuned on domain-specific datasets",
+      "params_b": 77.965,
+      "precision": "bfloat16",
+      "upload_date": "2024-07-24"
+    },
+    {
+      "fullname": "ehristoforu/RQwen-v0.2",
+      "repo": "open-llm-leaderboard/ehristoforu__RQwen-v0.2-details",
+      "average": 37.702469412365296,
+      "model_type": "\ud83d\udd36 fine-tuned on domain-specific datasets",
+      "params_b": 14.77,
+      "precision": "float16",
+      "upload_date": "2024-11-24"
+    },
+    {
+      "fullname": "ehristoforu/SoRu-0009",
+      "repo": "open-llm-leaderboard/ehristoforu__SoRu-0009-details",
+      "average": 6.300240741893716,
+      "model_type": "\ud83d\udd36 fine-tuned on domain-specific datasets",
+      "params_b": 0.494,
+      "precision": "float16",
+      "upload_date": "2024-11-26"
+    },
+    {
+      "fullname": "ehristoforu/della-70b-test-v1",
+      "repo": "open-llm-leaderboard/ehristoforu__della-70b-test-v1-details",
+      "average": 12.869435105716944,
+      "model_type": "\ud83d\udd36 fine-tuned on domain-specific datasets",
+      "params_b": 70.554,
+      "precision": "float16",
+      "upload_date": "2025-02-02"
+    },
+    {
+      "fullname": "ehristoforu/qwen2.5-test-32b-it",
+      "repo": "open-llm-leaderboard/ehristoforu__qwen2.5-test-32b-it-details",
+      "average": 47.36835680458376,
+      "model_type": "\ud83d\udcac chat models (RLHF, DPO, IFT, ...)",
+      "params_b": 32.764,
+      "precision": "bfloat16",
+      "upload_date": "2024-12-05"
+    },
+    {
+      "fullname": "failspy/Llama-3-8B-Instruct-MopeyMule",
+      "repo": "open-llm-leaderboard/failspy__Llama-3-8B-Instruct-MopeyMule-details",
+      "average": 15.638132592588441,
+      "model_type": "\ud83d\udd36 fine-tuned on domain-specific datasets",
+      "params_b": 8.03,
+      "precision": "bfloat16",
+      "upload_date": "2024-05-30"
+    },
+    {
+      "fullname": "failspy/Meta-Llama-3-70B-Instruct-abliterated-v3.5",
+      "repo": "open-llm-leaderboard/failspy__Meta-Llama-3-70B-Instruct-abliterated-v3.5-details",
+      "average": 30.12935413704135,
+      "model_type": "\ud83d\udd36 fine-tuned on domain-specific datasets",
+      "params_b": 70.554,
+      "precision": "bfloat16",
+      "upload_date": "2024-05-28"
+    },
+    {
+      "fullname": "fblgit/TheBeagle-v2beta-32B-MGS",
+      "repo": "open-llm-leaderboard/fblgit__TheBeagle-v2beta-32B-MGS-details",
+      "average": 42.642045426579536,
+      "model_type": "\ud83d\udd36 fine-tuned on domain-specific datasets",
+      "params_b": 32.764,
+      "precision": "bfloat16",
+      "upload_date": "2024-10-20"
+    },
+    {
+      "fullname": "fblgit/cybertron-v4-qw7B-MGS",
+      "repo": "open-llm-leaderboard/fblgit__cybertron-v4-qw7B-MGS-details",
+      "average": 32.40351871985633,
+      "model_type": "\ud83d\udd36 fine-tuned on domain-specific datasets",
+      "params_b": 7.616,
+      "precision": "bfloat16",
+      "upload_date": "2024-10-29"
+    },
+    {
+      "fullname": "fluently-lm/FluentlyLM-Prinum",
+      "repo": "open-llm-leaderboard/fluently-lm__FluentlyLM-Prinum-details",
+      "average": 47.21693789116021,
+      "model_type": "\ud83d\udcac chat models (RLHF, DPO, IFT, ...)",
+      "params_b": 32.764,
+      "precision": "bfloat16",
+      "upload_date": "2025-02-16"
+    },
+    {
+      "fullname": "formulae/mita-elite-v1.1-7b-2-25-2025",
+      "repo": "open-llm-leaderboard/formulae__mita-elite-v1.1-7b-2-25-2025-details",
+      "average": 2.7660245822572627,
+      "model_type": "\ud83e\udd1d base merges and moerges",
+      "params_b": 7.616,
+      "precision": "bfloat16",
+      "upload_date": "2025-02-25"
+    },
+    {
+      "fullname": "formulae/mita-v1.1-7b-2-24-2025",
+      "repo": "open-llm-leaderboard/formulae__mita-v1.1-7b-2-24-2025-details",
+      "average": 29.48261068378812,
+      "model_type": "\ud83e\udd1d base merges and moerges",
+      "params_b": 7.616,
+      "precision": "bfloat16",
+      "upload_date": "2025-02-24"
+    },
+    {
+      "fullname": "fulim/FineLlama-3.1-8B",
+      "repo": "open-llm-leaderboard/fulim__FineLlama-3.1-8B-details",
+      "average": 13.250843761720356,
+      "model_type": "\ud83d\udd36 fine-tuned on domain-specific datasets",
+      "params_b": 8.0,
+      "precision": "float16",
+      "upload_date": "2024-12-15"
+    },
+    {
+      "fullname": "gbueno86/Meta-LLama-3-Cat-Smaug-LLama-70b",
+      "repo": "open-llm-leaderboard/gbueno86__Meta-LLama-3-Cat-Smaug-LLama-70b-details",
+      "average": 38.69613307300818,
+      "model_type": "\ud83e\udd1d base merges and moerges",
+      "params_b": 70.554,
+      "precision": "bfloat16",
+      "upload_date": "2024-05-24"
+    },
+    {
+      "fullname": "godlikehhd/alpaca_data_score_max_0.1_2600",
+      "repo": "open-llm-leaderboard/godlikehhd__alpaca_data_score_max_0.1_2600-details",
+      "average": 15.917241105745404,
+      "model_type": "\ud83d\udd36 fine-tuned on domain-specific datasets",
+      "params_b": 1.544,
+      "precision": "float16",
+      "upload_date": "2025-01-14"
+    },
+    {
+      "fullname": "godlikehhd/qwen_2.5-1.5b-cherry_new",
+      "repo": "open-llm-leaderboard/godlikehhd__qwen_2.5-1.5b-cherry_new-details",
+      "average": 15.370243206890223,
+      "model_type": "\ud83d\udd36 fine-tuned on domain-specific datasets",
+      "params_b": 1.544,
+      "precision": "float16",
+      "upload_date": ""
+    },
+    {
+      "fullname": "google/switch-base-8",
+      "repo": "open-llm-leaderboard/google__switch-base-8-details",
+      "average": 3.2959502683966075,
+      "model_type": "\ud83d\udd36 fine-tuned on domain-specific datasets",
+      "params_b": 0.62,
+      "precision": "float16",
+      "upload_date": "2022-10-24"
+    },
+    {
+      "fullname": "grimjim/Magnolia-v2-Gemma2-8k-9B",
+      "repo": "open-llm-leaderboard/grimjim__Magnolia-v2-Gemma2-8k-9B-details",
+      "average": 34.30134506171324,
+      "model_type": "\ud83e\udd1d base merges and moerges",
+      "params_b": 9.242,
+      "precision": "bfloat16",
+      "upload_date": "2024-10-09"
+    },
+    {
+      "fullname": "hotmailuser/Gemma2Crono-27B",
+      "repo": "open-llm-leaderboard/hotmailuser__Gemma2Crono-27B-details",
+      "average": 36.28874920037128,
+      "model_type": "\ud83e\udd1d base merges and moerges",
+      "params_b": 27.227,
+      "precision": "bfloat16",
+      "upload_date": "2024-12-02"
+    },
+    {
+      "fullname": "hotmailuser/RombosBeagle-v2beta-MGS-32B",
+      "repo": "open-llm-leaderboard/hotmailuser__RombosBeagle-v2beta-MGS-32B-details",
+      "average": 42.65614620168921,
+      "model_type": "\ud83e\udd1d base merges and moerges",
+      "params_b": 32.764,
+      "precision": "bfloat16",
+      "upload_date": "2024-12-07"
+    },
+    {
+      "fullname": "huggyllama/llama-13b",
+      "repo": "open-llm-leaderboard/huggyllama__llama-13b-details",
+      "average": 9.39218439885523,
+      "model_type": "\ud83d\udd36 fine-tuned on domain-specific datasets",
+      "params_b": 13.016,
+      "precision": "float16",
+      "upload_date": "2023-04-03"
+    },
+    {
+      "fullname": "huihui-ai/Qwen2.5-72B-Instruct-abliterated",
+      "repo": "open-llm-leaderboard/huihui-ai__Qwen2.5-72B-Instruct-abliterated-details",
+      "average": 48.10647092442315,
+      "model_type": "\ud83d\udd36 fine-tuned on domain-specific datasets",
+      "params_b": 72.706,
+      "precision": "bfloat16",
+      "upload_date": "2024-10-26"
+    },
+    {
+      "fullname": "ibm-granite/granite-3.0-1b-a400m-base",
+      "repo": "open-llm-leaderboard/ibm-granite__granite-3.0-1b-a400m-base-details",
+      "average": 6.0307899730101875,
+      "model_type": "\ud83d\udfe2 pretrained",
+      "params_b": 1.335,
+      "precision": "bfloat16",
+      "upload_date": "2024-10-03"
+    },
+    {
+      "fullname": "ibm-granite/granite-3.0-1b-a400m-instruct",
+      "repo": "open-llm-leaderboard/ibm-granite__granite-3.0-1b-a400m-instruct-details",
+      "average": 8.0692284950461,
+      "model_type": "\ud83d\udcac chat models (RLHF, DPO, IFT, ...)",
+      "params_b": 1.335,
+      "precision": "bfloat16",
+      "upload_date": "2024-10-03"
+    },
+    {
+      "fullname": "ibm-granite/granite-3.0-2b-base",
+      "repo": "open-llm-leaderboard/ibm-granite__granite-3.0-2b-base-details",
+      "average": 14.095784874796749,
+      "model_type": "\ud83d\udfe2 pretrained",
+      "params_b": 2.634,
+      "precision": "bfloat16",
+      "upload_date": "2024-10-02"
+    },
+    {
+      "fullname": "ibm-granite/granite-3.0-2b-instruct",
+      "repo": "open-llm-leaderboard/ibm-granite__granite-3.0-2b-instruct-details",
+      "average": 18.396095114284222,
+      "model_type": "\ud83d\udcac chat models (RLHF, DPO, IFT, ...)",
+      "params_b": 2.634,
+      "precision": "bfloat16",
+      "upload_date": "2024-10-02"
+    },
+    {
+      "fullname": "ibm-granite/granite-3.2-8b-instruct",
+      "repo": "open-llm-leaderboard/ibm-granite__granite-3.2-8b-instruct-details",
+      "average": 30.7704488980163,
+      "model_type": "\ud83d\udcac chat models (RLHF, DPO, IFT, ...)",
+      "params_b": 8.171,
+      "precision": "bfloat16",
+      "upload_date": "2025-02-17"
+    },
+    {
+      "fullname": "icefog72/Ice0.55-17.01-RP",
+      "repo": "open-llm-leaderboard/icefog72__Ice0.55-17.01-RP-details",
+      "average": 21.460984298912976,
+      "model_type": "\ud83e\udd1d base merges and moerges",
+      "params_b": 7.242,
+      "precision": "bfloat16",
+      "upload_date": "2025-01-17"
+    },
+    {
+      "fullname": "icefog72/Ice0.60.1-18.01-RP",
+      "repo": "open-llm-leaderboard/icefog72__Ice0.60.1-18.01-RP-details",
+      "average": 21.823113618523887,
+      "model_type": "\ud83e\udd1d base merges and moerges",
+      "params_b": 7.242,
+      "precision": "bfloat16",
+      "upload_date": "2025-01-18"
+    },
+    {
+      "fullname": "icefog72/Ice0.64-24.01-RP",
+      "repo": "open-llm-leaderboard/icefog72__Ice0.64-24.01-RP-details",
+      "average": 22.875703285300133,
+      "model_type": "\ud83e\udd1d base merges and moerges",
+      "params_b": 7.242,
+      "precision": "bfloat16",
+      "upload_date": "2025-01-24"
+    },
+    {
+      "fullname": "icefog72/Ice0.65-25.01-RP",
+      "repo": "open-llm-leaderboard/icefog72__Ice0.65-25.01-RP-details",
+      "average": 21.728992372015465,
+      "model_type": "\ud83e\udd1d base merges and moerges",
+      "params_b": 7.242,
+      "precision": "bfloat16",
+      "upload_date": "2025-01-25"
+    },
+    {
+      "fullname": "icefog72/Ice0.77-02.02-RP",
+      "repo": "open-llm-leaderboard/icefog72__Ice0.77-02.02-RP-details",
+      "average": 22.480867406637245,
+      "model_type": "\ud83e\udd1d base merges and moerges",
+      "params_b": 7.242,
+      "precision": "bfloat16",
+      "upload_date": "2025-02-02"
+    },
+    {
+      "fullname": "instruction-pretrain/InstructLM-500M",
+      "repo": "open-llm-leaderboard/instruction-pretrain__InstructLM-500M-details",
+      "average": 2.8543503197666724,
+      "model_type": "\ud83d\udfe2 pretrained",
+      "params_b": 0.5,
+      "precision": "float16",
+      "upload_date": "2024-06-18"
+    },
+    {
+      "fullname": "jaspionjader/Kosmos-EVAA-PRP-v24-8B",
+      "repo": "open-llm-leaderboard/jaspionjader__Kosmos-EVAA-PRP-v24-8B-details",
+      "average": 22.97857683964308,
+      "model_type": "\ud83e\udd1d base merges and moerges",
+      "params_b": 8.03,
+      "precision": "bfloat16",
+      "upload_date": "2024-12-29"
+    },
+    {
+      "fullname": "jaspionjader/Kosmos-EVAA-TSN-v21-8B",
+      "repo": "open-llm-leaderboard/jaspionjader__Kosmos-EVAA-TSN-v21-8B-details",
+      "average": 23.968398200512283,
+      "model_type": "\ud83e\udd1d base merges and moerges",
+      "params_b": 8.03,
+      "precision": "bfloat16",
+      "upload_date": "2024-12-28"
+    },
+    {
+      "fullname": "jaspionjader/bh-62",
+      "repo": "open-llm-leaderboard/jaspionjader__bh-62-details",
+      "average": 24.433220801404314,
+      "model_type": "\ud83e\udd1d base merges and moerges",
+      "params_b": 8.03,
+      "precision": "bfloat16",
+      "upload_date": "2025-02-06"
+    },
+    {
+      "fullname": "jaspionjader/bh-64",
+      "repo": "open-llm-leaderboard/jaspionjader__bh-64-details",
+      "average": 24.325275625065377,
+      "model_type": "\ud83e\udd1d base merges and moerges",
+      "params_b": 8.03,
+      "precision": "bfloat16",
+      "upload_date": "2025-02-17"
+    },
+    {
+      "fullname": "jaspionjader/gamma-Kosmos-EVAA-v2-8B",
+      "repo": "open-llm-leaderboard/jaspionjader__gamma-Kosmos-EVAA-v2-8B-details",
+      "average": 23.10243444820793,
+      "model_type": "\ud83e\udd1d base merges and moerges",
+      "params_b": 8.03,
+      "precision": "bfloat16",
+      "upload_date": "2024-12-28"
+    },
+    {
+      "fullname": "jaspionjader/slu-20",
+      "repo": "open-llm-leaderboard/jaspionjader__slu-20-details",
+      "average": 21.37957338953326,
+      "model_type": "\ud83d\udd36 fine-tuned on domain-specific datasets",
+      "params_b": 8.03,
+      "precision": "bfloat16",
+      "upload_date": "2025-02-01"
+    },
+    {
+      "fullname": "jebish7/gemma-2-2b-it",
+      "repo": "open-llm-leaderboard/jebish7__gemma-2-2b-it-details",
+      "average": 12.36333618408293,
+      "model_type": "\ud83d\udfe2 pretrained",
+      "params_b": 2.614,
+      "precision": "bfloat16",
+      "upload_date": "2025-02-06"
+    },
+    {
+      "fullname": "jeffmeloy/Qwen2.5-7B-nerd-uncensored-v1.4",
+      "repo": "open-llm-leaderboard/jeffmeloy__Qwen2.5-7B-nerd-uncensored-v1.4-details",
+      "average": 31.56603265287841,
+      "model_type": "\ud83d\udcac chat models (RLHF, DPO, IFT, ...)",
+      "params_b": 7.616,
+      "precision": "bfloat16",
+      "upload_date": "2024-11-16"
+    },
+    {
+      "fullname": "jeonsworld/CarbonVillain-en-10.7B-v4",
+      "repo": "open-llm-leaderboard/jeonsworld__CarbonVillain-en-10.7B-v4-details",
+      "average": 20.328676385842854,
+      "model_type": "\ud83e\udd1d base merges and moerges",
+      "params_b": 10.732,
+      "precision": "float16",
+      "upload_date": "2023-12-30"
+    },
+    {
+      "fullname": "jiviai/medX_v2",
+      "repo": "open-llm-leaderboard/jiviai__medX_v2-details",
+      "average": 17.31888331901421,
+      "model_type": "\ud83d\udd36 fine-tuned on domain-specific datasets",
+      "params_b": 8.03,
+      "precision": "float16",
+      "upload_date": "2024-05-31"
+    },
+    {
+      "fullname": "johnsutor/Llama-3-8B-Instruct_breadcrumbs-density-0.1-gamma-0.01",
+      "repo": "open-llm-leaderboard/johnsutor__Llama-3-8B-Instruct_breadcrumbs-density-0.1-gamma-0.01-details",
+      "average": 22.442126802141008,
+      "model_type": "\ud83e\udd1d base merges and moerges",
+      "params_b": 8.03,
+      "precision": "bfloat16",
+      "upload_date": "2024-06-07"
+    },
+    {
+      "fullname": "kaist-ai/janus-rm-7b",
+      "repo": "open-llm-leaderboard/kaist-ai__janus-rm-7b-details",
+      "average": 4.775598832496902,
+      "model_type": "\ud83d\udd36 fine-tuned on domain-specific datasets",
+      "params_b": 7.111,
+      "precision": "bfloat16",
+      "upload_date": "2024-05-09"
+    },
+    {
+      "fullname": "kavonalds/BunderMaxx-1010",
+      "repo": "open-llm-leaderboard/kavonalds__BunderMaxx-1010-details",
+      "average": 17.42694830116734,
+      "model_type": "\ud83e\udd1d base merges and moerges",
+      "params_b": 1.236,
+      "precision": "bfloat16",
+      "upload_date": ""
+    },
+    {
+      "fullname": "khoantap/llama-3-8b-stock-merge",
+      "repo": "open-llm-leaderboard/khoantap__llama-3-8b-stock-merge-details",
+      "average": 23.933563133579472,
+      "model_type": "\ud83d\udd36 fine-tuned on domain-specific datasets",
+      "params_b": 8.03,
+      "precision": "float16",
+      "upload_date": "2025-01-17"
+    },
+    {
+      "fullname": "khoantap/llama-evolve-ties-best-merge",
+      "repo": "open-llm-leaderboard/khoantap__llama-evolve-ties-best-merge-details",
+      "average": 27.644113718571266,
+      "model_type": "\ud83e\udd1d base merges and moerges",
+      "params_b": 8.03,
+      "precision": "float16",
+      "upload_date": "2025-01-20"
+    },
+    {
+      "fullname": "langgptai/Qwen-las-v0.1",
+      "repo": "open-llm-leaderboard/langgptai__Qwen-las-v0.1-details",
+      "average": 11.633178497007412,
+      "model_type": "\ud83d\udcac chat models (RLHF, DPO, IFT, ...)",
+      "params_b": 7.901,
+      "precision": "bfloat16",
+      "upload_date": "2024-05-26"
+    },
+    {
+      "fullname": "lemon07r/Gemma-2-Ataraxy-v3i-9B",
+      "repo": "open-llm-leaderboard/lemon07r__Gemma-2-Ataraxy-v3i-9B-details",
+      "average": 23.824039054205116,
+      "model_type": "\ud83d\udd36 fine-tuned on domain-specific datasets",
+      "params_b": 9.242,
+      "precision": "bfloat16",
+      "upload_date": "2024-10-06"
+    },
+    {
+      "fullname": "lemon07r/Gemma-2-Ataraxy-v4-Advanced-9B",
+      "repo": "open-llm-leaderboard/lemon07r__Gemma-2-Ataraxy-v4-Advanced-9B-details",
+      "average": 33.40277377153587,
+      "model_type": "\ud83e\udd1d base merges and moerges",
+      "params_b": 10.159,
+      "precision": "bfloat16",
+      "upload_date": "2024-10-13"
+    },
+    {
+      "fullname": "lemon07r/llama-3-NeuralMahou-8b",
+      "repo": "open-llm-leaderboard/lemon07r__llama-3-NeuralMahou-8b-details",
+      "average": 19.846074213837827,
+      "model_type": "\ud83d\udd36 fine-tuned on domain-specific datasets",
+      "params_b": 8.03,
+      "precision": "bfloat16",
+      "upload_date": "2024-05-30"
+    },
+    {
+      "fullname": "lesubra/ECE-EIFFEL-3B",
+      "repo": "open-llm-leaderboard/lesubra__ECE-EIFFEL-3B-details",
+      "average": 22.50442333553349,
+      "model_type": "\ud83e\udd1d base merges and moerges",
+      "params_b": 3.821,
+      "precision": "float16",
+      "upload_date": "2024-10-01"
+    },
+    {
+      "fullname": "lesubra/ECE-PRYMMAL-3B-SLERP-V1",
+      "repo": "open-llm-leaderboard/lesubra__ECE-PRYMMAL-3B-SLERP-V1-details",
+      "average": 23.135359696186224,
+      "model_type": "\ud83e\udd1d base merges and moerges",
+      "params_b": 3.821,
+      "precision": "float16",
+      "upload_date": "2024-10-28"
+    },
+    {
+      "fullname": "m42-health/Llama3-Med42-70B",
+      "repo": "open-llm-leaderboard/m42-health__Llama3-Med42-70B-details",
+      "average": 35.68301603364157,
+      "model_type": "\ud83d\udd36 fine-tuned on domain-specific datasets",
+      "params_b": 70.554,
+      "precision": "bfloat16",
+      "upload_date": "2024-06-27"
+    },
+    {
+      "fullname": "maldv/Qwentile2.5-32B-Instruct",
+      "repo": "open-llm-leaderboard/maldv__Qwentile2.5-32B-Instruct-details",
+      "average": 45.9002633632381,
+      "model_type": "\ud83e\udd1d base merges and moerges",
+      "params_b": 32.764,
+      "precision": "bfloat16",
+      "upload_date": "2024-12-19"
+    },
+    {
+      "fullname": "marcuscedricridia/Hush-Qwen2.5-7B-MST-v1.1",
+      "repo": "open-llm-leaderboard/marcuscedricridia__Hush-Qwen2.5-7B-MST-v1.1-details",
+      "average": 35.229152099424084,
+      "model_type": "\ud83e\udd1d base merges and moerges",
+      "params_b": 7.613,
+      "precision": "bfloat16",
+      "upload_date": "2025-03-09"
+    },
+    {
+      "fullname": "marcuscedricridia/Hush-Qwen2.5-7B-v1.3",
+      "repo": "open-llm-leaderboard/marcuscedricridia__Hush-Qwen2.5-7B-v1.3-details",
+      "average": 33.93143365739242,
+      "model_type": "\ud83e\udd1d base merges and moerges",
+      "params_b": 7.613,
+      "precision": "bfloat16",
+      "upload_date": "2025-03-08"
+    },
+    {
+      "fullname": "meditsolutions/SmolLM2-MedIT-Upscale-2B",
+      "repo": "open-llm-leaderboard/meditsolutions__SmolLM2-MedIT-Upscale-2B-details",
+      "average": 15.922534280948163,
+      "model_type": "\ud83d\udd36 fine-tuned on domain-specific datasets",
+      "params_b": 2.114,
+      "precision": "bfloat16",
+      "upload_date": "2024-12-02"
+    },
+    {
+      "fullname": "mergekit-community/JAJUKA-WEWILLNEVERFORGETYOU-3B",
+      "repo": "open-llm-leaderboard/mergekit-community__JAJUKA-WEWILLNEVERFORGETYOU-3B-details",
+      "average": 19.545574104726295,
+      "model_type": "\ud83e\udd1d base merges and moerges",
+      "params_b": 3.213,
+      "precision": "float16",
+      "upload_date": "2025-02-26"
+    },
+    {
+      "fullname": "mergekit-community/VirtuosoSmall-InstructModelStock",
+      "repo": "open-llm-leaderboard/mergekit-community__VirtuosoSmall-InstructModelStock-details",
+      "average": 38.226936795467445,
+      "model_type": "\ud83e\udd1d base merges and moerges",
+      "params_b": 14.766,
+      "precision": "bfloat16",
+      "upload_date": "2024-12-19"
+    },
+    {
+      "fullname": "mergekit-community/sexeh_time_testing",
+      "repo": "open-llm-leaderboard/mergekit-community__sexeh_time_testing-details",
+      "average": 25.63134503622095,
+      "model_type": "\ud83e\udd1d base merges and moerges",
+      "params_b": 8.03,
+      "precision": "bfloat16",
+      "upload_date": "2024-12-27"
+    },
+    {
+      "fullname": "meta-llama/Llama-2-7b-chat-hf",
+      "repo": "open-llm-leaderboard/meta-llama__Llama-2-7b-chat-hf-details",
+      "average": 9.609483264152255,
+      "model_type": "\ud83d\udfe2 pretrained",
+      "params_b": 6.738,
+      "precision": "float16",
+      "upload_date": "2023-07-13"
+    },
+    {
+      "fullname": "meta-llama/Meta-Llama-3-70B-Instruct",
+      "repo": "open-llm-leaderboard/meta-llama__Meta-Llama-3-70B-Instruct-details",
+      "average": 36.37222412927012,
+      "model_type": "\ud83d\udcac chat models (RLHF, DPO, IFT, ...)",
+      "params_b": 70.554,
+      "precision": "bfloat16",
+      "upload_date": "2024-04-17"
+    },
+    {
+      "fullname": "microsoft/phi-4",
+      "repo": "open-llm-leaderboard/microsoft__phi-4-details",
+      "average": 30.35812781134617,
+      "model_type": "\ud83d\udcac chat models (RLHF, DPO, IFT, ...)",
+      "params_b": 14.66,
+      "precision": "bfloat16",
+      "upload_date": "2024-12-11"
+    },
+    {
+      "fullname": "migtissera/Tess-3-Mistral-Nemo-12B",
+      "repo": "open-llm-leaderboard/migtissera__Tess-3-Mistral-Nemo-12B-details",
+      "average": 16.720173026027776,
+      "model_type": "\ud83d\udd36 fine-tuned on domain-specific datasets",
+      "params_b": 12.248,
+      "precision": "bfloat16",
+      "upload_date": "2024-08-13"
+    },
+    {
+      "fullname": "migtissera/Tess-v2.5.2-Qwen2-72B",
+      "repo": "open-llm-leaderboard/migtissera__Tess-v2.5.2-Qwen2-72B-details",
+      "average": 33.60333761198978,
+      "model_type": "\ud83d\udd36 fine-tuned on domain-specific datasets",
+      "params_b": 72.0,
+      "precision": "bfloat16",
+      "upload_date": "2024-06-13"
+    },
+    {
+      "fullname": "mistralai/Mistral-7B-v0.1",
+      "repo": "open-llm-leaderboard/mistralai__Mistral-7B-v0.1-details",
+      "average": 14.575358924083135,
+      "model_type": "\ud83d\udfe2 pretrained",
+      "params_b": 7.242,
+      "precision": "bfloat16",
+      "upload_date": "2023-09-20"
+    },
+    {
+      "fullname": "mistralai/Mistral-Large-Instruct-2411",
+      "repo": "open-llm-leaderboard/mistralai__Mistral-Large-Instruct-2411-details",
+      "average": 46.524214355965,
+      "model_type": "\ud83d\udcac chat models (RLHF, DPO, IFT, ...)",
+      "params_b": 122.61,
+      "precision": "float16",
+      "upload_date": "2024-11-14"
+    },
+    {
+      "fullname": "mistralai/Mistral-Small-24B-Base-2501",
+      "repo": "open-llm-leaderboard/mistralai__Mistral-Small-24B-Base-2501-details",
+      "average": 27.195130187978368,
+      "model_type": "\ud83d\udfe2 pretrained",
+      "params_b": 23.572,
+      "precision": "bfloat16",
+      "upload_date": "2025-01-23"
+    },
+    {
+      "fullname": "mistralai/Mixtral-8x22B-v0.1",
+      "repo": "open-llm-leaderboard/mistralai__Mixtral-8x22B-v0.1-details",
+      "average": 25.74093627522265,
+      "model_type": "\ud83d\udfe2 pretrained",
+      "params_b": 140.621,
+      "precision": "bfloat16",
+      "upload_date": "2024-04-16"
+    },
+    {
+      "fullname": "mlabonne/Hermes-3-Llama-3.1-70B-lorablated",
+      "repo": "open-llm-leaderboard/mlabonne__Hermes-3-Llama-3.1-70B-lorablated-details",
+      "average": 31.74585457101121,
+      "model_type": "\ud83d\udd36 fine-tuned on domain-specific datasets",
+      "params_b": 70.554,
+      "precision": "bfloat16",
+      "upload_date": "2024-08-16"
+    },
+    {
+      "fullname": "mobiuslabsgmbh/DeepSeek-R1-ReDistill-Llama3-8B-v1.1",
+      "repo": "open-llm-leaderboard/mobiuslabsgmbh__DeepSeek-R1-ReDistill-Llama3-8B-v1.1-details",
+      "average": 15.806892418961331,
+      "model_type": "\ud83d\udd36 fine-tuned on domain-specific datasets",
+      "params_b": 8.03,
+      "precision": "bfloat16",
+      "upload_date": "2025-01-29"
+    },
+    {
+      "fullname": "mrm8488/phi-4-14B-grpo-gsm8k-3e",
+      "repo": "open-llm-leaderboard/mrm8488__phi-4-14B-grpo-gsm8k-3e-details",
+      "average": 39.20729001022834,
+      "model_type": "\ud83d\udd36 fine-tuned on domain-specific datasets",
+      "params_b": 14.66,
+      "precision": "float16",
+      "upload_date": "2025-02-11"
+    },
+    {
+      "fullname": "mrm8488/phi-4-14B-grpo-limo",
+      "repo": "open-llm-leaderboard/mrm8488__phi-4-14B-grpo-limo-details",
+      "average": 39.0640880591307,
+      "model_type": "\ud83d\udd36 fine-tuned on domain-specific datasets",
+      "params_b": 14.66,
+      "precision": "float16",
+      "upload_date": "2025-02-12"
+    },
+    {
+      "fullname": "nbeerbower/EVA-abliterated-TIES-Qwen2.5-14B",
+      "repo": "open-llm-leaderboard/nbeerbower__EVA-abliterated-TIES-Qwen2.5-14B-details",
+      "average": 42.16442636538604,
+      "model_type": "\ud83e\udd1d base merges and moerges",
+      "params_b": 14.77,
+      "precision": "bfloat16",
+      "upload_date": "2025-02-08"
+    },
+    {
+      "fullname": "nbeerbower/Llama3.1-Gutenberg-Doppel-70B",
+      "repo": "open-llm-leaderboard/nbeerbower__Llama3.1-Gutenberg-Doppel-70B-details",
+      "average": 36.9233900222014,
+      "model_type": "\ud83d\udd36 fine-tuned on domain-specific datasets",
+      "params_b": 70.554,
+      "precision": "bfloat16",
+      "upload_date": "2024-10-11"
+    },
+    {
+      "fullname": "nbeerbower/Mistral-Nemo-Prism-12B-v2",
+      "repo": "open-llm-leaderboard/nbeerbower__Mistral-Nemo-Prism-12B-v2-details",
+      "average": 28.07046513725069,
+      "model_type": "\ud83d\udd36 fine-tuned on domain-specific datasets",
+      "params_b": 12.248,
+      "precision": "bfloat16",
+      "upload_date": "2024-11-12"
+    },
+    {
+      "fullname": "nbeerbower/llama3.1-kartoffeldes-70B",
+      "repo": "open-llm-leaderboard/nbeerbower__llama3.1-kartoffeldes-70B-details",
+      "average": 41.11056038125863,
+      "model_type": "\ud83d\udd36 fine-tuned on domain-specific datasets",
+      "params_b": 70.554,
+      "precision": "bfloat16",
+      "upload_date": "2025-01-19"
+    },
+    {
+      "fullname": "nbeerbower/mistral-nemo-gutenberg-12B-v3",
+      "repo": "open-llm-leaderboard/nbeerbower__mistral-nemo-gutenberg-12B-v3-details",
+      "average": 19.290512133580634,
+      "model_type": "\ud83d\udd36 fine-tuned on domain-specific datasets",
+      "params_b": 12.248,
+      "precision": "bfloat16",
+      "upload_date": "2024-08-15"
+    },
+    {
+      "fullname": "neopolita/jessi-v0.5-falcon3-7b-instruct",
+      "repo": "open-llm-leaderboard/neopolita__jessi-v0.5-falcon3-7b-instruct-details",
+      "average": 35.17362960818127,
+      "model_type": "\ud83e\udd1d base merges and moerges",
+      "params_b": 7.456,
+      "precision": "bfloat16",
+      "upload_date": "2025-01-09"
+    },
+    {
+      "fullname": "netcat420/DeepSeek-R1-Distill-Qwen-MFANN-Slerp-7b",
+      "repo": "open-llm-leaderboard/netcat420__DeepSeek-R1-Distill-Qwen-MFANN-Slerp-7b-details",
+      "average": 3.574293533040167,
+      "model_type": "\ud83e\udd1d base merges and moerges",
+      "params_b": 7.616,
+      "precision": "float16",
+      "upload_date": "2025-01-23"
+    },
+    {
+      "fullname": "netcat420/MFANN-llama3.1-abliterated-SLERP-v3",
+      "repo": "open-llm-leaderboard/netcat420__MFANN-llama3.1-abliterated-SLERP-v3-details",
+      "average": 18.042261525952018,
+      "model_type": "\ud83d\udd36 fine-tuned on domain-specific datasets",
+      "params_b": 8.03,
+      "precision": "float16",
+      "upload_date": "2024-10-07"
+    },
+    {
+      "fullname": "netcat420/MFANN3bv0.19",
+      "repo": "open-llm-leaderboard/netcat420__MFANN3bv0.19-details",
+      "average": 12.591488714276778,
+      "model_type": "\ud83d\udd36 fine-tuned on domain-specific datasets",
+      "params_b": 2.78,
+      "precision": "float16",
+      "upload_date": "2024-08-04"
+    },
+    {
+      "fullname": "netcat420/MFANN3bv0.24",
+      "repo": "open-llm-leaderboard/netcat420__MFANN3bv0.24-details",
+      "average": 11.81028360635554,
+      "model_type": "\ud83d\udd36 fine-tuned on domain-specific datasets",
+      "params_b": 2.78,
+      "precision": "float16",
+      "upload_date": "2024-11-21"
+    },
+    {
+      "fullname": "netcat420/MFANNv0.22.1",
+      "repo": "open-llm-leaderboard/netcat420__MFANNv0.22.1-details",
+      "average": 15.66737725944644,
+      "model_type": "\ud83d\udd36 fine-tuned on domain-specific datasets",
+      "params_b": 8.03,
+      "precision": "float16",
+      "upload_date": "2024-10-04"
+    },
+    {
+      "fullname": "newsbang/Homer-v0.4-Qwen2.5-7B",
+      "repo": "open-llm-leaderboard/newsbang__Homer-v0.4-Qwen2.5-7B-details",
+      "average": 33.944012752963395,
+      "model_type": "\ud83d\udcac chat models (RLHF, DPO, IFT, ...)",
+      "params_b": 7.616,
+      "precision": "bfloat16",
+      "upload_date": ""
+    },
+    {
+      "fullname": "newsbang/Homer-v1.0-Qwen2.5-72B",
+      "repo": "open-llm-leaderboard/newsbang__Homer-v1.0-Qwen2.5-72B-details",
+      "average": 47.464376408361055,
+      "model_type": "\ud83d\udd36 fine-tuned on domain-specific datasets",
+      "params_b": 72.706,
+      "precision": "bfloat16",
+      "upload_date": "2024-12-16"
+    },
+    {
+      "fullname": "nhyha/N3N_gemma-2-9b-it_20241029_1532",
+      "repo": "open-llm-leaderboard/nhyha__N3N_gemma-2-9b-it_20241029_1532-details",
+      "average": 32.14813042759547,
+      "model_type": "\ud83d\udd36 fine-tuned on domain-specific datasets",
+      "params_b": 10.159,
+      "precision": "bfloat16",
+      "upload_date": "2024-10-29"
+    },
+    {
+      "fullname": "nlpguy/Mistral-NeMo-Minitron-Upscale-v1",
+      "repo": "open-llm-leaderboard/nlpguy__Mistral-NeMo-Minitron-Upscale-v1-details",
+      "average": 10.990222795976974,
+      "model_type": "\ud83d\udfe2 pretrained",
+      "params_b": 12.451,
+      "precision": "bfloat16",
+      "upload_date": "2024-09-29"
+    },
+    {
+      "fullname": "nlpguy/StableProse",
+      "repo": "open-llm-leaderboard/nlpguy__StableProse-details",
+      "average": 16.623904800931484,
+      "model_type": "\ud83e\udd1d base merges and moerges",
+      "params_b": 12.248,
+      "precision": "bfloat16",
+      "upload_date": "2024-08-16"
+    },
+    {
+      "fullname": "nvidia/AceMath-7B-RM",
+      "repo": "open-llm-leaderboard/nvidia__AceMath-7B-RM-details",
+      "average": 3.2243900063069617,
+      "model_type": "\ud83d\udd36 fine-tuned on domain-specific datasets",
+      "params_b": 7.071,
+      "precision": "bfloat16",
+      "upload_date": "2025-01-14"
+    },
+    {
+      "fullname": "nvidia/Hymba-1.5B-Instruct",
+      "repo": "open-llm-leaderboard/nvidia__Hymba-1.5B-Instruct-details",
+      "average": 14.192383567083992,
+      "model_type": "\ud83d\udcac chat models (RLHF, DPO, IFT, ...)",
+      "params_b": 1.523,
+      "precision": "bfloat16",
+      "upload_date": "2024-10-31"
+    },
+    {
+      "fullname": "ontocord/ontocord_wide_7b-stacked-stage1",
+      "repo": "open-llm-leaderboard/ontocord__ontocord_wide_7b-stacked-stage1-details",
+      "average": 3.907682384845091,
+      "model_type": "\ud83d\udfe2 pretrained",
+      "params_b": 7.888,
+      "precision": "float16",
+      "upload_date": "2025-02-27"
+    },
+    {
+      "fullname": "ontocord/wide_3b_sft_stage1.1-ss1-with_generics_intr.no_issue",
+      "repo": "open-llm-leaderboard/ontocord__wide_3b_sft_stage1.1-ss1-with_generics_intr.no_issue-details",
+      "average": 4.124470876297795,
+      "model_type": "\ud83d\udfe2 pretrained",
+      "params_b": 3.759,
+      "precision": "float16",
+      "upload_date": "2025-03-06"
+    },
+    {
+      "fullname": "ontocord/wide_3b_sft_stage1.2-ss1-expert_news",
+      "repo": "open-llm-leaderboard/ontocord__wide_3b_sft_stage1.2-ss1-expert_news-details",
+      "average": 4.449975118096195,
+      "model_type": "\ud83d\udfe2 pretrained",
+      "params_b": 3.759,
+      "precision": "float16",
+      "upload_date": "2025-03-05"
+    },
+    {
+      "fullname": "oopere/pruned40-llama-3.2-1B",
+      "repo": "open-llm-leaderboard/oopere__pruned40-llama-3.2-1B-details",
+      "average": 6.877693765654211,
+      "model_type": "\ud83d\udfe2 pretrained",
+      "params_b": 0.914,
+      "precision": "bfloat16",
+      "upload_date": "2024-11-16"
+    },
+    {
+      "fullname": "pankajmathur/orca_mini_3b",
+      "repo": "open-llm-leaderboard/pankajmathur__orca_mini_3b-details",
+      "average": 3.1252754271378507,
+      "model_type": "\ud83d\udd36 fine-tuned on domain-specific datasets",
+      "params_b": 3.426,
+      "precision": "bfloat16",
+      "upload_date": "2023-06-22"
+    },
+    {
+      "fullname": "pankajmathur/orca_mini_v5_8b",
+      "repo": "open-llm-leaderboard/pankajmathur__orca_mini_v5_8b-details",
+      "average": 20.498300732442388,
+      "model_type": "\ud83d\udd36 fine-tuned on domain-specific datasets",
+      "params_b": 8.03,
+      "precision": "bfloat16",
+      "upload_date": "2024-05-26"
+    },
+    {
+      "fullname": "pankajmathur/orca_mini_v6_8b",
+      "repo": "open-llm-leaderboard/pankajmathur__orca_mini_v6_8b-details",
+      "average": 1.4763387606479779,
+      "model_type": "\ud83d\udd36 fine-tuned on domain-specific datasets",
+      "params_b": 8.03,
+      "precision": "bfloat16",
+      "upload_date": "2024-06-02"
+    },
+    {
+      "fullname": "pankajmathur/orca_mini_v8_1_70b",
+      "repo": "open-llm-leaderboard/pankajmathur__orca_mini_v8_1_70b-details",
+      "average": 43.191232219399744,
+      "model_type": "\ud83d\udcac chat models (RLHF, DPO, IFT, ...)",
+      "params_b": 70.554,
+      "precision": "bfloat16",
+      "upload_date": "2024-12-12"
+    },
+    {
+      "fullname": "pankajmathur/orca_mini_v9_2_70b",
+      "repo": "open-llm-leaderboard/pankajmathur__orca_mini_v9_2_70b-details",
+      "average": 40.72477703174064,
+      "model_type": "\ud83d\udcac chat models (RLHF, DPO, IFT, ...)",
+      "params_b": 70.554,
+      "precision": "bfloat16",
+      "upload_date": "2024-12-30"
+    },
+    {
+      "fullname": "pankajmathur/orca_mini_v9_5_1B-Instruct_preview",
+      "repo": "open-llm-leaderboard/pankajmathur__orca_mini_v9_5_1B-Instruct_preview-details",
+      "average": 9.541822835013244,
+      "model_type": "\ud83d\udcac chat models (RLHF, DPO, IFT, ...)",
+      "params_b": 1.236,
+      "precision": "bfloat16",
+      "upload_date": "2024-12-30"
+    },
+    {
+      "fullname": "princeton-nlp/Llama-3-Base-8B-SFT-CPO",
+      "repo": "open-llm-leaderboard/princeton-nlp__Llama-3-Base-8B-SFT-CPO-details",
+      "average": 15.953789309641664,
+      "model_type": "\ud83d\udcac chat models (RLHF, DPO, IFT, ...)",
+      "params_b": 8.03,
+      "precision": "bfloat16",
+      "upload_date": "2024-07-06"
+    },
+    {
+      "fullname": "prithivMLmods/GWQ-9B-Preview2",
+      "repo": "open-llm-leaderboard/prithivMLmods__GWQ-9B-Preview2-details",
+      "average": 30.047187909173402,
+      "model_type": "\ud83d\udd36 fine-tuned on domain-specific datasets",
+      "params_b": 9.242,
+      "precision": "float16",
+      "upload_date": "2025-01-04"
+    },
+    {
+      "fullname": "prithivMLmods/Gaea-Opus-14B-Exp",
+      "repo": "open-llm-leaderboard/prithivMLmods__Gaea-Opus-14B-Exp-details",
+      "average": 40.11380825495326,
+      "model_type": "\ud83d\udd36 fine-tuned on domain-specific datasets",
+      "params_b": 14.766,
+      "precision": "bfloat16",
+      "upload_date": "2025-03-11"
+    },
+    {
+      "fullname": "prithivMLmods/Llama-3.2-3B-Math-Oct",
+      "repo": "open-llm-leaderboard/prithivMLmods__Llama-3.2-3B-Math-Oct-details",
+      "average": 17.441953756100272,
+      "model_type": "\ud83d\udd36 fine-tuned on domain-specific datasets",
+      "params_b": 3.213,
+      "precision": "float16",
+      "upload_date": "2025-01-22"
+    },
+    {
+      "fullname": "prithivMLmods/LwQ-10B-Instruct",
+      "repo": "open-llm-leaderboard/prithivMLmods__LwQ-10B-Instruct-details",
+      "average": 20.967461043098936,
+      "model_type": "\ud83d\udd36 fine-tuned on domain-specific datasets",
+      "params_b": 10.732,
+      "precision": "bfloat16",
+      "upload_date": "2025-01-14"
+    },
+    {
+      "fullname": "prithivMLmods/Megatron-Corpus-14B-Exp",
+      "repo": "open-llm-leaderboard/prithivMLmods__Megatron-Corpus-14B-Exp-details",
+      "average": 35.55395685759063,
+      "model_type": "\ud83d\udd36 fine-tuned on domain-specific datasets",
+      "params_b": 14.766,
+      "precision": "float16",
+      "upload_date": "2025-02-04"
+    },
+    {
+      "fullname": "prithivMLmods/Phi-4-Super",
+      "repo": "open-llm-leaderboard/prithivMLmods__Phi-4-Super-details",
+      "average": 30.387370956217424,
+      "model_type": "\ud83e\udd1d base merges and moerges",
+      "params_b": 14.66,
+      "precision": "bfloat16",
+      "upload_date": "2025-01-23"
+    },
+    {
+      "fullname": "prithivMLmods/Viper-Coder-Hybrid-v1.3",
+      "repo": "open-llm-leaderboard/prithivMLmods__Viper-Coder-Hybrid-v1.3-details",
+      "average": 40.41199336479261,
+      "model_type": "\ud83d\udd36 fine-tuned on domain-specific datasets",
+      "params_b": 14.766,
+      "precision": "float16",
+      "upload_date": "2025-02-21"
+    },
+    {
+      "fullname": "prithivMLmods/Viper-Coder-v1.1",
+      "repo": "open-llm-leaderboard/prithivMLmods__Viper-Coder-v1.1-details",
+      "average": 40.26026084781071,
+      "model_type": "\ud83d\udd36 fine-tuned on domain-specific datasets",
+      "params_b": 14.77,
+      "precision": "bfloat16",
+      "upload_date": "2025-02-13"
+    },
+    {
+      "fullname": "qingy2024/Eyas-17B-Instruct",
+      "repo": "open-llm-leaderboard/qingy2024__Eyas-17B-Instruct-details",
+      "average": 32.566804942732524,
+      "model_type": "\ud83d\udcac chat models (RLHF, DPO, IFT, ...)",
+      "params_b": 17.431,
+      "precision": "bfloat16",
+      "upload_date": "2024-12-23"
+    },
+    {
+      "fullname": "rasyosef/phi-2-instruct-apo",
+      "repo": "open-llm-leaderboard/rasyosef__phi-2-instruct-apo-details",
+      "average": 12.547052522669906,
+      "model_type": "\ud83d\udcac chat models (RLHF, DPO, IFT, ...)",
+      "params_b": 2.775,
+      "precision": "float16",
+      "upload_date": "2024-09-15"
+    },
+    {
+      "fullname": "realtreetune/rho-1b-sft-MATH",
+      "repo": "open-llm-leaderboard/realtreetune__rho-1b-sft-MATH-details",
+      "average": 5.569175419988618,
+      "model_type": "\ud83d\udd36 fine-tuned on domain-specific datasets",
+      "params_b": 1.1,
+      "precision": "bfloat16",
+      "upload_date": "2024-06-06"
+    },
+    {
+      "fullname": "rombodawg/Rombos-Coder-V2.5-Qwen-14b",
+      "repo": "open-llm-leaderboard/rombodawg__Rombos-Coder-V2.5-Qwen-14b-details",
+      "average": 32.44560837708102,
+      "model_type": "\ud83d\udd36 fine-tuned on domain-specific datasets",
+      "params_b": 14.77,
+      "precision": "bfloat16",
+      "upload_date": "2024-11-12"
+    },
+    {
+      "fullname": "rombodawg/Rombos-LLM-V2.5-Qwen-1.5b",
+      "repo": "open-llm-leaderboard/rombodawg__Rombos-LLM-V2.5-Qwen-1.5b-details",
+      "average": 16.35438589717866,
+      "model_type": "\ud83d\udd36 fine-tuned on domain-specific datasets",
+      "params_b": 1.777,
+      "precision": "bfloat16",
+      "upload_date": "2024-10-06"
+    },
+    {
+      "fullname": "rombodawg/Rombos-LLM-V2.5-Qwen-32b",
+      "repo": "open-llm-leaderboard/rombodawg__Rombos-LLM-V2.5-Qwen-32b-details",
+      "average": 45.83301184834238,
+      "model_type": "\ud83d\udd36 fine-tuned on domain-specific datasets",
+      "params_b": 32.764,
+      "precision": "bfloat16",
+      "upload_date": "2024-09-30"
+    },
+    {
+      "fullname": "rombodawg/Rombos-LLM-V2.5-Qwen-7b",
+      "repo": "open-llm-leaderboard/rombodawg__Rombos-LLM-V2.5-Qwen-7b-details",
+      "average": 32.74880353587022,
+      "model_type": "\ud83d\udd36 fine-tuned on domain-specific datasets",
+      "params_b": 7.616,
+      "precision": "bfloat16",
+      "upload_date": "2024-10-06"
+    },
+    {
+      "fullname": "rootxhacker/Apollo-70B",
+      "repo": "open-llm-leaderboard/rootxhacker__Apollo-70B-details",
+      "average": 43.15901797697317,
+      "model_type": "\ud83e\udd1d base merges and moerges",
+      "params_b": 70.554,
+      "precision": "float16",
+      "upload_date": "2025-03-02"
+    },
+    {
+      "fullname": "rubenroy/Gilgamesh-72B",
+      "repo": "open-llm-leaderboard/rubenroy__Gilgamesh-72B-details",
+      "average": 46.793671661266096,
+      "model_type": "\ud83d\udd36 fine-tuned on domain-specific datasets",
+      "params_b": 72.706,
+      "precision": "float16",
+      "upload_date": "2025-02-01"
+    },
+    {
+      "fullname": "ruizhe1217/sft-s1-qwen-0.5b",
+      "repo": "open-llm-leaderboard/ruizhe1217__sft-s1-qwen-0.5b-details",
+      "average": 9.240285567836873,
+      "model_type": "\ud83d\udcac chat models (RLHF, DPO, IFT, ...)",
+      "params_b": 0.494,
+      "precision": "float16",
+      "upload_date": "2025-02-26"
+    },
+    {
+      "fullname": "sabersalehk/Llama3-001-300",
+      "repo": "open-llm-leaderboard/sabersalehk__Llama3-001-300-details",
+      "average": 17.12107684025811,
+      "model_type": "\ud83d\udd36 fine-tuned on domain-specific datasets",
+      "params_b": 8.03,
+      "precision": "bfloat16",
+      "upload_date": "2024-12-03"
+    },
+    {
+      "fullname": "sequelbox/Llama3.1-8B-PlumCode",
+      "repo": "open-llm-leaderboard/sequelbox__Llama3.1-8B-PlumCode-details",
+      "average": 9.823999899420981,
+      "model_type": "\ud83d\udd36 fine-tuned on domain-specific datasets",
+      "params_b": 8.03,
+      "precision": "float16",
+      "upload_date": "2024-10-02"
+    },
+    {
+      "fullname": "shuttleai/shuttle-3",
+      "repo": "open-llm-leaderboard/shuttleai__shuttle-3-details",
+      "average": 46.70460730741495,
+      "model_type": "\ud83d\udd36 fine-tuned on domain-specific datasets",
+      "params_b": 72.706,
+      "precision": "float16",
+      "upload_date": "2024-10-09"
+    },
+    {
+      "fullname": "sometimesanotion/LamarckInfusion-14B-v2",
+      "repo": "open-llm-leaderboard/sometimesanotion__LamarckInfusion-14B-v2-details",
+      "average": 42.11094293951407,
+      "model_type": "\ud83e\udd1d base merges and moerges",
+      "params_b": 14.766,
+      "precision": "bfloat16",
+      "upload_date": ""
+    },
+    {
+      "fullname": "sometimesanotion/Qwen-14B-ProseStock-v4",
+      "repo": "open-llm-leaderboard/sometimesanotion__Qwen-14B-ProseStock-v4-details",
+      "average": 37.376459859146784,
+      "model_type": "\ud83e\udd1d base merges and moerges",
+      "params_b": 14.0,
+      "precision": "bfloat16",
+      "upload_date": ""
+    },
+    {
+      "fullname": "sometimesanotion/Qwen-2.5-14B-Virmarckeoso",
+      "repo": "open-llm-leaderboard/sometimesanotion__Qwen-2.5-14B-Virmarckeoso-details",
+      "average": 36.63616421583777,
+      "model_type": "\ud83e\udd1d base merges and moerges",
+      "params_b": 14.766,
+      "precision": "bfloat16",
+      "upload_date": ""
+    },
+    {
+      "fullname": "sometimesanotion/Qwen2.5-14B-Vimarckoso-v3-model_stock",
+      "repo": "open-llm-leaderboard/sometimesanotion__Qwen2.5-14B-Vimarckoso-v3-model_stock-details",
+      "average": 41.224844265866444,
+      "model_type": "\ud83e\udd1d base merges and moerges",
+      "params_b": 14.0,
+      "precision": "bfloat16",
+      "upload_date": ""
+    },
+    {
+      "fullname": "sometimesanotion/Qwentinuum-14B-v7",
+      "repo": "open-llm-leaderboard/sometimesanotion__Qwentinuum-14B-v7-details",
+      "average": 39.15035648193577,
+      "model_type": "\ud83e\udd1d base merges and moerges",
+      "params_b": 14.0,
+      "precision": "bfloat16",
+      "upload_date": ""
+    },
+    {
+      "fullname": "sometimesanotion/Qwenvergence-14B-v0.6-004-model_stock",
+      "repo": "open-llm-leaderboard/sometimesanotion__Qwenvergence-14B-v0.6-004-model_stock-details",
+      "average": 40.603760450568224,
+      "model_type": "\ud83e\udd1d base merges and moerges",
+      "params_b": 14.0,
+      "precision": "bfloat16",
+      "upload_date": ""
+    },
+    {
+      "fullname": "sometimesanotion/Qwenvergence-14B-v12-Prose-DS",
+      "repo": "open-llm-leaderboard/sometimesanotion__Qwenvergence-14B-v12-Prose-DS-details",
+      "average": 41.20324803823761,
+      "model_type": "\ud83e\udd1d base merges and moerges",
+      "params_b": 14.766,
+      "precision": "bfloat16",
+      "upload_date": "2025-01-30"
+    },
+    {
+      "fullname": "sometimesanotion/Qwenvergence-14B-v13-Prose-DS",
+      "repo": "open-llm-leaderboard/sometimesanotion__Qwenvergence-14B-v13-Prose-DS-details",
+      "average": 41.078775784940596,
+      "model_type": "\ud83e\udd1d base merges and moerges",
+      "params_b": 14.766,
+      "precision": "bfloat16",
+      "upload_date": "2025-02-01"
+    },
+    {
+      "fullname": "sonthenguyen/ft-unsloth-zephyr-sft-bnb-4bit-20241014-170522",
+      "repo": "open-llm-leaderboard/sonthenguyen__ft-unsloth-zephyr-sft-bnb-4bit-20241014-170522-details",
+      "average": 13.424509088727826,
+      "model_type": "\ud83d\udcac chat models (RLHF, DPO, IFT, ...)",
+      "params_b": 7.723,
+      "precision": "float16",
+      "upload_date": "2024-10-15"
+    },
+    {
+      "fullname": "speakleash/Bielik-11B-v2.3-Instruct",
+      "repo": "open-llm-leaderboard/speakleash__Bielik-11B-v2.3-Instruct-details",
+      "average": 28.331123935725582,
+      "model_type": "\ud83d\udcac chat models (RLHF, DPO, IFT, ...)",
+      "params_b": 11.169,
+      "precision": "float16",
+      "upload_date": "2024-08-30"
+    },
+    {
+      "fullname": "ssmits/Qwen2.5-95B-Instruct",
+      "repo": "open-llm-leaderboard/ssmits__Qwen2.5-95B-Instruct-details",
+      "average": 45.257345532181205,
+      "model_type": "\ud83d\udcac chat models (RLHF, DPO, IFT, ...)",
+      "params_b": 94.648,
+      "precision": "bfloat16",
+      "upload_date": "2024-09-24"
+    },
+    {
+      "fullname": "sthenno-com/miscii-14b-1225",
+      "repo": "open-llm-leaderboard/sthenno-com__miscii-14b-1225-details",
+      "average": 42.34951191764194,
+      "model_type": "\ud83d\udcac chat models (RLHF, DPO, IFT, ...)",
+      "params_b": 14.766,
+      "precision": "bfloat16",
+      "upload_date": "2024-12-24"
+    },
+    {
+      "fullname": "sthenno/tempesthenno-kto-0205-ckpt80",
+      "repo": "open-llm-leaderboard/sthenno__tempesthenno-kto-0205-ckpt80-details",
+      "average": 41.7909439445551,
+      "model_type": "\ud83d\udd36 fine-tuned on domain-specific datasets",
+      "params_b": 14.766,
+      "precision": "bfloat16",
+      "upload_date": "2025-02-05"
+    },
+    {
+      "fullname": "sthenno/tempesthenno-nuslerp-0124",
+      "repo": "open-llm-leaderboard/sthenno__tempesthenno-nuslerp-0124-details",
+      "average": 41.287889272020685,
+      "model_type": "\ud83d\udd36 fine-tuned on domain-specific datasets",
+      "params_b": 14.766,
+      "precision": "bfloat16",
+      "upload_date": "2025-01-27"
+    },
+    {
+      "fullname": "suayptalha/Lix-14B-v0.1",
+      "repo": "open-llm-leaderboard/suayptalha__Lix-14B-v0.1-details",
+      "average": 43.31763225045196,
+      "model_type": "\ud83e\udd1d base merges and moerges",
+      "params_b": 14.766,
+      "precision": "bfloat16",
+      "upload_date": "2025-03-06"
+    },
+    {
+      "fullname": "suayptalha/Maestro-10B",
+      "repo": "open-llm-leaderboard/suayptalha__Maestro-10B-details",
+      "average": 32.83184082460664,
+      "model_type": "\ud83d\udd36 fine-tuned on domain-specific datasets",
+      "params_b": 10.306,
+      "precision": "float16",
+      "upload_date": "2025-01-31"
+    },
+    {
+      "fullname": "sumink/ftgpt",
+      "repo": "open-llm-leaderboard/sumink__ftgpt-details",
+      "average": 3.951784139825086,
+      "model_type": "\ud83d\udd36 fine-tuned on domain-specific datasets",
+      "params_b": 0.124,
+      "precision": "bfloat16",
+      "upload_date": "2024-11-06"
+    },
+    {
+      "fullname": "sumink/qwmer",
+      "repo": "open-llm-leaderboard/sumink__qwmer-details",
+      "average": 11.672277450870531,
+      "model_type": "\ud83e\udd1d base merges and moerges",
+      "params_b": 7.616,
+      "precision": "float16",
+      "upload_date": "2025-01-15"
+    },
+    {
+      "fullname": "tanliboy/lambda-qwen2.5-32b-dpo-test",
+      "repo": "open-llm-leaderboard/tanliboy__lambda-qwen2.5-32b-dpo-test-details",
+      "average": 45.924592588188716,
+      "model_type": "\ud83d\udcac chat models (RLHF, DPO, IFT, ...)",
+      "params_b": 32.764,
+      "precision": "bfloat16",
+      "upload_date": "2024-09-22"
+    },
+    {
+      "fullname": "tannedbum/Ellaria-9B",
+      "repo": "open-llm-leaderboard/tannedbum__Ellaria-9B-details",
+      "average": 33.04997199099277,
+      "model_type": "\ud83e\udd1d base merges and moerges",
+      "params_b": 10.159,
+      "precision": "float16",
+      "upload_date": "2024-08-04"
+    },
+    {
+      "fullname": "tenyx/Llama3-TenyxChat-70B",
+      "repo": "open-llm-leaderboard/tenyx__Llama3-TenyxChat-70B-details",
+      "average": 36.69601460825378,
+      "model_type": "\ud83d\udcac chat models (RLHF, DPO, IFT, ...)",
+      "params_b": 70.554,
+      "precision": "bfloat16",
+      "upload_date": "2024-04-26"
+    },
+    {
+      "fullname": "theo77186/Qwen2.5-Coder-7B-Instruct-20241106",
+      "repo": "open-llm-leaderboard/theo77186__Qwen2.5-Coder-7B-Instruct-20241106-details",
+      "average": 28.330798858289842,
+      "model_type": "\ud83d\udcac chat models (RLHF, DPO, IFT, ...)",
+      "params_b": 7.616,
+      "precision": "bfloat16",
+      "upload_date": "2024-11-08"
+    },
+    {
+      "fullname": "theprint/WorldBuilder-12B",
+      "repo": "open-llm-leaderboard/theprint__WorldBuilder-12B-details",
+      "average": 14.516406576626443,
+      "model_type": "\ud83d\udd36 fine-tuned on domain-specific datasets",
+      "params_b": 13.933,
+      "precision": "bfloat16",
+      "upload_date": "2024-10-27"
+    },
+    {
+      "fullname": "thirdeyeai/elevate360m",
+      "repo": "open-llm-leaderboard/thirdeyeai__elevate360m-details",
+      "average": 1.918188276637857,
+      "model_type": "\ud83d\udd36 fine-tuned on domain-specific datasets",
+      "params_b": 0.362,
+      "precision": "float16",
+      "upload_date": "2025-01-28"
+    },
+    {
+      "fullname": "tiiuae/Falcon3-7B-Instruct",
+      "repo": "open-llm-leaderboard/tiiuae__Falcon3-7B-Instruct-details",
+      "average": 36.404684964282325,
+      "model_type": "\ud83d\udcac chat models (RLHF, DPO, IFT, ...)",
+      "params_b": 7.456,
+      "precision": "bfloat16",
+      "upload_date": "2024-11-29"
+    },
+    {
+      "fullname": "tinycompany/BiBo-v0.3",
+      "repo": "open-llm-leaderboard/tinycompany__BiBo-v0.3-details",
+      "average": 19.54353096107359,
+      "model_type": "\ud83d\udd36 fine-tuned on domain-specific datasets",
+      "params_b": 2.943,
+      "precision": "bfloat16",
+      "upload_date": "2025-03-12"
+    },
+    {
+      "fullname": "tinycompany/ShawtyIsBad-ib",
+      "repo": "open-llm-leaderboard/tinycompany__ShawtyIsBad-ib-details",
+      "average": 12.35455968391428,
+      "model_type": "\ud83d\udfe2 pretrained",
+      "params_b": 1.436,
+      "precision": "bfloat16",
+      "upload_date": "2025-03-07"
+    },
+    {
+      "fullname": "togethercomputer/LLaMA-2-7B-32K",
+      "repo": "open-llm-leaderboard/togethercomputer__LLaMA-2-7B-32K-details",
+      "average": 6.8377158675946506,
+      "model_type": "\ud83d\udd36 fine-tuned on domain-specific datasets",
+      "params_b": 7.0,
+      "precision": "float16",
+      "upload_date": "2023-07-26"
+    },
+    {
+      "fullname": "tokyotech-llm/Llama-3-Swallow-8B-Instruct-v0.1",
+      "repo": "open-llm-leaderboard/tokyotech-llm__Llama-3-Swallow-8B-Instruct-v0.1-details",
+      "average": 22.34514981791089,
+      "model_type": "\ud83d\udd36 fine-tuned on domain-specific datasets",
+      "params_b": 8.03,
+      "precision": "bfloat16",
+      "upload_date": "2024-06-26"
+    },
+    {
+      "fullname": "tomasmcm/sky-t1-coder-32b-flash",
+      "repo": "open-llm-leaderboard/tomasmcm__sky-t1-coder-32b-flash-details",
+      "average": 44.868558910231286,
+      "model_type": "\ud83e\udd1d base merges and moerges",
+      "params_b": 32.764,
+      "precision": "bfloat16",
+      "upload_date": "2025-02-22"
+    },
+    {
+      "fullname": "vhab10/Llama-3.2-Instruct-3B-TIES",
+      "repo": "open-llm-leaderboard/vhab10__Llama-3.2-Instruct-3B-TIES-details",
+      "average": 17.33432617767801,
+      "model_type": "\ud83e\udd1d base merges and moerges",
+      "params_b": 1.848,
+      "precision": "bfloat16",
+      "upload_date": "2024-10-06"
+    },
+    {
+      "fullname": "vicgalle/Merge-Mixtral-Prometheus-8x7B",
+      "repo": "open-llm-leaderboard/vicgalle__Merge-Mixtral-Prometheus-8x7B-details",
+      "average": 24.768981526162975,
+      "model_type": "\ud83e\udd1d base merges and moerges",
+      "params_b": 46.703,
+      "precision": "bfloat16",
+      "upload_date": "2024-05-04"
+    },
+    {
+      "fullname": "wanlige/li-14b-v0.4-slerp",
+      "repo": "open-llm-leaderboard/wanlige__li-14b-v0.4-slerp-details",
+      "average": 37.79262489578497,
+      "model_type": "\ud83e\udd1d base merges and moerges",
+      "params_b": 14.766,
+      "precision": "float16",
+      "upload_date": "2025-02-24"
+    },
+    {
+      "fullname": "wannaphong/KhanomTanLLM-Instruct",
+      "repo": "open-llm-leaderboard/wannaphong__KhanomTanLLM-Instruct-details",
+      "average": 4.8192843205392455,
+      "model_type": "\ud83d\udcac chat models (RLHF, DPO, IFT, ...)",
+      "params_b": 3.447,
+      "precision": "bfloat16",
+      "upload_date": "2024-08-24"
+    },
+    {
+      "fullname": "yam-peleg/Hebrew-Mistral-7B",
+      "repo": "open-llm-leaderboard/yam-peleg__Hebrew-Mistral-7B-details",
+      "average": 13.302117179699644,
+      "model_type": "\ud83d\udd36 fine-tuned on domain-specific datasets",
+      "params_b": 7.504,
+      "precision": "bfloat16",
+      "upload_date": "2024-04-26"
+    },
+    {
+      "fullname": "zelk12/MT-Gen2-GI-gemma-2-9B",
+      "repo": "open-llm-leaderboard/zelk12__MT-Gen2-GI-gemma-2-9B-details",
+      "average": 34.7634808902102,
+      "model_type": "\ud83e\udd1d base merges and moerges",
+      "params_b": 10.159,
+      "precision": "bfloat16",
+      "upload_date": "2024-11-10"
+    },
+    {
+      "fullname": "zelk12/MT1-Gen3-gemma-2-9B",
+      "repo": "open-llm-leaderboard/zelk12__MT1-Gen3-gemma-2-9B-details",
+      "average": 34.739851169246734,
+      "model_type": "\ud83e\udd1d base merges and moerges",
+      "params_b": 10.159,
+      "precision": "bfloat16",
+      "upload_date": "2024-12-01"
+    },
+    {
+      "fullname": "zelk12/MT2-Gen5-gemma-2-9B",
+      "repo": "open-llm-leaderboard/zelk12__MT2-Gen5-gemma-2-9B-details",
+      "average": 34.04923355550058,
+      "model_type": "\ud83e\udd1d base merges and moerges",
+      "params_b": 10.159,
+      "precision": "bfloat16",
+      "upload_date": "2024-12-25"
+    },
+    {
+      "fullname": "zelk12/MT2-Gen7-gemma-2-9B",
+      "repo": "open-llm-leaderboard/zelk12__MT2-Gen7-gemma-2-9B-details",
+      "average": 22.28290945432224,
+      "model_type": "\ud83e\udd1d base merges and moerges",
+      "params_b": 10.159,
+      "precision": "bfloat16",
+      "upload_date": "2025-02-22"
+    },
+    {
+      "fullname": "zelk12/MT2-Max-Merge_02012025163610-gemma-2-9B",
+      "repo": "open-llm-leaderboard/zelk12__MT2-Max-Merge_02012025163610-gemma-2-9B-details",
+      "average": 34.675340724715895,
+      "model_type": "\ud83e\udd1d base merges and moerges",
+      "params_b": 10.159,
+      "precision": "bfloat16",
+      "upload_date": "2025-01-07"
+    },
+    {
+      "fullname": "zelk12/MT3-Gen1-gemma-2-9B",
+      "repo": "open-llm-leaderboard/zelk12__MT3-Gen1-gemma-2-9B-details",
+      "average": 34.08858123026874,
+      "model_type": "\ud83e\udd1d base merges and moerges",
+      "params_b": 10.159,
+      "precision": "bfloat16",
+      "upload_date": "2024-10-24"
+    },
+    {
+      "fullname": "zelk12/MT4-Gen5-gemma-2-9B",
+      "repo": "open-llm-leaderboard/zelk12__MT4-Gen5-gemma-2-9B-details",
+      "average": 34.72051149657049,
+      "model_type": "\ud83e\udd1d base merges and moerges",
+      "params_b": 10.159,
+      "precision": "bfloat16",
+      "upload_date": "2024-12-28"
+    },
+    {
+      "fullname": "zelk12/MTM-Merge-gemma-2-9B",
+      "repo": "open-llm-leaderboard/zelk12__MTM-Merge-gemma-2-9B-details",
+      "average": 34.61498534418492,
+      "model_type": "\ud83e\udd1d base merges and moerges",
+      "params_b": 10.159,
+      "precision": "bfloat16",
+      "upload_date": "2025-01-01"
+    },
+    {
+      "fullname": "zetasepic/Qwen2.5-32B-Instruct-abliterated-v2",
+      "repo": "open-llm-leaderboard/zetasepic__Qwen2.5-32B-Instruct-abliterated-v2-details",
+      "average": 46.88867299768722,
+      "model_type": "\ud83d\udd36 fine-tuned on domain-specific datasets",
+      "params_b": 32.764,
+      "precision": "bfloat16",
+      "upload_date": "2024-10-11"
+    },
+    {
+      "fullname": "zetasepic/Qwen2.5-72B-Instruct-abliterated",
+      "repo": "open-llm-leaderboard/zetasepic__Qwen2.5-72B-Instruct-abliterated-details",
+      "average": 46.33795303791254,
+      "model_type": "\ud83d\udd36 fine-tuned on domain-specific datasets",
+      "params_b": 72.706,
+      "precision": "bfloat16",
+      "upload_date": "2024-10-01"
+    },
+    {
+      "fullname": "zhengr/MixTAO-7Bx2-MoE-v8.1",
+      "repo": "open-llm-leaderboard/zhengr__MixTAO-7Bx2-MoE-v8.1-details",
+      "average": 17.067606418207944,
+      "model_type": "\ud83d\udd36 fine-tuned on domain-specific datasets",
+      "params_b": 12.879,
+      "precision": "bfloat16",
+      "upload_date": "2024-02-26"
+    }
+  ]
+}

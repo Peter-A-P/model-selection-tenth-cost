@@ -1,0 +1,245 @@
+{
+  "bank_version": "v2",
+  "bank_hash": "e1790eab19300b9b",
+  "block_threshold": 0.8,
+  "reporting_flag": 0.2,
+  "sample_seed": 0,
+  "caveat": "Q3 is computed on a reproducible sample of each benchmark's items, not on all of them. A block between two items that were not both sampled cannot appear here, so the block list is a lower bound, and the mean is a sample estimate.",
+  "dependence": [
+    {
+      "benchmark": "bbh",
+      "mean_q3": 0.0064,
+      "expected_under_independence": -0.0025,
+      "share_above_flag": 0.0366,
+      "n_models": 396,
+      "items_sampled": 400,
+      "variance_inflation_at_100_items": 1.63,
+      "effective_items_per_100": 61.2
+    },
+    {
+      "benchmark": "gpqa",
+      "mean_q3": 0.0049,
+      "expected_under_independence": -0.0025,
+      "share_above_flag": 0.1107,
+      "n_models": 400,
+      "items_sampled": 400,
+      "variance_inflation_at_100_items": 1.48,
+      "effective_items_per_100": 67.5
+    },
+    {
+      "benchmark": "math_hard",
+      "mean_q3": 0.0836,
+      "expected_under_independence": -0.0025,
+      "share_above_flag": 0.1501,
+      "n_models": 398,
+      "items_sampled": 400,
+      "variance_inflation_at_100_items": 9.28,
+      "effective_items_per_100": 10.8
+    },
+    {
+      "benchmark": "mmlu_pro",
+      "mean_q3": 0.0033,
+      "expected_under_independence": -0.0025,
+      "share_above_flag": 0.0596,
+      "n_models": 226,
+      "items_sampled": 400,
+      "variance_inflation_at_100_items": 1.33,
+      "effective_items_per_100": 75.2
+    },
+    {
+      "benchmark": "musr",
+      "mean_q3": 0.0072,
+      "expected_under_independence": -0.0025,
+      "share_above_flag": 0.0349,
+      "n_models": 400,
+      "items_sampled": 400,
+      "variance_inflation_at_100_items": 1.71,
+      "effective_items_per_100": 58.4
+    }
+  ],
+  "blocks": [
+    {
+      "benchmark": "bbh",
+      "size": 3,
+      "max_q3": 0.954,
+      "items": [
+        "02b8f6db65eeaed7",
+        "9da858752c27e269",
+        "a36cef6497b5ebd4"
+      ]
+    },
+    {
+      "benchmark": "bbh",
+      "size": 2,
+      "max_q3": 0.875,
+      "items": [
+        "45c8b6b02f881d42",
+        "66af85b8ae8d93a4"
+      ]
+    },
+    {
+      "benchmark": "gpqa",
+      "size": 5,
+      "max_q3": 0.969,
+      "items": [
+        "3ca9abb61507d29f",
+        "897bc3c677c45aa7",
+        "e6525caa05f0bdb4",
+        "ecc6459821fea00b",
+        "f7447b1ce0bc6ec1"
+      ]
+    },
+    {
+      "benchmark": "math_hard",
+      "size": 23,
+      "max_q3": 1.0,
+      "items": [
+        "102e65adb11f3404",
+        "29abecdaf42b9b9c",
+        "3ebb4122bbab23e2",
+        "463a1212394415b3",
+        "4df2e56467b2b1d7",
+        "50a90dc7dbcfa85e",
+        "54c85400caccf335",
+        "583c313a7ca5a363",
+        "5cdbb79d4af81e2d",
+        "6800df7caf623064",
+        "6d9d4187dd19aa60",
+        "79ac3f5863f064ae",
+        "7a76e6050796564e",
+        "88c2911af1fa0c4e",
+        "b8ff9221d813b746",
+        "d51110268ed10785",
+        "ddd4b122bde2cf27",
+        "e3c14e4f7bc0234f",
+        "e5869fa4273b90c8",
+        "f5b3c1aed62042ed",
+        "f74186c1167c87f8",
+        "fa3b8e1c5ec6a83c",
+        "fb5609117cacf803"
+      ]
+    },
+    {
+      "benchmark": "math_hard",
+      "size": 2,
+      "max_q3": 1.0,
+      "items": [
+        "8d70513cc8411f1e",
+        "f44ea8671774b846"
+      ]
+    },
+    {
+      "benchmark": "mmlu_pro",
+      "size": 2,
+      "max_q3": 0.921,
+      "items": [
+        "0b65b645cb8f1d44",
+        "50ac83846e63e046"
+      ]
+    },
+    {
+      "benchmark": "mmlu_pro",
+      "size": 2,
+      "max_q3": 0.848,
+      "items": [
+        "6b2f6d5517b37135",
+        "8078c2a7cde1d0e0"
+      ]
+    },
+    {
+      "benchmark": "mmlu_pro",
+      "size": 2,
+      "max_q3": 0.802,
+      "items": [
+        "67dd28119647d46f",
+        "a4837d219db2d265"
+      ]
+    },
+    {
+      "benchmark": "musr",
+      "size": 7,
+      "max_q3": 1.0,
+      "items": [
+        "1e7cb665ac378fb4",
+        "37e44cc45da43351",
+        "62d23c841cec6f98",
+        "669c7a53ca7e6d57",
+        "7d5bfcb8cb50ddf2",
+        "bf0f57b761bb97a4",
+        "f75dc36e655d8fd8"
+      ]
+    },
+    {
+      "benchmark": "musr",
+      "size": 2,
+      "max_q3": 1.0,
+      "items": [
+        "27fcd343038d9ca9",
+        "f3f8af51f6942d20"
+      ]
+    },
+    {
+      "benchmark": "musr",
+      "size": 2,
+      "max_q3": 1.0,
+      "items": [
+        "4a39adedfbdd3173",
+        "e973ea2f59ddd396"
+      ]
+    },
+    {
+      "benchmark": "musr",
+      "size": 2,
+      "max_q3": 1.0,
+      "items": [
+        "622a670d45d5c553",
+        "7db6d2d429e0764b"
+      ]
+    },
+    {
+      "benchmark": "musr",
+      "size": 2,
+      "max_q3": 1.0,
+      "items": [
+        "914034ee68d4171b",
+        "9f305bc0f7d80f04"
+      ]
+    },
+    {
+      "benchmark": "musr",
+      "size": 2,
+      "max_q3": 0.914,
+      "items": [
+        "347e908957bd5a7d",
+        "5066e488211699e5"
+      ]
+    },
+    {
+      "benchmark": "musr",
+      "size": 2,
+      "max_q3": 0.869,
+      "items": [
+        "25f69275511f0f73",
+        "8a487c261d76939f"
+      ]
+    },
+    {
+      "benchmark": "musr",
+      "size": 2,
+      "max_q3": 0.825,
+      "items": [
+        "217040f8dd147aef",
+        "3e00045fae273b6f"
+      ]
+    },
+    {
+      "benchmark": "musr",
+      "size": 2,
+      "max_q3": 0.819,
+      "items": [
+        "591a91b1490647cf",
+        "a98c817e23c8d15a"
+      ]
+    }
+  ]
+}

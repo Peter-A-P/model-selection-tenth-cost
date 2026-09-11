@@ -1,0 +1,773 @@
+{
+  "bank_version": "v2",
+  "built": "2026-09-11",
+  "bank_hash": "e1790eab19300b9b",
+  "min_models_per_item": 100,
+  "n_models": 400,
+  "n_items": 20323,
+  "n_responses": 8114706,
+  "items_dropped_below_floor": 7,
+  "repeated_cells": 0,
+  "repeated_cell_agreement": 1.0,
+  "items_per_benchmark": {
+    "musr": 756,
+    "bbh": 5761,
+    "gpqa": 448,
+    "mmlu_pro": 12034,
+    "math_hard": 1324
+  },
+  "density": 0.9982170447276485,
+  "panel": {
+    "requested": 400,
+    "seed": 0,
+    "strata": 40,
+    "per_organisation": 8,
+    "leaderboard_average_low": 0.7378506308720487,
+    "leaderboard_average_high": 51.23132307602696
+  },
+  "per_task": [
+    {
+      "task": "leaderboard_bbh_boolean_expressions",
+      "benchmark": "bbh",
+      "metric": "acc_norm",
+      "content_fields": [
+        "input"
+      ],
+      "models_read": 400,
+      "models_missing": [],
+      "items": 250,
+      "items_every_model_answered": 250,
+      "items_under_half_the_panel": 0,
+      "answer_key_drift_items": 0
+    },
+    {
+      "task": "leaderboard_bbh_causal_judgement",
+      "benchmark": "bbh",
+      "metric": "acc_norm",
+      "content_fields": [
+        "input"
+      ],
+      "models_read": 400,
+      "models_missing": [],
+      "items": 187,
+      "items_every_model_answered": 187,
+      "items_under_half_the_panel": 0,
+      "answer_key_drift_items": 0
+    },
+    {
+      "task": "leaderboard_bbh_date_understanding",
+      "benchmark": "bbh",
+      "metric": "acc_norm",
+      "content_fields": [
+        "input"
+      ],
+      "models_read": 400,
+      "models_missing": [],
+      "items": 250,
+      "items_every_model_answered": 250,
+      "items_under_half_the_panel": 0,
+      "answer_key_drift_items": 0
+    },
+    {
+      "task": "leaderboard_bbh_disambiguation_qa",
+      "benchmark": "bbh",
+      "metric": "acc_norm",
+      "content_fields": [
+        "input"
+      ],
+      "models_read": 399,
+      "models_missing": [
+        "JungZoona/T3Q-qwen2.5-14b-v1.0-e3: https://huggingface.co/datasets/open-llm-leaderboard/JungZoona__T3Q-qwen2.5-14b-v1.0-e3-details/resolve/refs%2Fconvert%2Fparquet/JungZoona__T3Q-qwen2.5-14b-v1.0-e3__leaderboard_bbh_disambiguation_qa/latest/0000.parquet returned HTTP 404"
+      ],
+      "items": 250,
+      "items_every_model_answered": 250,
+      "items_under_half_the_panel": 0,
+      "answer_key_drift_items": 0
+    },
+    {
+      "task": "leaderboard_bbh_formal_fallacies",
+      "benchmark": "bbh",
+      "metric": "acc_norm",
+      "content_fields": [
+        "input"
+      ],
+      "models_read": 400,
+      "models_missing": [],
+      "items": 250,
+      "items_every_model_answered": 250,
+      "items_under_half_the_panel": 0,
+      "answer_key_drift_items": 0
+    },
+    {
+      "task": "leaderboard_bbh_geometric_shapes",
+      "benchmark": "bbh",
+      "metric": "acc_norm",
+      "content_fields": [
+        "input"
+      ],
+      "models_read": 399,
+      "models_missing": [
+        "rootxhacker/Apollo-70B: https://huggingface.co/datasets/open-llm-leaderboard/rootxhacker__Apollo-70B-details/resolve/refs%2Fconvert%2Fparquet/rootxhacker__Apollo-70B__leaderboard_bbh_geometric_shapes/latest/0000.parquet returned HTTP 404"
+      ],
+      "items": 250,
+      "items_every_model_answered": 250,
+      "items_under_half_the_panel": 0,
+      "answer_key_drift_items": 0
+    },
+    {
+      "task": "leaderboard_bbh_hyperbaton",
+      "benchmark": "bbh",
+      "metric": "acc_norm",
+      "content_fields": [
+        "input"
+      ],
+      "models_read": 400,
+      "models_missing": [],
+      "items": 250,
+      "items_every_model_answered": 250,
+      "items_under_half_the_panel": 0,
+      "answer_key_drift_items": 0
+    },
+    {
+      "task": "leaderboard_bbh_logical_deduction_five_objects",
+      "benchmark": "bbh",
+      "metric": "acc_norm",
+      "content_fields": [
+        "input"
+      ],
+      "models_read": 400,
+      "models_missing": [],
+      "items": 250,
+      "items_every_model_answered": 250,
+      "items_under_half_the_panel": 0,
+      "answer_key_drift_items": 0
+    },
+    {
+      "task": "leaderboard_bbh_logical_deduction_seven_objects",
+      "benchmark": "bbh",
+      "metric": "acc_norm",
+      "content_fields": [
+        "input"
+      ],
+      "models_read": 400,
+      "models_missing": [],
+      "items": 250,
+      "items_every_model_answered": 250,
+      "items_under_half_the_panel": 0,
+      "answer_key_drift_items": 0
+    },
+    {
+      "task": "leaderboard_bbh_logical_deduction_three_objects",
+      "benchmark": "bbh",
+      "metric": "acc_norm",
+      "content_fields": [
+        "input"
+      ],
+      "models_read": 400,
+      "models_missing": [],
+      "items": 250,
+      "items_every_model_answered": 250,
+      "items_under_half_the_panel": 0,
+      "answer_key_drift_items": 0
+    },
+    {
+      "task": "leaderboard_bbh_movie_recommendation",
+      "benchmark": "bbh",
+      "metric": "acc_norm",
+      "content_fields": [
+        "input"
+      ],
+      "models_read": 400,
+      "models_missing": [],
+      "items": 250,
+      "items_every_model_answered": 250,
+      "items_under_half_the_panel": 0,
+      "answer_key_drift_items": 0
+    },
+    {
+      "task": "leaderboard_bbh_navigate",
+      "benchmark": "bbh",
+      "metric": "acc_norm",
+      "content_fields": [
+        "input"
+      ],
+      "models_read": 400,
+      "models_missing": [],
+      "items": 250,
+      "items_every_model_answered": 250,
+      "items_under_half_the_panel": 0,
+      "answer_key_drift_items": 0
+    },
+    {
+      "task": "leaderboard_bbh_object_counting",
+      "benchmark": "bbh",
+      "metric": "acc_norm",
+      "content_fields": [
+        "input"
+      ],
+      "models_read": 400,
+      "models_missing": [],
+      "items": 250,
+      "items_every_model_answered": 250,
+      "items_under_half_the_panel": 0,
+      "answer_key_drift_items": 0
+    },
+    {
+      "task": "leaderboard_bbh_penguins_in_a_table",
+      "benchmark": "bbh",
+      "metric": "acc_norm",
+      "content_fields": [
+        "input"
+      ],
+      "models_read": 399,
+      "models_missing": [
+        "formulae/mita-v1.1-7b-2-24-2025: https://huggingface.co/datasets/open-llm-leaderboard/formulae__mita-v1.1-7b-2-24-2025-details/resolve/refs%2Fconvert%2Fparquet/formulae__mita-v1.1-7b-2-24-2025__leaderboard_bbh_penguins_in_a_table/latest/0000.parquet returned HTTP 404"
+      ],
+      "items": 146,
+      "items_every_model_answered": 146,
+      "items_under_half_the_panel": 0,
+      "answer_key_drift_items": 0
+    },
+    {
+      "task": "leaderboard_bbh_reasoning_about_colored_objects",
+      "benchmark": "bbh",
+      "metric": "acc_norm",
+      "content_fields": [
+        "input"
+      ],
+      "models_read": 400,
+      "models_missing": [],
+      "items": 250,
+      "items_every_model_answered": 250,
+      "items_under_half_the_panel": 0,
+      "answer_key_drift_items": 0
+    },
+    {
+      "task": "leaderboard_bbh_ruin_names",
+      "benchmark": "bbh",
+      "metric": "acc_norm",
+      "content_fields": [
+        "input"
+      ],
+      "models_read": 400,
+      "models_missing": [],
+      "items": 251,
+      "items_every_model_answered": 249,
+      "items_under_half_the_panel": 1,
+      "answer_key_drift_items": 0
+    },
+    {
+      "task": "leaderboard_bbh_salient_translation_error_detection",
+      "benchmark": "bbh",
+      "metric": "acc_norm",
+      "content_fields": [
+        "input"
+      ],
+      "models_read": 399,
+      "models_missing": [
+        "OpenLLM-France/Lucie-7B-Instruct-v1.1: https://huggingface.co/datasets/open-llm-leaderboard/OpenLLM-France__Lucie-7B-Instruct-v1.1-details/resolve/refs%2Fconvert%2Fparquet/OpenLLM-France__Lucie-7B-Instruct-v1.1__leaderboard_bbh_salient_translation_error_detection/latest/0000.parquet returned HTTP 404"
+      ],
+      "items": 250,
+      "items_every_model_answered": 250,
+      "items_under_half_the_panel": 0,
+      "answer_key_drift_items": 0
+    },
+    {
+      "task": "leaderboard_bbh_snarks",
+      "benchmark": "bbh",
+      "metric": "acc_norm",
+      "content_fields": [
+        "input"
+      ],
+      "models_read": 400,
+      "models_missing": [],
+      "items": 178,
+      "items_every_model_answered": 178,
+      "items_under_half_the_panel": 0,
+      "answer_key_drift_items": 0
+    },
+    {
+      "task": "leaderboard_bbh_sports_understanding",
+      "benchmark": "bbh",
+      "metric": "acc_norm",
+      "content_fields": [
+        "input"
+      ],
+      "models_read": 399,
+      "models_missing": [
+        "rootxhacker/Apollo-70B: https://huggingface.co/datasets/open-llm-leaderboard/rootxhacker__Apollo-70B-details/resolve/refs%2Fconvert%2Fparquet/rootxhacker__Apollo-70B__leaderboard_bbh_sports_understanding/latest/0000.parquet returned HTTP 404"
+      ],
+      "items": 250,
+      "items_every_model_answered": 250,
+      "items_under_half_the_panel": 0,
+      "answer_key_drift_items": 0
+    },
+    {
+      "task": "leaderboard_bbh_temporal_sequences",
+      "benchmark": "bbh",
+      "metric": "acc_norm",
+      "content_fields": [
+        "input"
+      ],
+      "models_read": 400,
+      "models_missing": [],
+      "items": 250,
+      "items_every_model_answered": 250,
+      "items_under_half_the_panel": 0,
+      "answer_key_drift_items": 0
+    },
+    {
+      "task": "leaderboard_bbh_tracking_shuffled_objects_five_objects",
+      "benchmark": "bbh",
+      "metric": "acc_norm",
+      "content_fields": [
+        "input"
+      ],
+      "models_read": 400,
+      "models_missing": [],
+      "items": 250,
+      "items_every_model_answered": 250,
+      "items_under_half_the_panel": 0,
+      "answer_key_drift_items": 0
+    },
+    {
+      "task": "leaderboard_bbh_tracking_shuffled_objects_seven_objects",
+      "benchmark": "bbh",
+      "metric": "acc_norm",
+      "content_fields": [
+        "input"
+      ],
+      "models_read": 400,
+      "models_missing": [],
+      "items": 250,
+      "items_every_model_answered": 250,
+      "items_under_half_the_panel": 0,
+      "answer_key_drift_items": 0
+    },
+    {
+      "task": "leaderboard_bbh_tracking_shuffled_objects_three_objects",
+      "benchmark": "bbh",
+      "metric": "acc_norm",
+      "content_fields": [
+        "input"
+      ],
+      "models_read": 400,
+      "models_missing": [],
+      "items": 250,
+      "items_every_model_answered": 250,
+      "items_under_half_the_panel": 0,
+      "answer_key_drift_items": 0
+    },
+    {
+      "task": "leaderboard_bbh_web_of_lies",
+      "benchmark": "bbh",
+      "metric": "acc_norm",
+      "content_fields": [
+        "input"
+      ],
+      "models_read": 400,
+      "models_missing": [],
+      "items": 250,
+      "items_every_model_answered": 250,
+      "items_under_half_the_panel": 0,
+      "answer_key_drift_items": 0
+    },
+    {
+      "task": "leaderboard_gpqa_main",
+      "benchmark": "gpqa",
+      "metric": "acc_norm",
+      "content_fields": [
+        "Question"
+      ],
+      "models_read": 400,
+      "models_missing": [],
+      "items": 448,
+      "items_every_model_answered": 448,
+      "items_under_half_the_panel": 0,
+      "answer_key_drift_items": 443
+    },
+    {
+      "task": "leaderboard_musr_murder_mysteries",
+      "benchmark": "musr",
+      "metric": "acc_norm",
+      "content_fields": [
+        "narrative",
+        "question"
+      ],
+      "models_read": 400,
+      "models_missing": [],
+      "items": 250,
+      "items_every_model_answered": 250,
+      "items_under_half_the_panel": 0,
+      "answer_key_drift_items": 0
+    },
+    {
+      "task": "leaderboard_musr_object_placements",
+      "benchmark": "musr",
+      "metric": "acc_norm",
+      "content_fields": [
+        "narrative",
+        "question"
+      ],
+      "models_read": 400,
+      "models_missing": [],
+      "items": 256,
+      "items_every_model_answered": 256,
+      "items_under_half_the_panel": 0,
+      "answer_key_drift_items": 0
+    },
+    {
+      "task": "leaderboard_musr_team_allocation",
+      "benchmark": "musr",
+      "metric": "acc_norm",
+      "content_fields": [
+        "narrative",
+        "question"
+      ],
+      "models_read": 400,
+      "models_missing": [],
+      "items": 250,
+      "items_every_model_answered": 250,
+      "items_under_half_the_panel": 0,
+      "answer_key_drift_items": 0
+    },
+    {
+      "task": "leaderboard_math_algebra_hard",
+      "benchmark": "math_hard",
+      "metric": "exact_match",
+      "content_fields": [
+        "problem"
+      ],
+      "models_read": 400,
+      "models_missing": [],
+      "items": 307,
+      "items_every_model_answered": 307,
+      "items_under_half_the_panel": 0,
+      "answer_key_drift_items": 33
+    },
+    {
+      "task": "leaderboard_math_counting_and_prob_hard",
+      "benchmark": "math_hard",
+      "metric": "exact_match",
+      "content_fields": [
+        "problem"
+      ],
+      "models_read": 400,
+      "models_missing": [],
+      "items": 123,
+      "items_every_model_answered": 123,
+      "items_under_half_the_panel": 0,
+      "answer_key_drift_items": 4
+    },
+    {
+      "task": "leaderboard_math_geometry_hard",
+      "benchmark": "math_hard",
+      "metric": "exact_match",
+      "content_fields": [
+        "problem"
+      ],
+      "models_read": 400,
+      "models_missing": [],
+      "items": 132,
+      "items_every_model_answered": 132,
+      "items_under_half_the_panel": 0,
+      "answer_key_drift_items": 13
+    },
+    {
+      "task": "leaderboard_math_intermediate_algebra_hard",
+      "benchmark": "math_hard",
+      "metric": "exact_match",
+      "content_fields": [
+        "problem"
+      ],
+      "models_read": 400,
+      "models_missing": [],
+      "items": 280,
+      "items_every_model_answered": 280,
+      "items_under_half_the_panel": 0,
+      "answer_key_drift_items": 16
+    },
+    {
+      "task": "leaderboard_math_num_theory_hard",
+      "benchmark": "math_hard",
+      "metric": "exact_match",
+      "content_fields": [
+        "problem"
+      ],
+      "models_read": 400,
+      "models_missing": [],
+      "items": 154,
+      "items_every_model_answered": 154,
+      "items_under_half_the_panel": 0,
+      "answer_key_drift_items": 6
+    },
+    {
+      "task": "leaderboard_math_prealgebra_hard",
+      "benchmark": "math_hard",
+      "metric": "exact_match",
+      "content_fields": [
+        "problem"
+      ],
+      "models_read": 400,
+      "models_missing": [],
+      "items": 193,
+      "items_every_model_answered": 193,
+      "items_under_half_the_panel": 0,
+      "answer_key_drift_items": 15
+    },
+    {
+      "task": "leaderboard_math_precalculus_hard",
+      "benchmark": "math_hard",
+      "metric": "exact_match",
+      "content_fields": [
+        "problem"
+      ],
+      "models_read": 398,
+      "models_missing": [
+        "Daemontatox/mini-Cogito-R1: https://huggingface.co/datasets/open-llm-leaderboard/Daemontatox__mini-Cogito-R1-details/resolve/refs%2Fconvert%2Fparquet/Daemontatox__mini-Cogito-R1__leaderboard_math_precalculus_hard/latest/0000.parquet returned HTTP 404",
+        "rootxhacker/Apollo-70B: https://huggingface.co/datasets/open-llm-leaderboard/rootxhacker__Apollo-70B-details/resolve/refs%2Fconvert%2Fparquet/rootxhacker__Apollo-70B__leaderboard_math_precalculus_hard/latest/0000.parquet returned HTTP 404"
+      ],
+      "items": 135,
+      "items_every_model_answered": 135,
+      "items_under_half_the_panel": 0,
+      "answer_key_drift_items": 30
+    },
+    {
+      "task": "leaderboard_mmlu_pro",
+      "benchmark": "mmlu_pro",
+      "metric": "acc",
+      "content_fields": [
+        "question",
+        "options"
+      ],
+      "models_read": 399,
+      "models_missing": [
+        "Daemontatox/mini-Cogito-R1: https://huggingface.co/datasets/open-llm-leaderboard/Daemontatox__mini-Cogito-R1-details/resolve/refs%2Fconvert%2Fparquet/Daemontatox__mini-Cogito-R1__leaderboard_mmlu_pro/latest/0000.parquet returned HTTP 404"
+      ],
+      "items": 12040,
+      "items_every_model_answered": 12024,
+      "items_under_half_the_panel": 8,
+      "answer_key_drift_items": 31
+    }
+  ],
+  "sources": [
+    {
+      "task": "leaderboard_bbh_boolean_expressions",
+      "benchmark": "bbh",
+      "metric": "acc_norm",
+      "kind": "multiple_choice"
+    },
+    {
+      "task": "leaderboard_bbh_causal_judgement",
+      "benchmark": "bbh",
+      "metric": "acc_norm",
+      "kind": "multiple_choice"
+    },
+    {
+      "task": "leaderboard_bbh_date_understanding",
+      "benchmark": "bbh",
+      "metric": "acc_norm",
+      "kind": "multiple_choice"
+    },
+    {
+      "task": "leaderboard_bbh_disambiguation_qa",
+      "benchmark": "bbh",
+      "metric": "acc_norm",
+      "kind": "multiple_choice"
+    },
+    {
+      "task": "leaderboard_bbh_formal_fallacies",
+      "benchmark": "bbh",
+      "metric": "acc_norm",
+      "kind": "multiple_choice"
+    },
+    {
+      "task": "leaderboard_bbh_geometric_shapes",
+      "benchmark": "bbh",
+      "metric": "acc_norm",
+      "kind": "multiple_choice"
+    },
+    {
+      "task": "leaderboard_bbh_hyperbaton",
+      "benchmark": "bbh",
+      "metric": "acc_norm",
+      "kind": "multiple_choice"
+    },
+    {
+      "task": "leaderboard_bbh_logical_deduction_five_objects",
+      "benchmark": "bbh",
+      "metric": "acc_norm",
+      "kind": "multiple_choice"
+    },
+    {
+      "task": "leaderboard_bbh_logical_deduction_seven_objects",
+      "benchmark": "bbh",
+      "metric": "acc_norm",
+      "kind": "multiple_choice"
+    },
+    {
+      "task": "leaderboard_bbh_logical_deduction_three_objects",
+      "benchmark": "bbh",
+      "metric": "acc_norm",
+      "kind": "multiple_choice"
+    },
+    {
+      "task": "leaderboard_bbh_movie_recommendation",
+      "benchmark": "bbh",
+      "metric": "acc_norm",
+      "kind": "multiple_choice"
+    },
+    {
+      "task": "leaderboard_bbh_navigate",
+      "benchmark": "bbh",
+      "metric": "acc_norm",
+      "kind": "multiple_choice"
+    },
+    {
+      "task": "leaderboard_bbh_object_counting",
+      "benchmark": "bbh",
+      "metric": "acc_norm",
+      "kind": "multiple_choice"
+    },
+    {
+      "task": "leaderboard_bbh_penguins_in_a_table",
+      "benchmark": "bbh",
+      "metric": "acc_norm",
+      "kind": "multiple_choice"
+    },
+    {
+      "task": "leaderboard_bbh_reasoning_about_colored_objects",
+      "benchmark": "bbh",
+      "metric": "acc_norm",
+      "kind": "multiple_choice"
+    },
+    {
+      "task": "leaderboard_bbh_ruin_names",
+      "benchmark": "bbh",
+      "metric": "acc_norm",
+      "kind": "multiple_choice"
+    },
+    {
+      "task": "leaderboard_bbh_salient_translation_error_detection",
+      "benchmark": "bbh",
+      "metric": "acc_norm",
+      "kind": "multiple_choice"
+    },
+    {
+      "task": "leaderboard_bbh_snarks",
+      "benchmark": "bbh",
+      "metric": "acc_norm",
+      "kind": "multiple_choice"
+    },
+    {
+      "task": "leaderboard_bbh_sports_understanding",
+      "benchmark": "bbh",
+      "metric": "acc_norm",
+      "kind": "multiple_choice"
+    },
+    {
+      "task": "leaderboard_bbh_temporal_sequences",
+      "benchmark": "bbh",
+      "metric": "acc_norm",
+      "kind": "multiple_choice"
+    },
+    {
+      "task": "leaderboard_bbh_tracking_shuffled_objects_five_objects",
+      "benchmark": "bbh",
+      "metric": "acc_norm",
+      "kind": "multiple_choice"
+    },
+    {
+      "task": "leaderboard_bbh_tracking_shuffled_objects_seven_objects",
+      "benchmark": "bbh",
+      "metric": "acc_norm",
+      "kind": "multiple_choice"
+    },
+    {
+      "task": "leaderboard_bbh_tracking_shuffled_objects_three_objects",
+      "benchmark": "bbh",
+      "metric": "acc_norm",
+      "kind": "multiple_choice"
+    },
+    {
+      "task": "leaderboard_bbh_web_of_lies",
+      "benchmark": "bbh",
+      "metric": "acc_norm",
+      "kind": "multiple_choice"
+    },
+    {
+      "task": "leaderboard_gpqa_main",
+      "benchmark": "gpqa",
+      "metric": "acc_norm",
+      "kind": "multiple_choice"
+    },
+    {
+      "task": "leaderboard_musr_murder_mysteries",
+      "benchmark": "musr",
+      "metric": "acc_norm",
+      "kind": "multiple_choice"
+    },
+    {
+      "task": "leaderboard_musr_object_placements",
+      "benchmark": "musr",
+      "metric": "acc_norm",
+      "kind": "multiple_choice"
+    },
+    {
+      "task": "leaderboard_musr_team_allocation",
+      "benchmark": "musr",
+      "metric": "acc_norm",
+      "kind": "multiple_choice"
+    },
+    {
+      "task": "leaderboard_math_algebra_hard",
+      "benchmark": "math_hard",
+      "metric": "exact_match",
+      "kind": "free_response"
+    },
+    {
+      "task": "leaderboard_math_counting_and_prob_hard",
+      "benchmark": "math_hard",
+      "metric": "exact_match",
+      "kind": "free_response"
+    },
+    {
+      "task": "leaderboard_math_geometry_hard",
+      "benchmark": "math_hard",
+      "metric": "exact_match",
+      "kind": "free_response"
+    },
+    {
+      "task": "leaderboard_math_intermediate_algebra_hard",
+      "benchmark": "math_hard",
+      "metric": "exact_match",
+      "kind": "free_response"
+    },
+    {
+      "task": "leaderboard_math_num_theory_hard",
+      "benchmark": "math_hard",
+      "metric": "exact_match",
+      "kind": "free_response"
+    },
+    {
+      "task": "leaderboard_math_prealgebra_hard",
+      "benchmark": "math_hard",
+      "metric": "exact_match",
+      "kind": "free_response"
+    },
+    {
+      "task": "leaderboard_math_precalculus_hard",
+      "benchmark": "math_hard",
+      "metric": "exact_match",
+      "kind": "free_response"
+    },
+    {
+      "task": "leaderboard_mmlu_pro",
+      "benchmark": "mmlu_pro",
+      "metric": "acc",
+      "kind": "multiple_choice"
+    }
+  ],
+  "source_name": "the Open LLM Leaderboard v2 per-item details",
+  "source_bucket": "https://huggingface.co/datasets/open-llm-leaderboard"
+}

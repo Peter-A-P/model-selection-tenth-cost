@@ -23,6 +23,7 @@ from mselect.data import benchmarks as benchmark_meta
 from mselect.data.bank import load_params
 from mselect.irt import dif, dimensionality, fitstats, q3
 from mselect.irt import fit as fitting
+from mselect.irt.model import Floats
 
 # `load_params` lives in `data.bank` so that the packaged bank can be loaded without importing
 # the fitter. It is re-exported here because that is where callers first looked for it.
@@ -211,6 +212,8 @@ def diagnose_bank(
     }
     progress("per-benchmark abilities done")
 
+    ability_range = ability_range_check(bank, theta, kind=kind, progress=progress)
+
     dif_results: dict[str, object] = {}
     for split in _panel_splits(bank):
         if split.degenerate:
@@ -308,6 +311,7 @@ def diagnose_bank(
             "share_below_0.3": float((items.a < 0.3).mean()),
             "share_negative": float((items.a < 0.0).mean()),
         },
+        "ability_range": ability_range,
         "local_dependence": local_dependence,
         "dependent_blocks": {
             "count": sum(len(per_benchmark) for per_benchmark in blocks.values()),
@@ -355,6 +359,53 @@ class _Split:
 
 
 MIN_DIF_GROUP = 10  # below this a group is noise, and a DIF table over it is worse than none
+
+
+def ability_range_check(
+    bank: bank_io.Bank,
+    theta: Floats,
+    *,
+    kind: str = "2pl",
+    max_iter: int = 120,
+    progress: Callable[[str], None] = lambda _: None,
+) -> dict[str, object]:
+    """What the items look like when only half the panel's ability range is used to fit them.
+
+    A wide panel is the reason bank v2 exists, and it is worth testing rather than assuming.
+    Refitting on the stronger half and the weaker half separately says which end of the range
+    the item parameters are actually learning from: if the items look much better on one half,
+    the other half is answering closer to chance than to the item, and the full-panel numbers
+    are diluted rather than enriched by it.
+
+    The comparison is of shapes, not levels. Each fit identifies its own scale against a
+    standard normal prior over whichever models it used, so a discrimination of 0.5 on the upper
+    half and 0.5 on the full panel are not the same quantity; what compares is the share of
+    items that discriminate at all, and the share whose slope comes out negative, which is a
+    sign of an item the panel is answering at random rather than answering.
+    """
+    order = np.argsort(theta)
+    halves = {
+        "weaker_half": order[: order.size // 2],
+        "stronger_half": order[order.size // 2 :],
+    }
+    out: dict[str, object] = {}
+    for name, rows in halves.items():
+        sub = bank.x[rows]
+        keep = np.isfinite(sub).sum(axis=0) >= 25
+        if keep.sum() < 100:  # pragma: no cover - a bank this thin never reaches here
+            out[name] = {"skipped": "too few items answered by this half of the panel"}
+            continue
+        fit = fitting.fit_mml(sub[:, keep], kind=kind, max_iter=max_iter, progress=None)
+        out[name] = {
+            "n_models": int(rows.size),
+            "n_items": int(keep.sum()),
+            "median_discrimination": float(np.median(fit.items.a)),
+            "share_below_0.3": float((fit.items.a < 0.3).mean()),
+            "share_negative": float((fit.items.a < 0.0).mean()),
+            "converged": bool(fit.converged),
+        }
+        progress(f"ability range {name}: median a {float(np.median(fit.items.a)):.3f}")
+    return out
 
 
 def _panel_splits(bank: bank_io.Bank) -> list[_Split]:

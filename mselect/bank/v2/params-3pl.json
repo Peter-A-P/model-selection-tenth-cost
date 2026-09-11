@@ -1,0 +1,23 @@
+{
+  "fit_version": "1",
+  "kind": "3pl",
+  "bank_version": "v2",
+  "bank_hash": "e1790eab19300b9b",
+  "fitted": "2026-09-11",
+  "estimator": "marginal maximum a posteriori by Bock-Aitkin EM, 61-point normal quadrature",
+  "priors": "a ~ Normal(1.0, 1.0), d ~ Normal(0, 4.0), c ~ Beta(2.0, 8.0) on multiple choice and 0 elsewhere",
+  "priors_values": {
+    "a_mean": 1.0,
+    "a_sd": 1.0,
+    "d_sd": 4.0,
+    "c_alpha": 2.0,
+    "c_beta": 8.0
+  },
+  "iterations": 200,
+  "converged": false,
+  "marginal_loglik": -3095162.054295707,
+  "log_posterior": -3178994.2266838658,
+  "n_items": 20323,
+  "n_models": 400,
+  "items_with_unidentified_difficulty": 508
+}
