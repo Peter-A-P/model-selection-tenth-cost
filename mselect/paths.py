@@ -12,6 +12,7 @@ ROOT: Final = Path(os.environ.get("MSELECT_ROOT", Path(__file__).resolve().paren
 
 RAW: Final = ROOT / "data" / "raw"  # fetched public bytes, gitignored
 HELM_CACHE: Final = RAW / "helm"
+OLLM_CACHE: Final = RAW / "ollm"  # Open LLM Leaderboard projected columns
 BANK: Final = ROOT / "mselect" / "bank"  # frozen, versioned, committed
 OUT: Final = ROOT / "out"  # fits, simulations, figures; gitignored
 
@@ -19,3 +20,12 @@ OUT: Final = ROOT / "out"  # fits, simulations, figures; gitignored
 def ensure(path: Path) -> Path:
     path.mkdir(parents=True, exist_ok=True)
     return path
+
+
+def out_for(version: str) -> Path:
+    """Run artefacts for one bank version.
+
+    Scoped by version because there is more than one bank now, and a fit of v2 that overwrote
+    v1's diagnostics would make the README describe one bank with another bank's numbers.
+    """
+    return ensure(OUT / version)

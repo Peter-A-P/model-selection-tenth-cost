@@ -70,7 +70,7 @@ def run(
                 }
             )
     curve = pl.DataFrame(rows)
-    curve.write_parquet(paths.ensure(paths.OUT) / f"simulation-curve-{kind}.parquet")
+    curve.write_parquet(paths.out_for(version) / f"simulation-curve-{kind}.parquet")
 
     paths_frame = pl.DataFrame(
         {
@@ -80,11 +80,11 @@ def run(
             **{f"se_{n}": result.adaptive_se[n] for n in result.checkpoints},
         }
     )
-    paths_frame.write_parquet(paths.ensure(paths.OUT) / f"simulation-models-{kind}.parquet")
+    paths_frame.write_parquet(paths.out_for(version) / f"simulation-models-{kind}.parquet")
 
     validation = validate_power(result, items, seed=seed)
     pl.DataFrame(validation).write_parquet(
-        paths.ensure(paths.OUT) / f"power-validation-{kind}.parquet"
+        paths.out_for(version) / f"power-validation-{kind}.parquet"
     )
 
     summary = {
@@ -105,7 +105,7 @@ def run(
         "power_function": _power_table(items),
         "power_validation": validation,
     }
-    out = paths.ensure(paths.OUT) / f"simulation-{kind}.json"
+    out = paths.out_for(version) / f"simulation-{kind}.json"
     out.write_text(json.dumps(summary, indent=2, default=float) + "\n", encoding="utf-8")
     progress(result.describe())
     return f"simulation written to {out}"

@@ -24,8 +24,8 @@ Bank `v1` (`1d4c357935c70875`): 150 models by 20,365 items from the public HELM 
 |---|---:|---:|---:|---:|
 | Massive Multitask Language Understanding | 13,937 | 18.6% | 7.2% | 20.1% |
 | LegalBench | 2,047 | 53.0% | 27.2% | 41.0% |
-| MedQA (US medical licensing questions) | 1,000 | 20.1% | 7.1% | 16.1% |
 | GSM8K (grade-school word problems) | 1,000 | 4.9% | 0.9% | 3.8% |
+| MedQA (US medical licensing questions) | 1,000 | 20.1% | 7.1% | 16.1% |
 | MMLU-Pro | 998 | 14.8% | 5.0% | 15.5% |
 | OpenBookQA | 500 | 4.4% | 0.6% | 15.0% |
 | GPQA (graduate-level Q&A) | 446 | 32.3% | 12.1% | 28.0% |

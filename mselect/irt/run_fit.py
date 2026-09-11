@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import json
 from collections.abc import Callable
-from dataclasses import asdict
+from dataclasses import asdict, dataclass
 from datetime import UTC, datetime
 from pathlib import Path
 
@@ -127,7 +127,7 @@ def diagnose_bank(
         information_at_zero=pl.Series(stats.information_at_zero),
         **{name: pl.Series(values) for name, values in flags.items()},
     )
-    item_table.write_parquet(paths.ensure(paths.OUT) / f"item-diagnostics-{kind}.parquet")
+    item_table.write_parquet(paths.out_for(bank.version) / f"item-diagnostics-{kind}.parquet")
 
     benchmarks = sorted(set(bank.benchmarks.tolist()))
     local_dependence: dict[str, object] = {}
@@ -211,20 +211,23 @@ def diagnose_bank(
     }
     progress("per-benchmark abilities done")
 
-    access = bank.models["access"].to_numpy()
-    open_weights = access == "open"
     dif_results: dict[str, object] = {}
-    access_dif = dif.run_dif(
-        bank.x,
-        theta,
-        open_weights,
-        grouping="open weights vs API only",
-        reference="API only",
-        focal="open weights",
-    )
-    dif_results["open_vs_api"] = {"summary": access_dif.summary(), "grouping": access_dif.grouping}
-    _write_dif(bank, access_dif, kind, "open-vs-api")
-    progress("DIF by access done")
+    for split in _panel_splits(bank):
+        if split.degenerate:
+            dif_results[split.key] = {"skipped": split.why}
+            progress(f"DIF {split.key} skipped: {split.why}")
+            continue
+        result = dif.run_dif(
+            bank.x,
+            theta,
+            split.focal_mask,
+            grouping=split.grouping,
+            reference=split.reference,
+            focal=split.focal,
+        )
+        dif_results[split.key] = {"summary": result.summary(), "grouping": result.grouping}
+        _write_dif(bank, result, kind, split.label)
+        progress(f"DIF {split.key} done")
 
     released = _release_months(bank)
     for name in benchmarks:
@@ -301,9 +304,64 @@ def diagnose_bank(
         "benchmark_ability_correlations": correlations,
         "dif": dif_results,
     }
-    out = paths.ensure(paths.OUT) / f"diagnostics-{kind}.json"
+    out = paths.out_for(bank.version) / f"diagnostics-{kind}.json"
     out.write_text(json.dumps(report, indent=2, default=float) + "\n", encoding="utf-8")
     return f"diagnostics written to {out}"
+
+
+@dataclass(frozen=True, slots=True)
+class _Split:
+    """One differential-item-functioning contrast this panel can or cannot draw."""
+
+    key: str
+    label: str
+    grouping: str
+    reference: str
+    focal: str
+    focal_mask: NDArray[np.bool_]
+
+    @property
+    def degenerate(self) -> bool:
+        return not self.focal_mask.any() or bool(self.focal_mask.all())
+
+    @property
+    def why(self) -> str:
+        side = "in the focal group" if not self.focal_mask.any() else "outside it"
+        return f"{self.grouping}: every model in the panel is {side}, so there is no contrast"
+
+
+def _panel_splits(bank: bank_io.Bank) -> list[_Split]:
+    """The model groupings worth testing, for whichever panel this bank was built from.
+
+    Bank v1's panel mixes API-only and open-weight models, so "does an item behave differently
+    for models you can download" is answerable. Bank v2's panel is the Open LLM Leaderboard,
+    where every model is open by construction, so that contrast has one side; what exists there
+    is a third of the panel being weight merges rather than models trained directly, which is a
+    fair question to ask of an item bank calibrated on them. A split with everyone on one side
+    is recorded as skipped, with the reason, rather than run on a grouping that says nothing.
+    """
+    splits: list[_Split] = [
+        _Split(
+            key="open_vs_api",
+            label="open-vs-api",
+            grouping="open weights vs API only",
+            reference="API only",
+            focal="open weights",
+            focal_mask=(bank.models["access"].to_numpy() == "open"),
+        )
+    ]
+    if "model_type" in bank.models.columns:
+        splits.append(
+            _Split(
+                key="merge_vs_trained",
+                label="merge-vs-trained",
+                grouping="merged models vs models trained directly, at matched ability",
+                reference="trained directly",
+                focal="merged models",
+                focal_mask=(bank.models["model_type"].to_numpy() == "merge"),
+            )
+        )
+    return splits
 
 
 def _write_dif(bank: bank_io.Bank, result: dif.DifResult, kind: str, label: str) -> None:
@@ -318,7 +376,7 @@ def _write_dif(bank: bank_io.Bank, result: dif.DifResult, kind: str, label: str)
             "nonuniform_p": result.nonuniform_p,
         }
     )
-    frame.write_parquet(paths.ensure(paths.OUT) / f"dif-{label}-{kind}.parquet")
+    frame.write_parquet(paths.out_for(bank.version) / f"dif-{label}-{kind}.parquet")
 
 
 def _release_months(bank: bank_io.Bank) -> NDArray[np.str_]:

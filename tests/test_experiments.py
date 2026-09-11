@@ -10,7 +10,7 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
-from mselect.experiments import analysis
+from mselect.experiments import analysis, crossbank
 
 
 def test_retest_recovers_a_known_flip_rate() -> None:
@@ -107,3 +107,49 @@ def test_every_reported_number_carries_an_interval() -> None:
     interval = analysis.bootstrap([1.0, 0.0, 1.0, 1.0])
     assert "to" in interval.fmt() and "n = 4" in interval.fmt()
     assert analysis.bootstrap([]).fmt() == "n/a"
+
+
+def test_cross_bank_correlations_recover_a_planted_relationship() -> None:
+    """Two calibrations of the same items: the statistic must see a known amount of agreement."""
+    rng = np.random.default_rng(4)
+    truth = rng.normal(size=500)
+    one = truth + rng.normal(scale=0.3, size=500)
+    two = truth + rng.normal(scale=0.3, size=500)
+
+    correlation = crossbank._bootstrap_statistic(one, two, crossbank._pearson, resamples=200)
+
+    assert 0.8 < correlation.point < 0.95
+    assert correlation.lo < correlation.point < correlation.hi
+    assert correlation.n == 500
+
+
+def test_cross_bank_correlation_of_unrelated_calibrations_is_zero() -> None:
+    rng = np.random.default_rng(5)
+    one, two = rng.normal(size=400), rng.normal(size=400)
+
+    correlation = crossbank._bootstrap_statistic(one, two, crossbank._pearson, resamples=200)
+
+    assert abs(correlation.point) < 0.12
+    assert correlation.lo < 0.0 < correlation.hi
+
+
+def test_spearman_sees_a_monotone_relationship_that_pearson_understates() -> None:
+    x = np.linspace(0.1, 3.0, 200)
+    y = np.exp(4.0 * x)  # perfectly ordered, wildly non-linear
+
+    assert crossbank._spearman(x, y) == pytest.approx(1.0, abs=1e-9)
+    assert crossbank._pearson(x, y) < 0.75
+
+
+def test_the_decile_overlap_is_the_decision_a_consumer_actually_makes() -> None:
+    """Identical orderings recover the whole decile; reversed orderings recover none of it."""
+    values = np.arange(100.0)
+    assert crossbank._decile_overlap(values, values.copy(), top=True) == 1.0
+    assert crossbank._decile_overlap(values, -values, top=True) == 0.0
+    assert crossbank._decile_overlap(values, -values, top=False) == 0.0
+
+
+def test_a_bridge_with_too_few_items_reports_no_number_rather_than_a_wrong_one() -> None:
+    short = np.array([1.0, 2.0])
+    result = crossbank._bootstrap_statistic(short, short.copy(), crossbank._pearson)
+    assert result.n == 2 and np.isnan(result.point)

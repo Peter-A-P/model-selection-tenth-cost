@@ -37,9 +37,9 @@ def write_all(
 ) -> str:
     bank = bank_io.load(version)
     items, params, fit_meta = run_fit.load_params(bank, kind)
-    diagnostics = _load_json(paths.OUT / f"diagnostics-{kind}.json")
-    item_diagnostics = pl.read_parquet(paths.OUT / f"item-diagnostics-{kind}.parquet")
-    simulation_path = paths.OUT / f"simulation-{kind}.json"
+    diagnostics = _load_json(paths.out_for(version) / f"diagnostics-{kind}.json")
+    item_diagnostics = pl.read_parquet(paths.out_for(version) / f"item-diagnostics-{kind}.parquet")
+    simulation_path = paths.out_for(version) / f"simulation-{kind}.json"
     simulation = _load_json(simulation_path) if simulation_path.exists() else None
 
     # Figures live under docs/, not out/: the README links them, so they are a committed
@@ -53,7 +53,7 @@ def write_all(
         ),
     ]
     if simulation is not None:
-        curve = pl.read_parquet(paths.OUT / f"simulation-curve-{kind}.parquet")
+        curve = pl.read_parquet(paths.out_for(version) / f"simulation-curve-{kind}.parquet")
         written.append(
             figures.headline_curve(
                 curve,
@@ -285,7 +285,9 @@ def broken_items_doc(
             (pl.col("a") < 0.0).mean().alias("negative"),
             pl.col("no_information").mean().alias("dead"),
         )
-        .sort("items", descending=True)
+        # Benchmark name breaks the tie, so two benchmarks of the same size do not swap
+        # places between runs and put a spurious diff in a committed document.
+        .sort(["items", "benchmark"], descending=[True, False])
     )
     for row in by_benchmark.iter_rows(named=True):
         lines.append(
@@ -304,7 +306,7 @@ def broken_items_doc(
         "| Item | Benchmark | a (SE) | models | proportion correct | by ability quintile |",
         "|---|---|---|---:|---:|---|",
     ]
-    worst = frame.filter(pl.col("n_models") >= 60).sort("a").head(20)
+    worst = frame.filter(pl.col("n_models") >= 60).sort(["a", "item_id"]).head(20)
     curves = _quintile_curves(bank, worst["item_id"].to_list())
     for row in worst.iter_rows(named=True):
         curve = curves.get(row["item_id"], [])

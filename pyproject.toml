@@ -17,6 +17,14 @@ dependencies = [
   # Fetching the public per-item results: thousands of small files over one pooled
   # connection. Pinned below 1 because httpx is still pre-1.0.
   "httpx>=0.28,<1",
+  # Column projection over HTTP range requests when reading the Open LLM Leaderboard's
+  # Parquet conversions: polars reads a file-like object straight through, pyarrow seeks to
+  # the column chunks it was asked for, which is 2 MB of a 71 MB file. 25.x is current.
+  "pyarrow>=21,<26",
+  # TLS verified against the operating system's trust store. On a network that inspects TLS,
+  # certifi's bundle does not contain the proxy's root and every hub request fails
+  # verification. 0.x is the only line; pinned below 1.
+  "truststore>=0.10,<1",
   # Command line. 0.x is the only line; pinned below 1.
   "typer>=0.15,<1",
   # The charts in the README and the write-up. 3.x is the current line.
@@ -68,7 +76,7 @@ warn_unreachable = true
 
 [[tool.mypy.overrides]]
 # Neither ships type information that mypy --strict accepts.
-module = ["matplotlib.*", "scipy.*"]
+module = ["matplotlib.*", "scipy.*", "pyarrow.*"]
 ignore_missing_imports = true
 
 [tool.pytest.ini_options]

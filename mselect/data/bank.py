@@ -75,14 +75,38 @@ class Bank:
         )
 
 
+MATRIX_FILE = "matrix.npz"
+MATRIX_MISSING = 255  # the byte that means "this model never answered this item"
+
+
 def load(version: str = "v1", root: Path | None = None) -> Bank:
-    """Read a frozen bank and pivot the long-format responses into a dense matrix with holes."""
+    """Read a frozen bank into a dense matrix of 0, 1 and NaN.
+
+    Two on-disk forms, because the two banks are shaped differently. A sparse bank stores its
+    responses long, one row per answered cell, which is the readable form and costs about three
+    bytes a cell. A bank whose panel answered everything stores the matrix itself as packed
+    bytes: bank v2 is 400 models by 21,071 items with no holes, where the long form would be
+    8.4 million rows and 26 MB inside the wheel, and the packed form is under two.
+    """
     path = (root or paths.BANK) / version
     items = pl.read_parquet(path / "items.parquet").sort("item_id")
     models = pl.read_parquet(path / "models.parquet").sort("model_id")
-    responses = pl.read_parquet(path / "responses.parquet")
     manifest = json.loads((path / "MANIFEST.json").read_text(encoding="utf-8"))
 
+    if (path / MATRIX_FILE).exists():
+        with np.load(path / MATRIX_FILE) as payload:
+            packed = payload["x"]
+        if packed.shape != (models.height, items.height):
+            raise ValueError(
+                f"{path / MATRIX_FILE} is {packed.shape}, not "
+                f"({models.height}, {items.height}): the matrix and the tables disagree"
+            )
+        dense = np.where(packed == MATRIX_MISSING, np.nan, packed.astype(float))
+        return Bank(
+            version=version, path=path, items=items, models=models, x=dense, manifest=manifest
+        )
+
+    responses = pl.read_parquet(path / "responses.parquet")
     item_index = {key: i for i, key in enumerate(items["item_id"].to_list())}
     model_index = {key: i for i, key in enumerate(models["model_id"].to_list())}
     x = np.full((len(model_index), len(item_index)), np.nan)
@@ -98,6 +122,18 @@ def load(version: str = "v1", root: Path | None = None) -> Bank:
     )
     x[rows, cols] = responses["correct"].to_numpy().astype(float)
     return Bank(version=version, path=path, items=items, models=models, x=x, manifest=manifest)
+
+
+def write_matrix(path: Path, x: NDArray[np.float64]) -> Path:
+    """Write a dense response matrix as packed bytes, with 255 standing for an unanswered cell.
+
+    Compressed, because a matrix of three distinct byte values compresses to a few percent of
+    its size, and a bank that ships inside the wheel should not carry 26 MB of dictionary keys.
+    """
+    packed = np.where(np.isfinite(x), np.nan_to_num(x, nan=0.0), MATRIX_MISSING).astype(np.uint8)
+    target = path / MATRIX_FILE
+    np.savez_compressed(target, x=packed)
+    return target
 
 
 def full_suite_scores(bank: Bank) -> Floats:

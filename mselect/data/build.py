@@ -28,10 +28,13 @@ from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
 
+import numpy as np
 import polars as pl
+from numpy.typing import NDArray
 
 from mselect import paths
-from mselect.data import helm
+from mselect.data import bank as bank_io
+from mselect.data import helm, ollm
 
 PREVIEW_CHARS = 160
 NO_PREVIEW = frozenset({"gpqa"})  # not reproduced: see the module docstring
@@ -272,3 +275,270 @@ def _hash_files(files: Iterable[Path]) -> str:
         digest.update(path.name.encode())
         digest.update(hashlib.sha256(path.read_bytes()).digest())
     return digest.hexdigest()[:16]
+
+
+def _ollm_items(task_items: ollm.TaskItems) -> list[dict[str, object]]:
+    """The item table rows for one task.
+
+    No preview and no option count. The leaderboard's per-item files carry the full question,
+    but this bank does not fetch that column and would not commit it if it did: bank v1 already
+    withholds item text, and here the identity is lm-eval-harness's own hash of the document, so
+    there is nothing to preview. `instance_id` is the task and the document's position in it,
+    which is what a reader needs in order to find the item in the source dataset.
+    """
+    task = task_items.task
+    return [
+        {
+            "item_id": item,
+            "benchmark": task.benchmark,
+            "kind": task.kind,
+            "scenario_key": task.suffix,
+            "instance_id": f"{task.label}#{doc}",
+            "n_options": None,
+            "has_key": True,
+            "preview": "",
+            "source_project": ollm.ORG,
+            "source_release": "latest",
+        }
+        for doc, item in zip(task_items.doc_ids, task_items.item_ids, strict=True)
+    ]
+
+
+def _ollm_family(model_type: str) -> str:
+    """The leaderboard's own type label, reduced to base, merge, tuned or other.
+
+    The labels arrive with emoji and free text ("pretrained", "fine-tuned on domain-specific
+    datasets", "base merges and moerges"). Merges are kept apart from models trained directly
+    because they are a third of this panel, and whether a merge answers items differently at
+    matched ability is the differential-item-functioning question this panel can actually put.
+    Anything the leaderboard does not classify is left as "other" rather than guessed into a
+    group.
+    """
+    text = model_type.lower()
+    if "merge" in text or "moerge" in text:
+        return "merge"
+    if "continuously pretrained" in text:
+        return "tuned"
+    if "pretrained" in text:
+        return "base"
+    if any(word in text for word in ("fine-tuned", "chat", "instruction")):
+        return "tuned"
+    return "other"
+
+
+def _ollm_models(panel: ollm.Panel, answered: dict[str, int]) -> pl.DataFrame:
+    """The model table.
+
+    `access` is "open" for every row, because the leaderboard only evaluates models whose
+    weights are on the hub. That removes the open-weights-versus-API contrast bank v1 uses for
+    differential item functioning, and `model_type` replaces it: whether a submission is a base
+    model or has been tuned is the contrast this panel can actually draw.
+    """
+    return pl.DataFrame(
+        [
+            {
+                "model_id": member.fullname,
+                "display_name": member.fullname.split("/")[-1],
+                "organisation": member.organisation,
+                "access": "open",
+                "release_date": member.upload_date,
+                "num_parameters": (
+                    None
+                    if member.params_b is None or member.params_b <= 0
+                    else int(member.params_b * 1e9)
+                ),
+                "model_type": _ollm_family(member.model_type),
+                "leaderboard_average": member.average,
+                "precision": member.precision,
+                "n_items": answered.get(member.fullname, 0),
+            }
+            for member in panel.members
+        ]
+    ).sort("model_id")
+
+
+def _dense_matrix(
+    responses: pl.DataFrame, models_frame: pl.DataFrame, items_frame: pl.DataFrame
+) -> NDArray[np.float64]:
+    """The long responses as a dense matrix in the bank's own model and item order."""
+    model_index = {key: i for i, key in enumerate(models_frame["model_id"].to_list())}
+    item_index = {key: i for i, key in enumerate(items_frame["item_id"].to_list())}
+    x = np.full((len(model_index), len(item_index)), np.nan)
+    rows = np.fromiter(
+        (model_index[m] for m in responses["model_id"].to_list()),
+        dtype=np.intp,
+        count=responses.height,
+    )
+    cols = np.fromiter(
+        (item_index[i] for i in responses["item_id"].to_list()),
+        dtype=np.intp,
+        count=responses.height,
+    )
+    x[rows, cols] = responses["correct"].to_numpy().astype(float)
+    return x
+
+
+def build_ollm_bank(
+    *,
+    version: str = "v2",
+    tasks: Iterable[ollm.Task] | None = None,
+    audit: int | None = None,
+    progress: Callable[[str], None] = lambda _: None,
+    root: Path | None = None,
+) -> BuildSummary:
+    """Freeze a bank from the Open LLM Leaderboard cache.
+
+    The output has the same shape as `build_bank`, so the fit, the diagnostics, the simulation
+    and the report are unchanged. Two things the HELM build must handle do not arise here, and
+    two new ones do. Every model in the panel answered every item, so there are no repeated
+    cells to collapse by majority and no response floor to apply: an item either has the whole
+    panel or the build has a bug. What is new is the alignment audit, because item identity
+    comes from a column this build reads for only some models, and the row-count check, because
+    a model whose task file has a different number of rows was evaluated against a different
+    version of the dataset and does not belong in the same matrix.
+    """
+    cache = ollm.Cache(paths.ensure(paths.OLLM_CACHE))
+    out_dir = paths.ensure((root or paths.BANK) / version)
+    panel = ollm.load_panel(paths.OLLM_CACHE)
+    selected = list(tasks) if tasks is not None else list(ollm.TASKS)
+    audit_models = ollm.AUDIT_MODELS if audit is None else audit
+
+    all_items: list[dict[str, object]] = []
+    rows: list[dict[str, object]] = []
+    audits: list[dict[str, object]] = []
+    dropped_models: dict[str, list[str]] = {}
+
+    with ollm.Client(cache, ollm.token_from_env()) as client:
+        for index, task in enumerate(selected, start=1):
+            aligned = ollm.audit_alignment(client, task, panel.members, audit=audit_models)
+            all_items.extend(_ollm_items(aligned))
+            by_doc = dict(zip(aligned.doc_ids, aligned.item_ids, strict=True))
+            expected = len(aligned.doc_ids)
+
+            kept = 0
+            for member in panel.members:
+                try:
+                    frame = ollm.read_task(client, member, task, with_hashes=False)
+                except ollm.FetchError as exc:
+                    # A submission whose run of one task did not survive the Parquet conversion.
+                    # It keeps its other 35 tasks and leaves a hole in this one, which is what
+                    # the density figure in the manifest is for.
+                    dropped_models.setdefault(member.fullname, []).append(f"{task.suffix}: {exc}")
+                    continue
+                if frame.height != expected:
+                    dropped_models.setdefault(member.fullname, []).append(
+                        f"{task.suffix}: {frame.height} rows, expected {expected}"
+                    )
+                    continue
+                scores = ollm.binary(frame, f"{member.fullname}/{task.suffix}")
+                for doc, score in zip(frame["doc_id"].to_list(), scores.to_list(), strict=True):
+                    item = by_doc.get(int(doc))
+                    if item is None:  # pragma: no cover - the row-count check gets here first
+                        continue
+                    rows.append({"model_id": member.fullname, "item_id": item, "correct": score})
+                kept += 1
+            audits.append(
+                {
+                    "task": task.suffix,
+                    "benchmark": task.benchmark,
+                    "metric": task.metric,
+                    "items": expected,
+                    "reference_model": aligned.reference,
+                    "models_audited": aligned.audited,
+                    "models_misaligned": aligned.mismatched,
+                    "models_kept": kept,
+                }
+            )
+            if aligned.mismatched:
+                progress(f"  {task.suffix}: MISALIGNED {aligned.mismatched}")
+            progress(
+                f"[{index}/{len(selected)}] {task.suffix}: {expected:,} items, "
+                f"{kept}/{len(panel.members)} models"
+            )
+
+    frame = pl.DataFrame(rows, schema={"model_id": pl.Utf8, "item_id": pl.Utf8, "correct": pl.Int8})
+    responses, repeated_cells, agreement = _collapse_repeats(frame)
+
+    counts = responses.group_by("item_id").len().rename({"len": "n_models"})
+    items_frame = (
+        pl.DataFrame(all_items)
+        .unique(subset=["item_id"], keep="first")
+        .join(counts, on="item_id", how="inner")
+        .sort("item_id")
+    )
+    dropped_items = len(all_items) - items_frame.height
+    answered = {
+        str(row["model_id"]): int(row["len"])
+        for row in responses.group_by("model_id").len().iter_rows(named=True)
+    }
+    models_frame = _ollm_models(panel, answered).filter(pl.col("n_items") > 0)
+    responses = responses.join(models_frame.select("model_id"), on="model_id", how="semi").sort(
+        ["model_id", "item_id"]
+    )
+
+    items_frame.write_parquet(out_dir / "items.parquet")
+    models_frame.write_parquet(out_dir / "models.parquet")
+    # The panel file travels with the bank, not just with the gitignored cache: it is the only
+    # record of which candidates were probed and rejected, and the bank is what gets published.
+    (out_dir / "panel.json").write_text(
+        json.dumps(panel.to_json(), indent=2) + "\n", encoding="utf-8"
+    )
+    matrix = _dense_matrix(responses, models_frame, items_frame)
+    bank_io.write_matrix(out_dir, matrix)
+    density = float(np.isfinite(matrix).mean())
+
+    per_benchmark = {
+        str(row["benchmark"]): int(row["len"])
+        for row in items_frame.group_by("benchmark").len().iter_rows(named=True)
+    }
+    bank_hash = _hash_files(
+        [out_dir / n for n in ("items.parquet", "models.parquet", bank_io.MATRIX_FILE)]
+    )
+    averages = [member.average for member in panel.members]
+    manifest = {
+        "bank_version": version,
+        "built": datetime.now(UTC).date().isoformat(),
+        "bank_hash": bank_hash,
+        "min_models_per_item": len(panel.members),
+        "n_models": models_frame.height,
+        "n_items": items_frame.height,
+        "n_responses": responses.height,
+        "items_dropped_below_floor": dropped_items,
+        "repeated_cells": repeated_cells,
+        "repeated_cell_agreement": agreement,
+        "items_per_benchmark": per_benchmark,
+        "density": density,
+        "panel": {
+            "requested": panel.size,
+            "seed": panel.seed,
+            "strata": panel.strata,
+            "per_organisation": panel.per_organisation,
+            "leaderboard_average_low": min(averages),
+            "leaderboard_average_high": max(averages),
+        },
+        "alignment_audit": audits,
+        "models_with_unexpected_row_counts": dropped_models,
+        "sources": [
+            {
+                "task": task.suffix,
+                "benchmark": task.benchmark,
+                "metric": task.metric,
+                "kind": task.kind,
+            }
+            for task in selected
+        ],
+        "source_bucket": f"{ollm.HUB}/datasets/{ollm.ORG}",
+    }
+    (out_dir / "MANIFEST.json").write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+
+    return BuildSummary(
+        version=version,
+        n_models=models_frame.height,
+        n_items=items_frame.height,
+        n_responses=responses.height,
+        n_dropped_items=dropped_items,
+        repeated_cells=repeated_cells,
+        repeated_agreement=agreement,
+        per_benchmark=per_benchmark,
+        bank_hash=bank_hash,
+    )
