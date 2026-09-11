@@ -116,11 +116,20 @@ def simulate(
     version: str = typer.Option("v1"),
     seed: int = typer.Option(0),
     max_items: int = typer.Option(400),
+    evaluate: int = typer.Option(0, help="Hold out this many models (0 means every model)."),
 ) -> None:
     """Leave-one-model-out adaptive simulation against random and stratified baselines."""
     from mselect.cat import run_sim
 
-    _say(run_sim.run(version=version, seed=seed, max_items=max_items, progress=_say))
+    _say(
+        run_sim.run(
+            version=version,
+            seed=seed,
+            max_items=max_items,
+            evaluate=evaluate or None,
+            progress=_say,
+        )
+    )
 
 
 @app.command("crossbank")

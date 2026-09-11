@@ -172,6 +172,20 @@ def load_params(bank: Bank, kind: str = "2pl") -> tuple[Items, pl.DataFrame, dic
     return items, frame, meta
 
 
+def available(root: Path | None = None) -> tuple[str, ...]:
+    """Every bank version that ships inside the package, in order.
+
+    A consumer should not have to guess which banks exist, and should not hard-code a version
+    that a later release removes. `mselect.banks()` is this.
+    """
+    base = root or paths.BANK
+    if not base.exists():
+        return ()
+    return tuple(
+        sorted(child.name for child in base.iterdir() if (child / "MANIFEST.json").exists())
+    )
+
+
 DEFAULT_VERSION = "v1"
 
 

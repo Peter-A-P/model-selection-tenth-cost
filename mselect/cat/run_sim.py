@@ -30,6 +30,7 @@ def run(
     kind: str = "2pl",
     seed: int = 0,
     max_items: int = 800,
+    evaluate: int | None = None,
     checkpoints: Sequence[int] = simulate.CHECKPOINTS,
     progress: Callable[[str], None] = lambda _: None,
 ) -> str:
@@ -46,6 +47,7 @@ def run(
         checkpoints=checkpoints,
         max_items=max_items,
         seed=seed,
+        evaluate=evaluate,
         progress=progress,
     )
 
@@ -93,7 +95,8 @@ def run(
         "kind": kind,
         "seed": seed,
         "block": {
-            "models": int(result.block.rows.size),
+            "models": int(result.n_models_held_out),
+            "models_calibrated_on": int(result.block.rows.size),
             "items": int(result.block.cols.size),
             "density": result.block.density,
         },

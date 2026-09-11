@@ -159,6 +159,7 @@ class SimulationResult:
 
     block: Block
     checkpoints: tuple[int, ...]
+    n_models_held_out: int  # how many models the curve is measured on; see `evaluate`
     n_block_items: int
     truth: Floats
     adaptive_theta: dict[int, Floats]
@@ -197,9 +198,18 @@ def leave_one_model_out(
     seed: int = 0,
     refit_iterations: int = 15,
     block: Block | None = None,
+    evaluate: int | None = None,
     progress: Callable[[str], None] = lambda _: None,
 ) -> SimulationResult:
-    """Run the whole simulation on a bank matrix and return the curve with its intervals."""
+    """Run the whole simulation on a bank matrix and return the curve with its intervals.
+
+    `evaluate` caps how many models are held out one at a time. Every model is still in the
+    calibration and in the truth, and the models that are held out are drawn with the seed, so
+    the curve is measured on a random sample of the panel rather than on the easy part of it.
+    The cap exists because each held-out model costs a warm-started refit of the whole matrix:
+    on a 400-model bank that is hours, and the interval on Kendall's tau stops narrowing
+    usefully well before then.
+    """
     block = block or dense_block(x)
     sub = x[np.ix_(block.rows, block.cols)]
     sub_benchmarks = benchmarks[block.cols]
@@ -220,7 +230,14 @@ def leave_one_model_out(
     random_raw = {n: np.full(block.rows.size, np.nan) for n in points}
     stratified_theta = {n: np.full(block.rows.size, np.nan) for n in points}
 
-    for row in range(sub.shape[0]):
+    rows_to_run = np.arange(sub.shape[0], dtype=np.intp)
+    if evaluate is not None and evaluate < rows_to_run.size:
+        rows_to_run = np.sort(
+            np.random.default_rng(seed).choice(rows_to_run, size=evaluate, replace=False)
+        )
+        progress(f"holding out {rows_to_run.size} of {sub.shape[0]} models, drawn with seed {seed}")
+
+    for done, row in enumerate(int(value) for value in rows_to_run):
         rng = np.random.default_rng(seed + row)
         held = fitting.refit_without(
             sub, row, kind=kind, mc=sub_mc, start=base, max_iter=refit_iterations
@@ -244,8 +261,8 @@ def leave_one_model_out(
                 available, n, strata, weights, rng, difficulty=held.items.b
             )
             stratified_theta[n][row] = score(responses, held.items, spread).theta
-        if (row + 1) % 10 == 0:
-            progress(f"  held out {row + 1}/{sub.shape[0]} models")
+        if (done + 1) % 10 == 0:
+            progress(f"  held out {done + 1}/{rows_to_run.size} models")
 
     tau = {
         name: {n: kendall_with_ci(series[n], truth, seed=seed) for n in points}
@@ -259,6 +276,7 @@ def leave_one_model_out(
     return SimulationResult(
         block=block,
         checkpoints=points,
+        n_models_held_out=int(rows_to_run.size),
         n_block_items=int(sub.shape[1]),
         truth=truth,
         adaptive_theta=adaptive_theta,

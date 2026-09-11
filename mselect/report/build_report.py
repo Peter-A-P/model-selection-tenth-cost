@@ -24,6 +24,10 @@ from mselect.report import figures
 
 START = "<!-- mselect:results:start -->"
 END = "<!-- mselect:results:end -->"
+# Bank v1 keeps the unsuffixed names it has always had, so its links and figures do not move.
+# Any other bank gets its version appended to every file it writes and its own pair of README
+# markers, because two banks writing to one filename is two banks describing each other.
+HEADLINE_VERSION = "v1"
 PENDING = "_pending the own-run panel (needs the gateway's batch support; see PLAN.md section 3.3)_"
 
 
@@ -45,11 +49,12 @@ def write_all(
     # Figures live under docs/, not out/: the README links them, so they are a committed
     # deliverable rather than a run artefact.
     figure_dir = paths.ensure(paths.ROOT / "docs" / "figures")
+    tag = _suffix(version)
     written = [
-        figures.item_parameters(params, figure_dir / "item-parameters.png"),
-        figures.information_curve(items, figure_dir / "information.png"),
+        figures.item_parameters(params, figure_dir / f"item-parameters{tag}.png"),
+        figures.information_curve(items, figure_dir / f"information{tag}.png"),
         figures.local_dependence(
-            diagnostics["local_dependence"], figure_dir / "local-dependence.png"
+            diagnostics["local_dependence"], figure_dir / f"local-dependence{tag}.png"
         ),
     ]
     if simulation is not None:
@@ -59,31 +64,47 @@ def write_all(
                 curve,
                 float(simulation["tau_of_the_full_fit"]),
                 int(simulation["full_suite_items"]),
-                figure_dir / "headline-curve.png",
+                figure_dir / f"headline-curve{tag}.png",
             )
         )
     progress(f"{len(written)} figures written to {figure_dir}")
 
     table = results_table(bank, diagnostics, simulation, fit_meta)
     readme = paths.ROOT / "README.md"
-    _replace_between(readme, table)
-    progress("README results table regenerated")
+    _replace_between(readme, table, _markers(version))
+    progress(f"README results table for {version} regenerated")
 
     broken = broken_items_doc(bank, item_diagnostics, diagnostics)
-    (paths.ROOT / "docs" / "items-that-measure-nothing.md").write_text(broken, encoding="utf-8")
+    broken_path = paths.ROOT / "docs" / f"items-that-measure-nothing{tag}.md"
+    broken_path.write_text(broken, encoding="utf-8")
     diagnostics_doc = diagnostics_document(bank, diagnostics, fit_meta)
-    (paths.ROOT / "docs" / "diagnostics.md").write_text(diagnostics_doc, encoding="utf-8")
-    progress("docs/items-that-measure-nothing.md and docs/diagnostics.md regenerated")
+    diagnostics_path = paths.ROOT / "docs" / f"diagnostics{tag}.md"
+    diagnostics_path.write_text(diagnostics_doc, encoding="utf-8")
+    progress(f"{broken_path.name} and {diagnostics_path.name} regenerated")
     return "report complete"
 
 
-def _replace_between(path: Path, block: str) -> None:
+def _markers(version: str) -> tuple[str, str]:
+    if version == HEADLINE_VERSION:
+        return START, END
+    return (
+        f"<!-- mselect:results:{version}:start -->",
+        f"<!-- mselect:results:{version}:end -->",
+    )
+
+
+def _suffix(version: str) -> str:
+    return "" if version == HEADLINE_VERSION else f"-{version}"
+
+
+def _replace_between(path: Path, block: str, markers: tuple[str, str]) -> None:
+    start, end = markers
     text = path.read_text(encoding="utf-8")
-    if START not in text or END not in text:
-        raise ValueError(f"{path} has no mselect:results markers to write into")
-    head, rest = text.split(START, 1)
-    _, tail = rest.split(END, 1)
-    path.write_text(f"{head}{START}\n{block}\n{END}{tail}", encoding="utf-8")
+    if start not in text or end not in text:
+        raise ValueError(f"{path} has no {start} marker to write into")
+    head, rest = text.split(start, 1)
+    _, tail = rest.split(end, 1)
+    path.write_text(f"{head}{start}\n{block}\n{end}{tail}", encoding="utf-8")
 
 
 def _tau_row(curve: list[dict[str, Any]], items: int, method: str) -> dict[str, Any] | None:
@@ -147,9 +168,16 @@ def results_table(
             f"suite average | tau {float(simulation['tau_of_the_full_fit']):.3f} "
             f"(ability and suite average are not the same construct) |"
         )
+        calibrated = int(block.get("models_calibrated_on", block["models"]))
+        held_out = int(block["models"])
+        # The two differ only when the simulation held out a sample of a large panel; saying
+        # "150 models (calibrated on 400)" is the honest form and "400 models" would not be.
+        panel = f"{held_out} models" + (
+            f" held out of {calibrated}" if calibrated != held_out else ""
+        )
         lines.append(
-            f"| Panel the ranking claim is measured on | {block['models']} models x {block['items']:,} items, "
-            f"{block['density']:.1%} complete |"
+            f"| Panel the ranking claim is measured on | {panel} x "
+            f"{block['items']:,} items, {block['density']:.1%} complete |"
         )
         for entry in simulation["power_function"]:
             if (

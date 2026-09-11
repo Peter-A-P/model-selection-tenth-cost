@@ -79,7 +79,14 @@ class Reliability:
     source: str
     caveat: str
 
+    @property
+    def measured(self) -> bool:
+        """False when the bank has no repeated administrations to measure agreement over."""
+        return self.n_repeated_cells > 0
+
     def describe(self) -> str:
+        if not self.measured:
+            return f"no repeated cells in this bank ({self.source}). {self.caveat}"
         return (
             f"{self.agreement:.1%} agreement over {self.n_repeated_cells:,} repeated cells "
             f"({self.source}). {self.caveat}"
@@ -257,9 +264,23 @@ def reliability(version: str = bank_io.DEFAULT_VERSION) -> Reliability:
     That is a floor on benchmark noise, not the planned experiment, and it says so.
     """
     manifest: dict[str, Any] = dict(bank_io.default_bank(version).manifest)
+    cells = int(manifest["repeated_cells"])
+    if cells == 0:
+        # Bank v2 takes the latest run of each task and nothing else, so no model answers any
+        # item twice in it. Returning 100 percent agreement over zero cells would be a number
+        # that looks like evidence and is not one.
+        return Reliability(
+            agreement=float("nan"),
+            n_repeated_cells=0,
+            source=f"bank {version}: one administration per model and task",
+            caveat=(
+                "This bank has no repeated model-item cells, so it carries no reliability "
+                "figure at all. Bank v1 does, from HELM's overlapping administrations."
+            ),
+        )
     return Reliability(
         agreement=float(manifest["repeated_cell_agreement"]),
-        n_repeated_cells=int(manifest["repeated_cells"]),
+        n_repeated_cells=cells,
         source="the same model answering the same item in two HELM administrations",
         caveat=(
             "Not the temperature-0 test-retest of PLAN.md section 4.3, which needs the own-run "

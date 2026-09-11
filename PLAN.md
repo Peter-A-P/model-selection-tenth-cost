@@ -364,6 +364,8 @@ three HELM projects are binary-scored and not model-judged, and they are the ban
 
 Consequence for the plan: the leaderboard details become a follow-up that needs a Hugging Face
 read token, adding models rather than changing the method. Bank v2 when that token exists.
+(Section 14.1 corrects one thing this concluded: the token is the whole gate, and no per-
+repository access request exists or is made.)
 
 ### 13.2 The estimator is Bock-Aitkin EM in numpy, not py-irt and PyMC
 
@@ -442,3 +444,73 @@ part is handed over as a design effect per benchmark, which is what actually cha
 interval: a hundred MATH items carry about six items' worth of independent evidence, a hundred
 GSM8K items about ten, a hundred MMLU items about forty-seven. `mselect.dependence()` returns it
 and `mselect/bank/v1/dependent-blocks.json` stores it.
+
+## 14. What the token changed, 2026-09-11
+
+Section 13.1 deferred the Open LLM Leaderboard to "bank v2 when that token exists". The token
+exists. These are the deviations that followed, in the same form as section 13.
+
+### 14.1 The gate wanted a token, not a request
+
+Section 13.1 read `gated: auto` as "access has to be asked for, per repository". That was
+wrong, and the correction matters because it was the reason to be cautious. Measured on
+2026-09-11: an unauthenticated range request for a details file answers **401**, the same
+request carrying a read token answers **206**, for a repository the account has never touched,
+and nothing is recorded against the account.
+
+So `mselect/data/ollm.py` contains no POST and files no request. An early draft called the
+`ask-access` endpoint for each model in the panel; it was deleted once the 401/206 pair was
+measured, because it was asking for something the token already had. The full evidence is in
+`docs/data-sources.md`.
+
+### 14.2 The panel is chosen, not taken
+
+4,485 submissions have a details repository, which is thirty times more than the plan's target
+panel and far more than is worth downloading. Section 3.1 did not say how to choose among them,
+because it did not anticipate having to.
+
+The choice is two rules, and both exist to make item parameters identifiable rather than to be
+representative of the leaderboard:
+
+1. **Ten models from each of forty equal-width bands of the leaderboard average.** A random
+   sample of that leaderboard is mostly seven-billion-parameter fine-tunes inside a narrow band.
+   An item bank calibrated on one cannot separate a hard item from an impossible one, because it
+   never sees a model that can answer the hard item.
+2. **At most eight submissions per hub organisation.** Forty merges of one base model are close
+   to one model repeated, and every standard error in the bank depends on the effective panel
+   size rather than the nominal one.
+
+The result spans 0.7 to 51.2 on the leaderboard's own average, with quartiles at 12.0, 23.9 and
+36.1, across 211 organisations. `data/raw/ollm/panel.json` and `mselect/bank/v2/panel.json`
+record the selection with its seed, and the six candidates that were probed and could not be
+read.
+
+### 14.3 The cache stores the columns, not the source
+
+Section 3.1's rule is that every fetched byte is cached so a rerun costs nothing. Bank v1 obeys
+it literally: `data/raw/helm/` holds the source JSON. Bank v2 does not, deliberately.
+
+One model's run of the 36 tasks is 486 MB of source JSON, 102 MB after the hub's own Parquet
+conversion, and about 2 MB of the columns this project keeps. Reads are therefore column
+projections over HTTP range requests, and what is cached is the projection. Keeping the source
+would cost roughly 40 GB to save a download made once, and this repository is not the right
+place to mirror forty gigabytes of someone else's benchmark text.
+
+The reproducibility the rule was protecting is kept another way: every cache entry carries a
+provenance line with the source URL, the remote file's size in bytes, the exact columns taken
+and the row count, so any extract can be re-derived and checked against the source.
+
+### 14.4 TLS had to be verified against the machine, not against certifi
+
+Not a plan deviation so much as a thing that has to be written down, because it will happen
+again in projects 03 and 04. Every request from Python to `huggingface.co` on this network fails
+with `CERTIFICATE_VERIFY_FAILED` while a browser on the same machine is fine: the network
+inspects TLS, and certifi's bundle, which Python uses by default, does not contain the proxy's
+root certificate. The Windows certificate store does.
+
+`ollm.ssl_context` uses `truststore`, which verifies against the operating system's trust store.
+Certificates are still verified; they are verified against the trust store the machine actually
+has. Two consequences: anything fetched is in clear to whatever performs the inspection,
+including the token in the `Authorization` header, which is an argument for the token being
+read-only and short-lived; and HELM's Google Cloud Storage host is not intercepted, which is why
+bank v1 built without ever meeting this.

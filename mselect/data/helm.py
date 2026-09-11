@@ -1,10 +1,10 @@
 """Per-item results from the public HELM buckets.
 
-PLAN.md section 3.1 named two public sources. The Open LLM Leaderboard "details" datasets
-turned out to be gated on Hugging Face (`gated: auto`, verified 2026-09-10), so they need a
-signed-in token and cannot be fetched unattended; HELM's public bucket needs nothing. HELM is
-therefore the primary source and the leaderboard details are a documented follow-up. See
-`docs/data-sources.md` for the verification and PLAN.md section 3.1 for the amended plan.
+PLAN.md section 3.1 named two public sources. The Open LLM Leaderboard "details" datasets are
+gated on Hugging Face (`gated: auto`, verified 2026-09-10), so they need a signed-in token;
+HELM's public bucket needs nothing. HELM is therefore the primary source and bank v1 is built
+from it alone. The leaderboard is now reachable and is bank v2: see `mselect/data/ollm.py`,
+`docs/data-sources.md` for both verifications, and PLAN.md sections 13.1 and 14.1.
 
 What the bucket gives, per run (one model on one scenario):
 

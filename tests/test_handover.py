@@ -117,3 +117,25 @@ def test_the_adaptive_estimator_is_exported_and_runs() -> None:
     low, high = ability.interval()
     assert low < ability.theta < high
     assert ability.se > 0
+
+
+def test_the_shipped_banks_are_discoverable_and_loadable() -> None:
+    """A consumer should not have to guess which banks a release carries."""
+    versions = mselect.banks()
+    assert "v1" in versions
+    for version in versions:
+        bank = mselect.default_bank(version)
+        assert bank.n_models > 0 and bank.n_items > 0
+        assert bank.bank_hash
+
+
+def test_a_bank_with_no_repeated_cells_reports_no_reliability_rather_than_perfect() -> None:
+    """100 percent agreement over zero cells is a number that looks like evidence and is not."""
+    for version in mselect.banks():
+        reliability = mselect.reliability(version)
+        if reliability.measured:
+            assert 0.0 <= reliability.agreement <= 1.0
+            assert f"{reliability.agreement:.1%}" in reliability.describe()
+        else:
+            assert np.isnan(reliability.agreement)
+            assert "no repeated cells" in reliability.describe()

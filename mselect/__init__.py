@@ -15,6 +15,7 @@ package is internal and free to move.
     mselect.dependent_blocks()                  # items that are the same question asked twice
     mselect.reliability()                       # how much of a score is noise
     mselect.load_bank()                         # the frozen bank itself
+    mselect.banks()                             # which bank versions ship in this release
 
 The adaptive test is `Ability` (the running estimate), `Selector` (what to ask next) and the two
 stopping rules, `precision_reached` and `separated`.
@@ -25,6 +26,7 @@ from mselect.cat.estimate import Ability, score
 from mselect.cat.select import Selector, benchmark_strata
 from mselect.cat.stop import Decision, precision_reached, separated
 from mselect.data.bank import Bank, default_bank, default_items
+from mselect.data.bank import available as banks
 from mselect.data.bank import load as load_bank
 from mselect.handover import (
     Dependence,
@@ -51,6 +53,7 @@ __all__ = [
     "Reliability",
     "Selector",
     "__version__",
+    "banks",
     "benchmark_strata",
     "default_bank",
     "default_items",
