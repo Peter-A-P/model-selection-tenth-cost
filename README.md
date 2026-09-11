@@ -135,6 +135,14 @@ clean and the tests fail meaningfully: parameter recovery on simulated matrices,
 estimator convergence, planted local dependence and planted differential item functioning both
 detected, and answer parsers against adversarial fixtures.
 
+The same checks run before the commit, not after the push. `.githooks/pre-commit` runs
+`ruff format --check`, `ruff check` and `mypy --strict`, about five seconds together, and
+`.githooks/pre-push` runs the test suite. Turn them on once per clone:
+
+```bash
+git config core.hooksPath .githooks
+```
+
 - [PLAN.md](PLAN.md): the plan this was built against, and the places reality changed it.
 - [docs/data-sources.md](docs/data-sources.md): what was verified about the public sources, and
   what turned out to be gated.

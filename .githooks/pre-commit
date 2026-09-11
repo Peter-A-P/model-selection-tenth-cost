@@ -1,0 +1,25 @@
+#!/bin/sh
+# The fast half of .github/workflows/ci.yml, run before the commit exists.
+# The slow half, pytest, is in .githooks/pre-push.
+#
+# Enable both with:  git config core.hooksPath .githooks
+#
+# These check the whole working tree, not just the staged files, which is the
+# point: ci.yml checks the whole tree too, and a commit that leaves the tree
+# dirty is a red run either way.
+
+if ! command -v uv >/dev/null 2>&1; then
+    echo "pre-commit: uv is not on PATH, skipping. ci.yml will still run these." >&2
+    exit 0
+fi
+
+fail() {
+    echo "" >&2
+    echo "pre-commit: $1" >&2
+    echo "pre-commit: fix it, or commit with --no-verify and let ci.yml find it." >&2
+    exit 1
+}
+
+uv run ruff format --check . || fail "ruff format --check failed. Run: uv run ruff format ."
+uv run ruff check . || fail "ruff check failed. Run: uv run ruff check --fix ."
+uv run mypy || fail "mypy --strict failed."

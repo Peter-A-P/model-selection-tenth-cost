@@ -1,0 +1,17 @@
+#!/bin/sh
+# The slow half of .github/workflows/ci.yml: the test suite, about 45 seconds.
+# It sits on push rather than on commit so that committing stays instant.
+#
+# Enable with:  git config core.hooksPath .githooks
+
+if ! command -v uv >/dev/null 2>&1; then
+    echo "pre-push: uv is not on PATH, skipping. ci.yml will still run the tests." >&2
+    exit 0
+fi
+
+echo "pre-push: running the test suite, about 45 seconds."
+if ! uv run pytest -q; then
+    echo "" >&2
+    echo "pre-push: pytest failed. Fix it, or push with --no-verify." >&2
+    exit 1
+fi
