@@ -35,7 +35,7 @@ decide. Validated on models the calibration never saw. See [PLAN.md](PLAN.md).
 
 ## Part of a portfolio
 
-One of ten projects built over twelve months. This one supplies the statistical core of
+One of fifteen projects built over twelve months. This one supplies the statistical core of
 the AI Release Gate, which uses its item bank and power function to say how many eval
 items a regression test actually needs.
 
