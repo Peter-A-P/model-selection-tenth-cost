@@ -534,3 +534,40 @@ drift result moves from 198 flagged items to 189.
 
 Both corrections make bank v1 say less than it did. That is the right direction: the earlier
 numbers were not wrong arithmetic, they were arithmetic on a comparison that was not there.
+
+### 14.6 An item bank inherits the drift of the harness it was built from
+
+Section 3.2 says items are keyed by a content hash, and bank v1 computes that hash from HELM's
+question text, options and answer key. Bank v2's first draft took a shortcut: lm-eval-harness
+writes a `doc_hash` column, which is a content hash of the document, so why compute another?
+
+Because it is a hash of the *harness's serialisation* of the document, not of the document. The
+alignment audit, which exists to check that `doc_id` means the same item for every model, caught
+it: on `leaderboard_math_num_theory_hard` a quarter of the audited panel disagrees with the
+reference model about every one of the 154 `doc_hash` values, while the problem text at each
+`doc_id` is character-for-character identical. Keyed that way, each of those items would have
+become two items, each answered by part of the panel, and nothing in the build would have
+complained.
+
+Rebuilding identity on the question text this project reads and hashes itself exposed the same
+problem one level down, in the answer key. Two releases of the MATH-Hard dataset write the same
+answer with different spacing inside the LaTeX: on
+`leaderboard_math_intermediate_algebra_hard`, 46 of 280 answers differ between
+`\frac{1+\sqrt{5}}{4}` and `\frac{1 + \sqrt{5}}{4}` and in nothing else. So the key is compared
+with every space removed, which is the right normalisation for a thing that is an answer rather
+than a sentence, while the question keeps its word boundaries and only has runs of whitespace
+collapsed. A genuinely different key is still a different item.
+
+Two consequences beyond this bank.
+
+**The audit is not optional, and a sample of it is not enough.** One model in six was misaligned
+on a MATH task. A forty-model sample measures that rate and does not say which models, so the
+published build verifies all 400 against the reference on all 36 tasks. A model whose mapping
+differs is dropped from that task and named in the manifest, which is why bank v2 is not quite
+the fully dense matrix it was designed to be.
+
+**Project 03 should read this as a caveat about imported item parameters.** A bank built from
+someone else's evaluation harness inherits that harness's version drift, and an identifier that
+looks like a content hash may be a hash of a serialisation. The defence is to hash the question
+itself and to check that every model agrees about what each position means. That is what bank
+v2 now does; it is not what its first draft did, and its first draft would have shipped.
