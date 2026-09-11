@@ -47,6 +47,7 @@ import ssl
 import threading
 import time
 import urllib.parse
+from collections import Counter
 from collections.abc import Callable, Iterable, Sequence
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
@@ -626,7 +627,7 @@ def normalise(text: str) -> str:
     return " ".join(text.split())
 
 
-def item_id(task: Task, content: Sequence[str]) -> str:
+def item_id(task: Task, content: Sequence[str], disambiguator: str = "") -> str:
     """The item's identity: the task and the question's own text. Nothing else.
 
     Two decisions here, both forced by measurement rather than taste.
@@ -647,13 +648,42 @@ def item_id(task: Task, content: Sequence[str]) -> str:
     algebra items and cost 74 of the 400 models on that task alone, for a difference that is
     typographic. The drift is not hidden: `audit_alignment` counts the items whose key any model
     spells differently, and the manifest reports it per task.
+
+    `disambiguator` is how the few genuine exceptions are handled, and `task_identities` is what
+    fills it in. `leaderboard_bbh_causal_judgement` asks two of its questions twice, each time
+    with the opposite answer key, and those are two measurements rather than one. So where a task
+    asks the same question more than once, and only there, the key tells the occurrences apart.
     """
     digest = hashlib.sha256()
     digest.update(task.suffix.encode())
     for field in content:
         digest.update(b"\x01")
         digest.update(normalise(field).encode())
+    if disambiguator:
+        digest.update(b"\x02")
+        digest.update(disambiguator.encode())
     return digest.hexdigest()[:16]
+
+
+def task_identities(task: Task, questions: Sequence[str], keys: Sequence[str]) -> list[str]:
+    """Item ids for one task's documents, in the order given, with repeats told apart.
+
+    A question a task asks once is its own identity. A question it asks more than once is
+    identified by the question and its answer key, and if the same question and key appear twice
+    as well, by their order of appearance, which is stable because `doc_id` order is.
+    """
+    repeated = Counter(questions)
+    seen: Counter[tuple[str, str]] = Counter()
+    out: list[str] = []
+    for question, key in zip(questions, keys, strict=True):
+        if repeated[question] == 1:
+            out.append(item_id(task, [question]))
+            continue
+        seen[(question, key)] += 1
+        occurrence = seen[(question, key)]
+        suffix = key if occurrence == 1 else f"{key}#{occurrence}"
+        out.append(item_id(task, [question], suffix))
+    return out
 
 
 def read_identity(client: Client, submission: Submission, task: Task) -> pl.DataFrame:
@@ -676,23 +706,23 @@ def read_identity(client: Client, submission: Submission, task: Task) -> pl.Data
     if not isinstance(frame, pl.DataFrame):  # pragma: no cover - a projection is always a table
         raise FetchError(f"{submission.repo}/{task.suffix} did not read as a table")
     frame = frame.sort("doc_id")
-    identities = [
-        item_id(task, [str(row["doc"][field]) for field in task.content])
+    questions = [
+        "\x01".join(str(row["doc"][field]) for field in task.content)
         for row in frame.iter_rows(named=True)
     ]
+    keys = ["".join(str(value).split()) for value in frame["target"].to_list()]
+    identities = task_identities(task, questions, keys)
     out = pl.DataFrame(
         {
             "doc_id": frame["doc_id"],
             "item_id": pl.Series(identities),
-            "answer_key": pl.Series(
-                ["".join(str(value).split()) for value in frame["target"].to_list()]
-            ),
+            "answer_key": pl.Series(keys),
         }
     )
-    if out["item_id"].n_unique() != out.height:
+    if out["item_id"].n_unique() != out.height:  # pragma: no cover - the tie-break is exhaustive
         raise FetchError(
-            f"{submission.repo}/{task.suffix}: two documents hash to the same item, so the "
-            f"content fields {task.content} do not identify an item in this task"
+            f"{submission.repo}/{task.suffix}: two documents still hash to the same item after "
+            f"the answer key and the order of appearance; {task.content} cannot identify an item"
         )
     client.cache.put(
         key,

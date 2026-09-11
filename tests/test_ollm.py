@@ -12,7 +12,6 @@ without a token and without a request leaving the machine.
 
 from __future__ import annotations
 
-import inspect
 import io
 import json
 
@@ -85,6 +84,23 @@ def test_item_identity_ignores_reformatting_but_not_field_boundaries() -> None:
     assert ollm.item_id(task, ["a", "b"]) != ollm.item_id(task, ["ab"])
 
 
+def test_a_question_a_task_asks_twice_is_told_apart_by_its_key() -> None:
+    """bbh_causal_judgement asks two of its questions twice, with the opposite key each time.
+
+    Those are two measurements, and bank v1's rule is right about them. What the rule must not
+    do is put the key into every item, because that is what the MATH answer-spelling drift
+    punishes.
+    """
+    task = ollm.TASKS[0]
+    ids = ollm.task_identities(task, ["once", "twice", "other", "twice"], ["A", "Yes", "B", "No"])
+    assert len(set(ids)) == 4, "the repeated question must not collapse into one item"
+    # A question asked once is identified by the question alone, key or no key.
+    assert ids[0] == ollm.item_id(task, ["once"])
+    assert ids[2] == ollm.item_id(task, ["other"])
+    # And a question repeated with the same key too is still split, by order of appearance.
+    assert len(set(ollm.task_identities(task, ["same", "same"], ["k", "k"]))) == 2
+
+
 def test_the_answer_key_is_reported_not_hashed_into_the_item() -> None:
     """Two releases of MATH-Hard spell the same answer differently.
 
@@ -93,8 +109,9 @@ def test_the_answer_key_is_reported_not_hashed_into_the_item() -> None:
     models on that task, for a difference that is typographic. The key is carried beside the
     identity instead, so the drift can be counted and reported.
     """
-    parameters = list(inspect.signature(ollm.item_id).parameters)
-    assert parameters == ["task", "content"], "the key must not reach the identity"
+    unique = ollm.task_identities(ollm.TASKS[0], ["q1", "q2"], [r"\infty", "x"])
+    drifted = ollm.task_identities(ollm.TASKS[0], ["q1", "q2"], [r"\iny", "x"])
+    assert unique == drifted, "a key spelled differently must not make a different item"
     assert "answer key is not part of the identity" in (ollm.item_id.__doc__ or "")
 
 
