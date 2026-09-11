@@ -375,6 +375,7 @@ class Client:
     def json_at(self, url: str) -> Any:
         return json.loads(_with_retry(self._client, url).content)
 
+
 def token_from_env(environ: dict[str, str] | None = None) -> str:
     """The hub token, from the environment or from a gitignored .env beside the repository.
 
@@ -780,8 +781,7 @@ def audit_alignment(
         except FetchError:  # no run of this task to align; the row-count check drops it later
             return
         mapping = {
-            int(doc): str(item)
-            for doc, item in zip(other["doc_id"], other["item_id"], strict=True)
+            int(doc): str(item) for doc, item in zip(other["doc_id"], other["item_id"], strict=True)
         }
         different = {
             str(item)

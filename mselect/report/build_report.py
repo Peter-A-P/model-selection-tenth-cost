@@ -264,7 +264,9 @@ def results_table(
             continue
         label = key.replace("_", " ")
         if "summary" not in payload:
-            lines.append(f"| Differential item functioning, {label} | not measurable on this panel |")
+            lines.append(
+                f"| Differential item functioning, {label} | not measurable on this panel |"
+            )
             continue
         lines.append(
             f"| Differential item functioning, {payload['grouping']} "
