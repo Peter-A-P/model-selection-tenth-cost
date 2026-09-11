@@ -371,17 +371,24 @@ def ability_range_check(
 ) -> dict[str, object]:
     """What the items look like when only half the panel's ability range is used to fit them.
 
-    A wide panel is the reason bank v2 exists, and it is worth testing rather than assuming.
-    Refitting on the stronger half and the weaker half separately says which end of the range
-    the item parameters are actually learning from: if the items look much better on one half,
-    the other half is answering closer to chance than to the item, and the full-panel numbers
-    are diluted rather than enriched by it.
+    A wide panel is the reason bank v2 exists, and it is worth testing rather than assuming. The
+    worry is that the bottom of the leaderboard answers close to chance and dilutes every
+    item-total correlation, in which case the stronger half alone would produce better-looking
+    items than the whole panel does.
 
-    The comparison is of shapes, not levels. Each fit identifies its own scale against a
-    standard normal prior over whichever models it used, so a discrimination of 0.5 on the upper
-    half and 0.5 on the full panel are not the same quantity; what compares is the share of
-    items that discriminate at all, and the share whose slope comes out negative, which is a
-    sign of an item the panel is answering at random rather than answering.
+    It does not, on either bank. The share of items whose slope comes out negative is 8.6 percent
+    on bank v1's whole panel, 9.4 on its stronger half and 13.2 on its weaker half; on bank v2 it
+    is 19.7, 23.5 and 28.0. The whole panel beats either half and the weaker half is the worse
+    half, which says that weak models carry less information per model and that removing them
+    still costs more than it saves, because the range they provide is worth more than the noise
+    they add.
+
+    The sign of a slope is the statistic to read here, because it is the one that does not move
+    with the scale. Median discrimination does: each fit identifies its own scale against a
+    standard normal prior over whichever models it used, so halving the spread of ability halves
+    the apparent slope, and bank v1's stronger half reports a median of 1.23 against the full
+    panel's 0.74 while its share of items below 0.3 barely moves. That is a change of units, not
+    of items. Both are reported; only the sign is argued from.
     """
     order = np.argsort(theta)
     halves = {

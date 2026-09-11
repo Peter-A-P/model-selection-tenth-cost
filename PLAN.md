@@ -629,3 +629,76 @@ same question at temperature zero again will not read any better.
 Records live under `out/`, which is gitignored. What this project commits is the 0 or 1 per
 cell, not the replies, for the same reason it does not commit item text (section 13.5): a
 reply can quote the question back.
+
+### 14.7 Item parameters transfer, but only for the items that measure something
+
+Section 11 asks for a number a stranger can check. This is the one bank v2 exists to produce,
+and it was not in the plan because the plan did not expect two banks to overlap.
+
+Every one of the 998 MMLU-Pro items HELM sampled is among the 12,032 the leaderboard runs. So
+the same questions are calibrated twice, on panels with no models in common, through harnesses
+that score them differently: HELM reads the model's stated final answer after chain-of-thought,
+lm-eval-harness takes the highest-likelihood option. The match was verified before the number
+was believed: all 998 of bank v1's stored question previews prefix-match the leaderboard's
+question text exactly.
+
+| Items compared | Difficulty correlation | Hardest tenth recovered |
+|---|---|---|
+| All 998 shared items | **-0.04** (-0.10 to 0.02) | 14.1% (7.6 to 21.7) |
+| The 532 that discriminate above 0.3 in both banks | **+0.71** (0.67 to 0.75) | 49.1% (34.0 to 60.4) |
+
+The first row says item parameters do not transfer at all. It is arithmetic, not psychometrics:
+difficulty is `-d/a`, so an item whose slope is indistinguishable from zero has a difficulty
+that is a division rather than a measurement, and the unfiltered correlation is dominated by
+those. The second row is what a consumer gets who drops the items that measure nothing first.
+
+Consequences, in the order they matter:
+
+1. **`docs/items-that-measure-nothing.md` is a prerequisite for using a bank, not a curiosity.**
+   The difference between the two rows is the whole practical value of knowing which items those
+   are.
+2. **Project 03 should filter before importing.** A discrimination floor is the cheapest filter
+   that works, and 0.3 is the one measured here.
+3. **Difficulty is still only an ordering.** Even at 0.71, the two banks agree about half the
+   time on which items are in the hardest tenth. Item parameters are portable enough to rank
+   items, not portable enough to be used as constants.
+
+### 14.8 A wider ability range is not free, and it is still worth paying for
+
+Bank v2's panel spans the leaderboard from 0.7 to 51.2 on purpose: section 4.1's difficulty
+parameter is only identified where the panel has models on both sides of an item. The cost shows
+up in the item statistics. Against bank v1, the share of items whose fitted slope is negative
+rises from 8.6 to 19.7 percent.
+
+Part of that is the benchmarks: BIG-Bench Hard, GPQA and MATH level 5 are harder than MMLU and
+GSM8K, and the leaderboard scores them by log-likelihood over options rather than by reading a
+stated answer, which is a noisier measurement for a weak model. Part of it might be the panel:
+the bottom of the leaderboard answers close to chance, and answers that are noise dilute every
+item-total correlation. So `diagnose` now refits on the stronger half and the weaker half of each
+panel separately.
+
+| Bank | Fitted on | Items with a negative slope |
+|---|---|---:|
+| v1 | all 150 models | **8.6%** |
+| v1 | the stronger 75 | 9.4% |
+| v1 | the weaker 75 | 13.2% |
+| v2 | all 400 models | **19.7%** |
+| v2 | the stronger 200 | 23.5% |
+| v2 | the weaker 200 | 28.0% |
+
+The sign of a slope is the one statistic here that does not move with the scale, and it says the
+same thing about both banks: **the whole panel beats either half, and the weaker half is the
+worse half.** Weak models do carry less information per model, and removing them still costs
+more than it saves, because the range they provide is worth more than the noise they add. That
+is the case for the panel design, measured rather than asserted.
+
+Median discrimination is not comparable across these fits and is not used for the argument. Each
+fit identifies its own scale against a standard normal prior over whichever models it used, so
+halving the spread of ability halves the apparent slope: bank v1's stronger half reports a median
+of 1.23 against the full panel's 0.74 while its share of items below 0.3 barely moves, which is a
+change of units and not of items. `docs/diagnostics.md` and `docs/diagnostics-v2.md` carry both.
+
+The practical consequence stands either way, and it is the one section 14.7 turns into a rule:
+bank v2 has more items that measure nothing than bank v1 does, they are named in
+`docs/items-that-measure-nothing-v2.md`, and a consumer should filter on discrimination before
+using any of it.

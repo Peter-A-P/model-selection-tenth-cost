@@ -139,3 +139,22 @@ def test_a_bank_with_no_repeated_cells_reports_no_reliability_rather_than_perfec
         else:
             assert np.isnan(reliability.agreement)
             assert "no repeated cells" in reliability.describe()
+
+
+def test_both_banks_answer_the_whole_version_taking_interface() -> None:
+    """A consumer that picks bank v2 must not fall off the interface halfway through."""
+    for version in mselect.banks():
+        assert mselect.load_bank(version).n_items > 0
+        assert mselect.default_items(version).a.size > 0
+        assert isinstance(mselect.dependence(version), dict)
+        assert isinstance(mselect.dependent_blocks(version), tuple)
+        assert isinstance(mselect.dependent_block_index(version), dict)
+        assert mselect.reliability(version).describe()
+
+
+def test_the_second_bank_is_dense_where_the_first_is_not() -> None:
+    """The reason bank v2 exists: its headline needs no block peeled out of it."""
+    density = {v: float(np.isfinite(mselect.load_bank(v).x).mean()) for v in mselect.banks()}
+    assert density["v1"] < 0.7
+    if "v2" in density:
+        assert density["v2"] > 0.95

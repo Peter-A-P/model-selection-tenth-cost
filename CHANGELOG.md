@@ -3,6 +3,85 @@
 Versions follow semantic versioning on a 0.x line: the interface re-exported from `mselect`
 itself is stable within a minor version, and everything else in the package is internal.
 
+## v0.2.0 - 2026-09-11
+
+A second item bank, from a different source through a different harness on a different kind of
+model, and the number that second bank makes possible: whether item parameters calibrated on one
+panel mean anything on another. Bank v1 is unchanged and is still the default, so nothing a
+consumer already imports moves.
+
+### What is new
+
+**Bank v2.** `mselect/bank/v2/`, content hash `e1790eab19300b9b`: 400 models by 20,323
+binary-scored items from the Open LLM Leaderboard v2 per-item details, across BIG-Bench Hard,
+MMLU-Pro, MuSR, MATH level 5 and GPQA. **99.8 percent of cells are observed**, where bank v1 is
+54 percent and its headline claim has to be measured on a nearly-complete block peeled out of it.
+The panel is drawn ten from each of forty equal-width bands of the leaderboard average, capped at
+eight per hub organisation, spanning 0.7 to 51.2 across 211 organisations.
+
+`mselect.banks()` lists both. Every version-taking call in the interface takes `"v2"`:
+`load_bank`, `default_bank`, `default_items`, `dependence`, `dependent_blocks`,
+`dependent_block_index`, `reliability`.
+
+**The headline result replicates.** Ten adaptive items rank this panel as well as 143 randomly
+chosen ones, against 127 on bank v1, and the crossover where the baselines overtake adaptive
+selection is in the same place. The ceiling replicates almost exactly: ability fitted on every
+item agrees with the suite average at tau 0.928 here and 0.921 there, so the construct gap is a
+property of the two measurements rather than of one dataset.
+
+**`mselect crossbank`: do item parameters transfer?** All 998 MMLU-Pro items HELM sampled are
+among the leaderboard's 12,032, so the same questions are calibrated twice, on panels with no
+models in common, through harnesses that score them differently.
+
+| Items compared | Difficulty correlation | Hardest tenth recovered |
+|---|---|---|
+| All 998 shared items | -0.04 (-0.10 to 0.02) | 14.1% |
+| The 532 that discriminate above 0.3 in both | **+0.71** (0.67 to 0.75) | 49.1% |
+
+Difficulty is `-d/a`, so an item whose slope is near zero has a difficulty that is a division
+rather than a measurement, and the unfiltered correlation is dominated by those. **Filter on
+discrimination before importing difficulty.** Even then the two banks agree about half the time
+on which items are in the hardest tenth, so item parameters are portable enough to rank items and
+not portable enough to be used as constants.
+
+**`diagnose` now tests the panel rather than assuming it**, by refitting on each half of the
+ability range. The share of items with a negative slope is lowest on the whole panel in both
+banks and highest on the weaker half, which is the case for a wide panel, measured.
+
+### What changed for a consumer of bank v1
+
+Nothing in its item parameters, its bank hash or its handover numbers. Two things it reported
+were withdrawn, both because the code now refuses to compute a comparison that does not exist:
+
+- The MMLU-Pro contamination result was computed on three models released before MMLU-Pro was
+  published against sixty-three released after. Ten per side is the floor now.
+- The median split on release date counted HELM's two undated models as old models, because an
+  empty string sorts below every date. Generation drift moves from 198 flagged items to 189.
+
+And one caveat is now measured rather than suspected: **the local-dependence correction is not a
+property of the benchmark alone.** A hundred MATH items are worth about six independent ones on
+bank v1 and about eleven on bank v2. Take `dependence()` from the bank you are using.
+
+### What bank v2 is not
+
+- **Not the default, and not interchangeable with v1.** Each bank's abilities and difficulties
+  are identified against its own panel's standard normal prior, so the two scales are not
+  comparable as levels. `crossbank` compares orderings, which is the comparison that exists.
+- **No reliability figure.** It takes the latest run of each task and nothing else, so no model
+  answers any item twice in it. `reliability("v2")` says so rather than reporting 100 percent
+  agreement over zero cells.
+- **Open weights only**, so it says nothing about how API-only models behave; that contrast lives
+  in bank v1 and is recorded as skipped here rather than faked.
+- **Worse items than bank v1, and they are named.** One item in five has a negative fitted slope
+  against one in twelve, and two in five discriminate below 0.3.
+  `docs/items-that-measure-nothing-v2.md` lists them, and after the `crossbank` result that
+  document is a prerequisite for using the bank rather than a curiosity.
+- **A leaderboard panel is not a production shortlist.** A third of it is weight merges, which is
+  why the differential-item-functioning contrast here is merges against models trained directly:
+  1,449 items of 19,865 behave differently for them at matched ability.
+- **The 3PL fit did not converge in 200 iterations** on this bank, and says so in
+  `params-3pl.json`. Everything reported uses the 2PL, which converged in 117.
+
 ## v0.1.0 - 2026-09-11
 
 First tagged version, handed to project 03 (AI Release Gate) as its statistical core. The

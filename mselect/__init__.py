@@ -8,6 +8,12 @@ This module is the supported interface. Everything re-exported here is what proj
 other consumer import, and it does not change without a version bump; everything else in the
 package is internal and free to move.
 
+There are two banks. `v1` is the default and is HELM; `v2` is the Open LLM Leaderboard, and every
+call below that names a version takes it. They are not interchangeable: each identifies its own
+ability scale against its own panel, and over the 998 questions they share, difficulty correlates
+0.71 for the items that discriminate in both and not at all for the rest. Filter on
+discrimination before importing difficulty from either.
+
     import mselect
 
     mselect.items_needed(3, 0.8, ability=0.0)   # how many items to see a three point drop
@@ -40,7 +46,7 @@ from mselect.handover import (
 from mselect.irt.model import Items
 from mselect.power import ItemsNeeded, detectable_effect, items_needed, power_at
 
-__version__ = "0.1.0"
+__version__ = "0.2.0"
 
 __all__ = [
     "Ability",

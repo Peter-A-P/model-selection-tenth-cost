@@ -1,6 +1,6 @@
 [project]
 name = "mselect"
-version = "0.1.0"
+version = "0.2.0"
 description = "Model selection at a tenth of the cost: item response theory and adaptive testing over language-model benchmarks."
 readme = "README.md"
 requires-python = ">=3.13,<3.14"

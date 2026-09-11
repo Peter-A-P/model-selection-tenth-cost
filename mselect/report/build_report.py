@@ -107,6 +107,21 @@ def _replace_between(path: Path, block: str, markers: tuple[str, str]) -> None:
     path.write_text(f"{head}{start}\n{block}\n{end}{tail}", encoding="utf-8")
 
 
+def _crossbank(version: str) -> list[tuple[str, dict[str, Any]]]:
+    """Any cross-bank comparison this bank is the second half of.
+
+    Reported as a row rather than left in a file, because "do these parameters mean anything on
+    another panel" is the question a consumer asks before importing any of them, and the answer
+    here depends entirely on whether the items that measure nothing are in the comparison.
+    """
+    out: list[tuple[str, dict[str, Any]]] = []
+    for path in sorted(paths.out_for(version).glob("crossbank-*.json")):
+        result = _load_json(path).get("result")
+        if isinstance(result, dict):
+            out.append((str(result["first"]), result))
+    return out
+
+
 def _source_name(bank: bank_io.Bank) -> str:
     """Where a bank's responses came from, in words, from its own manifest.
 
@@ -160,7 +175,8 @@ def results_table(
             if row is None:
                 continue
             baseline = _tau_row(curve, count, "stratified")
-            share = f"{row['share_of_suite']:.1%}"
+            fraction = float(row["share_of_suite"])
+            share = f"{fraction:.1%}" if fraction >= 0.001 else f"{fraction:.2%}"
             cell = f"**{row['tau']:.3f}** (95% CI {row['tau_lo']:.3f} to {row['tau_hi']:.3f})"
             if baseline is not None:
                 cell += f"; best baseline {baseline['tau']:.3f} ({baseline['tau_lo']:.3f} to {baseline['tau_hi']:.3f})"
@@ -262,16 +278,31 @@ def results_table(
     for key, payload in sorted(diagnostics["dif"].items()):
         if key.startswith("contamination_") or key == "generation_drift":
             continue
-        label = key.replace("_", " ")
         if "summary" not in payload:
+            reason = str(payload.get("skipped", "")).split(":")[0] or key.replace("_", " ")
             lines.append(
-                f"| Differential item functioning, {label} | not measurable on this panel |"
+                f"| Differential item functioning, {reason} | not measurable on this panel |"
             )
             continue
         lines.append(
             f"| Differential item functioning, {payload['grouping']} "
             f"| {int(payload['summary']['items_flagged']):,} items flagged "
             f"({payload['summary']['share_flagged']:.1%}) |"
+        )
+    for other, cross in _crossbank(bank.version):
+        everything = cross["everything"]["difficulty_pearson"]
+        working = cross["working"]
+        inside = working["difficulty_pearson"]
+        lines.append(
+            f"| Do these item parameters mean anything on bank `{other}`? All "
+            f"{int(cross['shared_items'])} shared items | difficulty correlates "
+            f"{everything['point']:.2f} ({everything['lo']:.2f} to {everything['hi']:.2f}) |"
+        )
+        lines.append(
+            f"| The same, over the {int(working['n_items'])} shared items that discriminate "
+            f"above {cross['discrimination_threshold']} in both banks "
+            f"| difficulty correlates **{inside['point']:.2f}** "
+            f"({inside['lo']:.2f} to {inside['hi']:.2f}) |"
         )
     lines.append(f"| Position bias and prompt-framing effects | {PENDING} |")
     lines.append(f"| Cost per ranking decision, in dollars | {PENDING} |")
