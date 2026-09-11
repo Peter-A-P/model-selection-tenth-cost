@@ -1,0 +1,76 @@
+[project]
+name = "mselect"
+version = "0.1.0.dev1"
+description = "Model selection at a tenth of the cost: item response theory and adaptive testing over language-model benchmarks."
+readme = "README.md"
+requires-python = ">=3.13,<3.14"
+authors = [{ name = "Peter Parker" }]
+dependencies = [
+  # The response matrix, the EM fit and every statistic in irt/ and cat/. 2.x is the current
+  # line and its API is stable; 3 does not exist yet.
+  "numpy>=2,<3",
+  # Normal quadrature, the tetrachoric root find, Kendall's tau, the chi-square and normal
+  # tails. 1.x has been the line for a decade.
+  "scipy>=1,<2",
+  # Matrix assembly and the frozen item bank as Parquet, with no pyarrow dependency.
+  "polars>=1,<2",
+  # Fetching the public per-item results: thousands of small files over one pooled
+  # connection. Pinned below 1 because httpx is still pre-1.0.
+  "httpx>=0.28,<1",
+  # Command line. 0.x is the only line; pinned below 1.
+  "typer>=0.15,<1",
+  # The charts in the README and the write-up. 3.x is the current line.
+  "matplotlib>=3,<4",
+]
+
+# Vendor calls (the own-run panel, section 3.3 of PLAN.md) go through the portfolio gateway
+# library `boundary`, pinned to >=0.2 once its Message Batches support lands. That dependency
+# is added with the runner, not before: it lives in a private repository and CI would need a
+# token to install it for code that does not exist yet.
+
+[dependency-groups]
+dev = [
+  "pytest>=9,<10",
+  "mypy>=1,<2",
+  "ruff>=0.13,<1",
+]
+
+[project.scripts]
+mselect = "mselect.cli:app"
+
+[build-system]
+requires = ["hatchling>=1,<2"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["mselect"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py313"
+# ruff formats Python blocks inside Markdown by default; the plan and docs keep their layout.
+extend-exclude = ["*.md"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM", "N", "RUF"]
+ignore = ["E501"]
+
+[tool.ruff.lint.per-file-ignores]
+# The answer-parser fixtures deliberately contain curly quotes, typographic dashes and
+# confusable unicode digits, because upstream benchmark text and model output contain them.
+"tests/test_parsers.py" = ["RUF001", "RUF002", "RUF003"]
+
+[tool.mypy]
+python_version = "3.13"
+strict = true
+files = ["mselect", "tests"]
+warn_unreachable = true
+
+[[tool.mypy.overrides]]
+# Neither ships type information that mypy --strict accepts.
+module = ["matplotlib.*", "scipy.*"]
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"

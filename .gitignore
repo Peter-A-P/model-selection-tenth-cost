@@ -25,3 +25,8 @@ build/
 Thumbs.db
 .vscode/
 .idea/
+
+# Fetched public per-item results and everything derived from a run
+data/raw/
+data/cache/
+out/

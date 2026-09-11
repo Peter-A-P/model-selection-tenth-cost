@@ -1,7 +1,9 @@
 # Plan: Model Selection at a Tenth of the Cost
 
-**Written:** 2026-09-06. **Status:** plan only, nothing built.
-**Build window:** 4 weeks, 2026-11-02 to 2026-11-29. Standard practitioner version; a
+**Written:** 2026-09-06. **Amended:** 2026-09-10, section 13.
+**Status:** the public-data half is built and measured; the own-run panel is not started.
+**Build window:** planned 4 weeks, 2026-11-02 to 2026-11-29; started early on 2026-09-10
+because the work needs no vendor spend until section 3.3. Standard practitioner version; a
 publishable version is a deferred extension (section 12).
 **Feeds:** the AI Release Gate (project 03) takes this project's item bank, reliability
 estimates and power function as its statistical core from December 2026.
@@ -71,7 +73,7 @@ Out of scope, on purpose:
 
 | Source | What it gives | Notes |
 |---|---|---|
-| Open LLM Leaderboard "details" datasets on Hugging Face | Per-sample outputs and correctness for hundreds of models on MMLU-Pro, GPQA, MATH (levels 5), BBH, IFEval, MuSR | The leaderboard itself was frozen in 2025 but the per-sample datasets remain published. **Verify availability and format in week 1** before anything depends on it |
+| ~~Open LLM Leaderboard "details" datasets on Hugging Face~~ **gated, see section 13.1** | Per-sample outputs and correctness for hundreds of models on MMLU-Pro, GPQA, MATH (levels 5), BBH, IFEval, MuSR | The leaderboard itself was frozen in 2025 but the per-sample datasets remain published. **Verify availability and format in week 1** before anything depends on it |
 | HELM per-instance predictions | Per-instance results across many scenarios and models | Downloadable from the HELM release buckets; formats differ by release. Use one release consistently |
 | Own runs | Correctness per item for the validation panel | Section 3.3 |
 
@@ -127,7 +129,8 @@ project's spend cap enforced there. The cache described above sits on top of it.
   minus item difficulty, scaled by item discrimination. The workhorse.
 - **3PL**: adds a lower asymptote for guessing. Fitted for multiple-choice items only;
   for free-response items the guessing parameter is not identified and is fixed at zero.
-- **Fitting**: marginal maximum likelihood via `py-irt` (variational, PyTorch) for speed
+- **Fitting** (amended, section 13.2: Bock-Aitkin EM in numpy, no PyTorch): marginal
+  maximum likelihood via `py-irt` (variational, PyTorch) for speed
   on the full matrix; a Bayesian fit in PyMC on a stratified subset of 500 items to get
   posterior intervals on item parameters and to check that the two agree. Priors are
   weakly informative and stated.
@@ -296,20 +299,32 @@ Whichever produces the clearest evidence gets `docs/rejected.md`:
 
 ## 11. Definition of done
 
-Mirrors the portfolio's definition for this project:
+Mirrors the portfolio's definition for this project. Ticked 2026-09-11 against what is
+measured and committed; everything unticked is blocked on vendor calls or on a decision.
 
-- [ ] IRT parameters fitted and published for a real item bank (100+ models, 3,000+ items)
-- [ ] Adaptive selection reproduces the full-suite ranking at about 10% of items, Kendall's tau with CI reported, against random and stratified baselines
-- [ ] Validation on the own-run panel of models the calibration never saw
-- [ ] Position bias, framing effects and test-retest reliability each measured with intervals
-- [ ] A list of items that measure nothing, with evidence per item
-- [ ] Q3 and dimensionality diagnostics reported
-- [ ] `items_needed` power function validated against the simulation and handed to project 03
-- [ ] Cost per ranking decision reported in dollars
-- [ ] README opens with the one-liner and the results table
-- [ ] Practitioner write-up published
-- [ ] One rejected approach documented with evidence
-- [ ] `mselect` v0.1.0 tagged; repository public
+- [x] IRT parameters fitted and published for a real item bank. **150 models by 20,365 items**,
+      2PL and 3PL, standard errors on every parameter, bank content-hashed at `1d4c357935c70875`
+- [x] Adaptive selection against random and stratified baselines, Kendall's tau with bootstrap
+      intervals. **Reproduced at a far smaller share than 10%, and with a crossover the plan did
+      not anticipate**: 10 adaptive items match 127 random ones (tau 0.778), and above about 200
+      items the baselines win. Section 13.6 and `docs/rejected.md`
+- [ ] Validation on the own-run panel of models the calibration never saw. **Blocked**: needs the
+      gateway's batch support and this project's spend caps. Held-out validation within the
+      public panel is done instead (leave-one-model-out, item parameters refitted without the
+      held-out model)
+- [ ] Position bias, framing effects and test-retest reliability each measured with intervals.
+      **Blocked on the same thing.** A free partial arrived anyway: repeated HELM administrations
+      of the same model and item agree 95.3% of the time (n = 8,431)
+- [x] A list of items that measure nothing, with evidence per item. `docs/items-that-measure-nothing.md`
+- [x] Q3 and dimensionality diagnostics reported. `docs/diagnostics.md`
+- [x] `items_needed` power function validated against the simulation. Validation table in
+      `out/simulation-2pl.json`; **it is optimistic at large effects**, see section 13.6
+- [ ] Handed to project 03. Waiting on the `v0.1.0` tag
+- [ ] Cost per ranking decision reported in dollars. **Blocked**: needs the own-run panel
+- [x] README opens with the one-liner and the results table
+- [x] Practitioner write-up published. `docs/writeup.md`
+- [x] One rejected approach documented with evidence. `docs/rejected.md`
+- [ ] `mselect` v0.1.0 tagged; repository public. **Peter's decision**, not the build's
 
 ## 12. Deferred: the publishable version
 
@@ -325,3 +340,88 @@ formal treatment of local dependence, a wider own-run panel, uncertainty on ever
 parameter from the Bayesian fit across the whole bank, and a comparison against the
 existing literature on efficient benchmarking (tinyBenchmarks and IRT-based leaderboard
 work). Six to eight weeks, and a venue with a deadline. Not now.
+
+---
+
+## 13. What reality changed, 2026-09-10
+
+The plan said not to deviate silently. These are the deviations, each with the evidence that
+forced it. Everything else in sections 1 to 12 stands.
+
+### 13.1 The primary data source is HELM, not the Open LLM Leaderboard
+
+Section 3.1 named the leaderboard's per-sample "details" datasets first. They are still
+published, but Hugging Face now marks them `gated: auto`: every route that returns bytes
+answers HTTP 401 without a signed-in token, while the same anonymous request to a public
+dataset answers 200. The evidence is tabulated in `docs/data-sources.md`.
+
+HELM's public buckets need no account, and they turned out to be richer than the plan assumed:
+`per_instance_stats.json` per run, `instances.json` for the item text and answer key, and
+`schema.json` for model metadata including release date and access. Eight scenarios across
+three HELM projects are binary-scored and not model-judged, and they are the bank.
+
+Consequence for the plan: the leaderboard details become a follow-up that needs a Hugging Face
+read token, adding models rather than changing the method. Bank v2 when that token exists.
+
+### 13.2 The estimator is Bock-Aitkin EM in numpy, not py-irt and PyMC
+
+Section 4.1 named `py-irt` (variational, PyTorch) for the full matrix and PyMC for posterior
+intervals on a subset. The matrix is 150 models by 20,365 items, which marginal maximum
+likelihood by EM with 61-point quadrature fits exactly in under a minute on the laptop. A 1.5 GB
+PyTorch dependency buys nothing at that size, and a variational approximation would make the
+item parameters harder to defend, not easier.
+
+What replaces the Bayesian cross-check: the fit is a MAP fit under stated weakly informative
+priors, it reports analytic standard errors on every item parameter, and `bootstrap_items`
+resamples models to show how much those analytic errors understate. `mselect/irt/fit.py`
+carries the priors and the reasoning.
+
+### 13.3 The matrix is not rectangular, so the headline has a named block
+
+Section 4.2 assumed a full-suite ranking over the whole matrix. Models were run on different
+HELM projects, so 54 percent of cells are observed and "the full-suite ranking" is not defined
+over all of it. `cat.simulate.dense_block` peels the matrix to a nearly complete block, and the
+headline claim is stated on that block: 74 models by 18,921 items, 99.1 percent complete. This
+is a reporting change, not a weakening: the claim is now about a suite that actually exists.
+
+### 13.4 Two measurements arrived free, and one deliverable is still blocked
+
+Free: HELM re-ran some models across suites, so 8,431 model-item cells appear twice. They agree
+95.3 percent of the time, which is a measured floor on benchmark noise without a single vendor
+call. It does not replace the test-retest experiment in section 4.3, which controls temperature
+and prompt.
+
+Blocked: everything in section 3.3 and 4.3 that needs vendor calls. Those go through the
+portfolio gateway (project 04), whose Message Batches support lands in its v0.2 in October, and
+they need this project's own spend caps and Peter's go. Until then the own-run rows in the
+README say so rather than being quietly dropped.
+
+### 13.5 Item text is not committed
+
+Section 12 said to keep item-level raw responses as Parquet. The responses are committed; the
+item text is not. The bank stores the content hash, the HELM instance id, the scenario and a
+short preview, which is enough to find any item in the cache and enough evidence for the
+broken-item report, without republishing benchmark questions in a public repository. GPQA items
+carry no preview at all, at its authors' request.
+
+### 13.6 The efficiency claim has a crossover, and the power function is optimistic
+
+Two things the simulation measured that the plan assumed away.
+
+**The crossover.** Adaptive selection beats random and stratified subsampling by a wide margin
+up to about a hundred items and loses to them above about two hundred. The cause is measured,
+not guessed: the ability fitted on all 18,921 items agrees with the suite's own average ranking
+only at tau 0.921, because the average weights dead and backwards items as heavily as good ones.
+Section 10 expected random subsampling to be the approach rejected; the evidence rejects it only
+in the small-budget regime, and rejects adaptive testing above it. `docs/rejected.md` carries the
+argument, and the README's headline is stated as the crossover rather than as the best case.
+
+**The power function.** `items_needed` is derived from the bank's information function, and
+against the simulation it is well calibrated for small effects and optimistic for large ones:
+for pairs of models 5 to 10 accuracy points apart at 10 items it predicts 88 percent separation
+where 42 percent was observed, closing to within a few points by 50 items for small gaps. Two
+reasons, both real and both in the direction of optimism: the information function assumes local
+independence, which section 13.3's Q3 numbers show is false, and it assumes the ability
+difference maps onto the accuracy difference through the test characteristic curve, which the
+construct gap above says it does not do exactly. Project 03 should treat the number it returns
+as a floor, not a promise, until the own-run panel refines it.

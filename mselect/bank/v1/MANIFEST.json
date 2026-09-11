@@ -1,0 +1,89 @@
+{
+  "bank_version": "v1",
+  "built": "2026-09-11",
+  "bank_hash": "1d4c357935c70875",
+  "min_models_per_item": 40,
+  "n_models": 150,
+  "n_items": 20365,
+  "n_responses": 1648626,
+  "items_dropped_below_floor": 441,
+  "repeated_cells": 8431,
+  "repeated_cell_agreement": 0.9526746530660657,
+  "items_per_benchmark": {
+    "gsm8k": 1000,
+    "mmlu_pro": 998,
+    "mmlu": 13937,
+    "commonsense": 500,
+    "gpqa": 446,
+    "legalbench": 2047,
+    "med_qa": 1000,
+    "math": 437
+  },
+  "sources": [
+    {
+      "project": "mmlu",
+      "release": "v1.13.0",
+      "scenario": "mmlu",
+      "metric": "exact_match",
+      "benchmark": "mmlu",
+      "kind": "multiple_choice"
+    },
+    {
+      "project": "capabilities",
+      "release": "v1.15.0",
+      "scenario": "mmlu_pro",
+      "metric": "chain_of_thought_correctness",
+      "benchmark": "mmlu_pro",
+      "kind": "multiple_choice"
+    },
+    {
+      "project": "capabilities",
+      "release": "v1.15.0",
+      "scenario": "gpqa",
+      "metric": "chain_of_thought_correctness",
+      "benchmark": "gpqa",
+      "kind": "multiple_choice"
+    },
+    {
+      "project": "lite",
+      "release": "v1.13.0",
+      "scenario": "math",
+      "metric": "math_equiv_chain_of_thought",
+      "benchmark": "math",
+      "kind": "free_response"
+    },
+    {
+      "project": "lite",
+      "release": "v1.13.0",
+      "scenario": "gsm",
+      "metric": "final_number_exact_match",
+      "benchmark": "gsm8k",
+      "kind": "free_response"
+    },
+    {
+      "project": "lite",
+      "release": "v1.13.0",
+      "scenario": "med_qa",
+      "metric": "exact_match",
+      "benchmark": "med_qa",
+      "kind": "multiple_choice"
+    },
+    {
+      "project": "lite",
+      "release": "v1.13.0",
+      "scenario": "legalbench",
+      "metric": "quasi_exact_match",
+      "benchmark": "legalbench",
+      "kind": "multiple_choice"
+    },
+    {
+      "project": "lite",
+      "release": "v1.13.0",
+      "scenario": "commonsense",
+      "metric": "exact_match",
+      "benchmark": "commonsense",
+      "kind": "multiple_choice"
+    }
+  ],
+  "source_bucket": "https://storage.googleapis.com/crfm-helm-public"
+}
