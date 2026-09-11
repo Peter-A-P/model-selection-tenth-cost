@@ -1,9 +1,12 @@
 # Private working notes, never committed
 CLAUDE.local.md
 
-# Secrets
+# Secrets. Anything holding a key stays out of the tree; tests/test_no_secrets.py is the
+# backstop that fails the build if one is ever staged anyway.
 .env
 .env.*
+*.token
+New Text Document*.txt
 
 # Downloaded public per-item data and vendor response cache
 data/raw/
