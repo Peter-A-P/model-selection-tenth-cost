@@ -403,3 +403,15 @@ def test_a_cached_reply_is_recorded_as_cached() -> None:
     assert written[0].cached is True
     assert written[0].correct == 1, "a cached reply is still a reply"
     assert administer([MC], "m", _always("B"))[0].cached is False
+
+
+def test_a_reply_the_gateway_could_not_price_keeps_a_null_cost() -> None:
+    """Uncosted is not free, and a total that adds it as zero is wrong by an unknown amount.
+
+    together-open-b wrote three uncosted rows on 2026-09-12: Together reported prompt-cache
+    tokens and the price file had no rate for them, so the gateway refused to guess. That
+    refusal is correct; what was missing was anything saying so above the ledger.
+    """
+    written = administer([MC], "m", _always("B", cost_usd=None, input_tokens=200))
+    assert written[0].cost_usd is None, "never coerced to zero"
+    assert written[0].error is None and written[0].correct == 1, "the call worked"

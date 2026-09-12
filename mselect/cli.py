@@ -558,11 +558,21 @@ def smoke(
             unparsed = sum(1 for r in written if r.unparsed)
             failed = sum(1 for r in written if r.error is not None)
             cached = sum(1 for r in written if r.cached)
+            # A reply the gateway could not price. It is not free and it is not an error: the
+            # call happened and the bill for it is unknown, which is the one outcome a cost
+            # table cannot represent. together-open-b wrote three of these on 2026-09-12
+            # because Together reported prompt-cache tokens and the price file had no rate
+            # for them, and it took reading the ledger to notice.
+            uncosted = sum(
+                1 for r in written if r.cost_usd is None and r.error is None and not r.cached
+            )
             cost = sum(r.cost_usd or 0.0 for r in written)
             total += cost
             # A paid alias reporting nothing is either a cache hit or a costing failure, and
             # those look identical in a total. Saying which turns a puzzle into a fact.
             note = f" ({cached} from cache)" if cached else ""
+            if uncosted:
+                note += f" ({uncosted} UNCOSTED: the gateway has no rate for this call)"
             _say(
                 f"  {name:<18} {scored}/{len(written)} scored, {right} correct, "
                 f"{unparsed} unparsed, {failed} failed, US${cost:.5f}{note}"

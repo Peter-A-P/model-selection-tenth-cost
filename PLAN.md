@@ -976,6 +976,19 @@ is what section 15.4 said confirming meant.
 
 Two things came out of the run that the pass rate hides.
 
+**`together-open-b` wrote three uncosted rows.** Together serves prompt caching and reports
+`cached_tokens` in its usage; gpt-oss-120b returned 66 to 68 per call, and the price file had no
+`cache_read` rate for it. The gateway refuses to price a call that used a feature it has no rate
+for, which is the right refusal and is the only reason this surfaced before an invoice did.
+Rates read from the vendor's page and added: neither Together model discounts cached input,
+where others in its catalogue do, so cache reads are charged as ordinary input. Not a repricing
+and so not a new dated file: no rate changed, a missing one was added, and no row already costed
+against that file would compute differently.
+
+An uncosted reply is not a free one and not an error. The call happened and the bill for it is
+unknown, which is the one outcome a cost table cannot represent, and it took reading the ledger
+to notice three of them. `mselect smoke` now names them.
+
 **Four aliases reported US$0.00000 while scoring.** The development cache had answered, because
 their requests were unchanged since the previous run, which is section 3.3 working exactly as
 written. But a paid alias reporting no spend is either a cache hit or a costing failure, and
@@ -997,13 +1010,26 @@ write an essay, and output tokens are the expensive half of the bill.
 |---|---:|---:|---|
 | Answer-only, before the rewrite | US$21.27 | US$26.59 | fits |
 | **After dropping "do not explain"** | **US$31.90** | **US$39.88** | US$40.00, by twelve cents |
-| Answer-only restored, answer-last kept | to be measured | | |
+| Answer-only restored, answer-last kept | **US$22.31** | **US$27.89** | fits |
 
 It would have cleared the cap by twelve cents, which is the sort of margin that is indistinguishable
 from luck. The instruction is back, with the guarantee that made the rewrite necessary in the
 first place: reply with the answer only, and if you write more than the answer, put the answer
 last. A model that can answer in one line does; a model that cannot still puts the answer where
 the parser will find it.
+
+**And a finding, not just a correction.** Restoring the instruction recovered two thirds of the
+difference and no more. `anthropic-haiku` fell from 291 output tokens an item to 95;
+`gemini-3.5-flash-lite` writes 318 and `gemini-3.8-flash` 188. Those are not essays invited by a
+loose prompt, they are models explaining themselves while being told twice not to, and their
+answers are right. Measured per item across the panel, answer-only output ranges from 4 tokens
+to 318, a factor of eighty.
+
+So **"answer-only" is an instruction a large part of the current frontier does not follow**, and
+that belongs in the write-up rather than in a footnote. It is the same observation as section
+15.13 with numbers behind it, and it has a consequence for anyone reading a published benchmark
+number: a suite that scores only what it can parse from a short reply is measuring compliance as
+well as ability, and the models it penalises are not the weak ones.
 
 The general lesson is worth keeping, because it is the third version of the same mistake this
 week. A change made for good reasons to one part of a measurement moved another part nobody was

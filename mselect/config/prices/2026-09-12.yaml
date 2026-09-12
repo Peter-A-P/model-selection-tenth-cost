@@ -5,6 +5,11 @@
 # to one of them and a route with no rate writes uncosted rows. Read from
 # https://developers.openai.com/api/docs/pricing on 2026-09-12.
 #
+# Amended the same day with `cache_read` for both Together models. Not a repricing and so not
+# a new file: no rate here changed, a missing rate was added, and no row already costed against
+# this file would compute differently. The three rows it affects were uncosted, which is what
+# drew attention to it.
+#
 # Every rate the previous file carried was re-read the same day and none of them moved:
 # gpt-5.4 2.50/15.00, gpt-5.4-mini 0.75/4.50, gpt-5.5 5.00/30.00. A repricing that changes
 # nothing is still worth writing down, because "nothing changed" is only a fact once somebody
@@ -168,9 +173,21 @@ per_million_tokens:
       batch_multiplier: 0.5
 
   openweights:
+    # `cache_read` added 2026-09-12 after the first live call, and it is the reason
+    # together-open-b wrote three uncosted rows. Together serves prompt caching and reports
+    # `cached_tokens` in its usage: gpt-oss-120b returned 66 to 68 of them per call. The
+    # gateway refuses to price a call that used a feature it has no rate for, which is the
+    # right refusal and is how this was found at all rather than at the invoice.
+    #
+    # Read from https://www.together.ai/pricing on 2026-09-12: neither of these two models
+    # shows a discounted cached rate, where others in the catalogue do, so cache reads are
+    # charged as ordinary input. Checked rather than assumed, because a wrong rate here is a
+    # wrong number in a cost table that this project publishes.
     meta-llama/Llama-3.3-70B-Instruct-Turbo:
       input: 1.04
       output: 1.04
+      cache_read: 1.04
     openai/gpt-oss-120b:
       input: 0.15
       output: 0.60
+      cache_read: 0.15
