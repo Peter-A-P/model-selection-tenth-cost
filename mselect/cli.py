@@ -506,8 +506,15 @@ def smoke(
             extras=gateway.extras_of(),
             use_batches=batch,
         )
+        omits = gateway.omits_of()
         for name in wanted:
-            written = administer.administer(asking, name, caller, done=already)
+            written = administer.administer(
+                asking,
+                name,
+                caller,
+                done=already,
+                omit_temperature=gateway.omits_temperature(name, omits),
+            )
             if not written:
                 _say(f"  {name:<18} every cell already recorded; nothing called")
                 continue

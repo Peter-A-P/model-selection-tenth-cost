@@ -32,3 +32,19 @@ aliases:
   # row either. Together takes the effort as a top-level field.
   together-open-b:
     reasoning_effort: low
+
+# Request fields this project must not send to a given model, because the model refuses them.
+#
+# Not the same as sending a different value. `temperature: 0` and no temperature at all are
+# different requests, and only one of them is accepted by Anthropic's 5 family.
+#
+# Measured 2026-09-12 by `mselect smoke --no-batch`, six times, identically:
+#   anthropic returned 400: invalid_request_error: `temperature` is deprecated for this model.
+#
+# The cost to the experiment is real and is recorded in PLAN.md section 15.11 rather than
+# absorbed here: section 3.3 runs everything at temperature 0, and these two models cannot be.
+# They run at Anthropic's default sampling, so their test-retest measures the vendor's default
+# nondeterminism rather than the temperature-0 floor the other nine models measure.
+omit:
+  anthropic-sonnet: [temperature]
+  anthropic-opus: [temperature]

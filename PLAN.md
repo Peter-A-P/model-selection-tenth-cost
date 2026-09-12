@@ -110,7 +110,10 @@ calibration never saw. Eight to ten current models:
 | Local | Two or three small models (3B to 8B, 4-bit) on the laptop | Free; they also spread the ability range downward, which item calibration needs |
 
 Run settings: temperature 0, fixed system prompt, answer-only output format (a letter for
-multiple choice, a boxed final answer for MATH), `max_tokens` small. Development caching
+multiple choice, a boxed final answer for MATH), `max_tokens` small. **Amended 2026-09-12:
+temperature 0 holds for nine of the eleven models. Claude Sonnet 5 and Claude Opus 5 reject the
+parameter, so they run at Anthropic's default sampling and every record of them says so; section
+15.11 has what that costs.** Development caching
 is on: every response is cached by content hash of the request so a rerun costs nothing.
 This is the opposite of the drift-run rule in project 03, and deliberately so; here the
 question is about the items, not about whether the vendor changed.
@@ -880,8 +883,8 @@ multiplied by 3,000 items.
 | google-frontier | **0/3, no text at all**, US$0.0014 | reasons before answering | thinking disabled |
 | together-open-b | **0/3, no text at all**, row uncosted | reasons before answering | effort set to low |
 | local-small-b | 0/4 | `qwen2.5:7b` was never pulled | changed to `qwen2.5:3b` |
-| anthropic-sonnet | 0/3, the batch errored | not the identifier: see 15.9 | **unresolved** |
-| anthropic-opus | 0/3, the batch errored | not the identifier: see 15.9 | **unresolved** |
+| anthropic-sonnet | 0/3, the batch errored | rejects `temperature`: see 15.11 | temperature omitted |
+| anthropic-opus | 0/3, the batch errored | rejects `temperature`: see 15.11 | temperature omitted |
 
 **The run also found three defects in this repository**, each one in what a failure is allowed
 to say, and each one worse than the route it was hiding.
@@ -956,6 +959,48 @@ obviously agree.
 
 It is worth noting that `anthropic-haiku` is the one Anthropic route carrying a dated
 identifier, and the one that works.
+
+### 15.11 Two models will not take a temperature, which section 3.3 assumed they all would
+
+`mselect smoke --no-batch` returned the same 400 six times on 2026-09-12:
+
+```
+anthropic returned 400: invalid_request_error: `temperature` is deprecated for this model.
+```
+
+Claude Sonnet 5 and Claude Opus 5 refuse the parameter outright. Not a bad value, the parameter
+itself. That closes the last of the four route failures, and all four turned out to be the same
+kind of thing: a request shaped for how models behaved when the plan was written.
+
+**This one costs the experiment something, and the cost is not recoverable.** Section 3.3 says
+every run is at temperature 0, fixed system prompt, answer-only, so that a rerun is the same
+experiment. For these two models that is now impossible: they run at Anthropic's default
+sampling because there is no longer any way to ask for anything else.
+
+What follows, and what has to be said wherever these numbers are reported:
+
+- **The test-retest experiment measures two different things.** For nine models it is the
+  temperature-0 floor the plan intended. For Sonnet 5 and Opus 5 it is the vendor's default
+  nondeterminism, which is a different and probably larger quantity. Reporting one mean across
+  all eleven would be averaging two measurements that are not the same measurement. Section 4.3
+  gets a per-model column rather than a single figure, which it should have had anyway.
+- **Their item responses are noisier than the rest of the panel's**, by an amount the
+  test-retest will measure rather than assume. A 0 or a 1 from those two carries more sampling
+  noise than a 0 or a 1 from the other nine, and the calibration should be read knowing that.
+- **It is not a reason to drop them.** A panel of current models that excluded the two most
+  capable ones because their vendor removed a parameter would be a worse panel and a less
+  honest one. The answer is to measure the difference and report it.
+
+**Where the fix lives matters.** Sending no temperature is done in `Prompt`, not in the adapter.
+The request hash and the settings block in every record are both built from the prompt, so a
+prompt carrying `None` produces a record that says `None` and a hash of the request that was
+actually sent. Fixing it one layer lower would have left 3,000 records per model claiming a
+temperature of 0 that was never sent, and a content hash of a request nobody made. That is the
+difference between a limitation and a lie, and it is four lines of code.
+
+`mselect/config/request-extras.yaml` carries an `omit` section for this, kept separate from the
+`aliases` section that adds fields, because removing a field and adding one are different
+operations and `temperature: 0` is not the same request as no temperature at all.
 
 ### 15.10 Local models
 

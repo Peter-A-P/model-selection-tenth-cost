@@ -97,6 +97,29 @@ def extras_of(path: Path = EXTRAS) -> dict[str, dict[str, Any]]:
     return {str(a): dict(v) for a, v in aliases.items() if isinstance(v, dict)}
 
 
+def omits_of(path: Path = EXTRAS) -> dict[str, frozenset[str]]:
+    """alias -> request fields that must not be sent to that model at all.
+
+    Distinct from `extras_of`, which adds fields. Sending `temperature: 0` and sending no
+    temperature are different requests, and Anthropic's 5 family accepts only the second.
+    """
+    if not path.is_file():
+        return {}
+    loaded = yaml.safe_load(path.read_text(encoding="utf-8"))
+    omit = loaded.get("omit") if isinstance(loaded, dict) else None
+    if not isinstance(omit, dict):
+        return {}
+    return {
+        str(a): frozenset(str(f) for f in fields)
+        for a, fields in omit.items()
+        if isinstance(fields, list)
+    }
+
+
+def omits_temperature(alias: str, omits: dict[str, frozenset[str]] | None = None) -> bool:
+    return "temperature" in (omits if omits is not None else omits_of()).get(alias, frozenset())
+
+
 def _request(prompt: Prompt, extra: Mapping[str, Any] | None = None) -> ChatRequest:
     """One prompt as a vendor-neutral request. The alias goes through unresolved: the
     routes file decides what it means, which is the reason the panel is named by alias."""

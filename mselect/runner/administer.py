@@ -70,7 +70,10 @@ class Prompt:
     system: str
     user: str
     max_tokens: int
-    temperature: float
+    # None means no temperature is sent at all, which is not the same as sending zero.
+    # Anthropic's 5 family rejects the parameter outright, so those models run at the
+    # vendor's default sampling and every record of them says so.
+    temperature: float | None
 
     @property
     def cell(self) -> str:
@@ -82,7 +85,13 @@ class Prompt:
         own request bytes; this is the same idea one level up, and it is what a record
         carries so that a changed prompt can never be mistaken for a cached old one."""
         body = json.dumps(
-            [self.alias, self.system, self.user, self.max_tokens, round(self.temperature, 6)],
+            [
+                self.alias,
+                self.system,
+                self.user,
+                self.max_tokens,
+                None if self.temperature is None else round(self.temperature, 6),
+            ],
             separators=(",", ":"),
             ensure_ascii=False,
         )
@@ -164,12 +173,18 @@ def build_prompts(
     template: str = "plain",
     rotation: int = 0,
     settings: Settings | None = None,
+    omit_temperature: bool = False,
 ) -> list[Prompt]:
     """The exact messages for one model over a set of items.
 
     Rotation applies only to multiple-choice items: there is no option order to rotate on a
     free-response item, and silently accepting one would make the position-bias experiment
     look as though it covered items it never touched.
+
+    `omit_temperature` sends no temperature rather than sending zero, for models that refuse
+    the parameter. It belongs here and not in the adapter because the request hash and the
+    recorded settings are both built from the prompt: fixing it lower down would leave every
+    record claiming a temperature that was never sent.
     """
     fixed = settings or Settings()
     out: list[Prompt] = []
@@ -194,7 +209,7 @@ def build_prompts(
                     free_response=item.free_response,
                 ),
                 max_tokens=fixed.tokens_for(template),
-                temperature=fixed.temperature,
+                temperature=None if omit_temperature else fixed.temperature,
             )
         )
     return out
@@ -245,6 +260,7 @@ def administer(
     rotation: int = 0,
     settings: Settings | None = None,
     done: frozenset[str] = frozenset(),
+    omit_temperature: bool = False,
 ) -> list[Administration]:
     """Ask one model every item it has not already been asked, and score the replies.
 
@@ -256,7 +272,14 @@ def administer(
     fixed = settings or Settings()
     prompts = [
         p
-        for p in build_prompts(items, alias, template=template, rotation=rotation, settings=fixed)
+        for p in build_prompts(
+            items,
+            alias,
+            template=template,
+            rotation=rotation,
+            settings=fixed,
+            omit_temperature=omit_temperature,
+        )
         if p.cell not in done
     ]
     if not prompts:
@@ -307,7 +330,9 @@ def administer(
                 error=error,
                 request_sha256=prompt.request_sha256,
                 settings={
-                    "temperature": fixed.temperature,
+                    # What was sent, not what was configured. None means the model refuses
+                    # the parameter and ran at the vendor's default sampling.
+                    "temperature": prompt.temperature,
                     "max_tokens": prompt.max_tokens,
                     "system_sha256": hashlib.sha256(fixed.system.encode("utf-8")).hexdigest()[:16],
                 },

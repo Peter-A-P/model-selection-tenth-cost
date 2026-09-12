@@ -9,6 +9,7 @@ instead of being written into thousands of rows.
 from __future__ import annotations
 
 from collections.abc import Iterator
+from dataclasses import replace
 from pathlib import Path
 from typing import Any
 
@@ -19,7 +20,7 @@ from boundary import SpendCapExceeded
 from boundary.config import CacheConfig, CapsConfig, ProjectCap, load_config
 from boundary.gateway import Gateway
 
-from mselect.runner.administer import Item, administer, build_prompts
+from mselect.runner.administer import Item, Prompt, administer, build_prompts
 from mselect.runner.gateway import CONFIG, PROJECT, BoundaryCaller, describe
 
 ANTHROPIC_URL = "https://api.anthropic.com/v1/messages"
@@ -297,3 +298,21 @@ def test_every_call_leaves_a_ledger_row(gw: Gateway) -> None:
 def test_replies_are_empty_for_no_prompts(gw: Gateway) -> None:
     assert BoundaryCaller(gw).ask([]) == []
     assert administer([], "local-small-a", BoundaryCaller(gw)) == []
+
+
+def test_a_prompt_with_no_temperature_sends_no_temperature_field() -> None:
+    """The last link: a Prompt carrying None must not become `temperature: 0` on the wire."""
+    from mselect.runner.gateway import _request
+
+    prompt = Prompt(
+        item_id="i",
+        alias="anthropic-opus",
+        template="plain",
+        rotation=0,
+        system="s",
+        user="u",
+        max_tokens=16,
+        temperature=None,
+    )
+    assert _request(prompt).temperature is None
+    assert _request(replace(prompt, temperature=0.0)).temperature == 0.0

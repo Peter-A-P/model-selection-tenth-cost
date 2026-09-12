@@ -309,3 +309,29 @@ def test_a_real_answer_is_not_mistaken_for_an_empty_one() -> None:
     assert written[0].error is None
     assert written[0].correct == 1
     assert written[0].finish_reason == "stop"
+
+
+def test_a_model_that_refuses_temperature_is_sent_none_not_zero() -> None:
+    """Anthropic's 5 family returns 400 for `temperature` at all, including zero.
+
+    Sending 0 and sending nothing are different requests, and only the second is accepted.
+    """
+    prompts = build_prompts([MC], "anthropic-opus", omit_temperature=True)
+    assert prompts[0].temperature is None
+    assert build_prompts([MC], "anthropic-haiku")[0].temperature == 0.0
+
+
+def test_omitting_temperature_is_a_different_request_hash() -> None:
+    """Otherwise a cached reply from before the fix would answer for one made after it."""
+    with_temp = build_prompts([MC], "a")[0]
+    without = build_prompts([MC], "a", omit_temperature=True)[0]
+    assert with_temp.request_sha256 != without.request_sha256
+
+
+def test_the_record_says_what_was_sent_not_what_was_configured() -> None:
+    """The settings block is evidence. A record claiming temperature 0 that was never sent
+    would make every one of those 3,000 rows say something untrue."""
+    written = administer([MC], "anthropic-opus", _always("B"), omit_temperature=True)
+    assert written[0].settings["temperature"] is None
+    normal = administer([MC], "anthropic-haiku", _always("B"))
+    assert normal[0].settings["temperature"] == 0.0
