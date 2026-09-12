@@ -22,13 +22,23 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Final
 
-# Rewritten 2026-09-12 for a panel that contains reasoning models. The old wording forbade
-# explanation outright, which a model that reasons internally cannot obey and which made
-# compliance a proxy for ability. What is required now is the thing the score depends on: the
-# answer, in the format asked for, as the last thing written.
+# Rewritten twice on 2026-09-12, and the second time corrected the first.
+#
+# The first rewrite dropped "do not explain", on the grounds that a model which reasons cannot
+# obey it. That conflated two different things. A reasoning model's reasoning is internal and
+# is not the text it returns: Claude's extended thinking is a separate channel, and the visible
+# output can still be one line. Dropping the instruction did not accommodate reasoning models,
+# it invited every model to write an essay. Measured immediately: `anthropic-haiku` went from
+# four output tokens an item to between 226 and 359, which is a fiftyfold increase in the
+# expensive half of the bill for no measurement gained.
+#
+# So the instruction is back, with the guarantee that made the rewrite necessary in the first
+# place. A model that can answer in one line does. A model that cannot still puts the answer
+# last, where the parser will find it.
 SYSTEM: Final = (
-    "You are answering benchmark questions. Give the answer in the format asked for, and make "
-    "it the last thing you write. Do not restate the question."
+    "You are answering benchmark questions. Reply with the answer only, in the format asked "
+    "for. Do not explain, restate the question, or add anything else. If you do write more "
+    "than the answer, put the answer last."
 )
 
 # The framing experiment's three templates (PLAN.md section 4.3). `plain` is the one the bank

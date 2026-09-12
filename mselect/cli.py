@@ -557,11 +557,15 @@ def smoke(
             right = sum(r.correct or 0 for r in written)
             unparsed = sum(1 for r in written if r.unparsed)
             failed = sum(1 for r in written if r.error is not None)
+            cached = sum(1 for r in written if r.cached)
             cost = sum(r.cost_usd or 0.0 for r in written)
             total += cost
+            # A paid alias reporting nothing is either a cache hit or a costing failure, and
+            # those look identical in a total. Saying which turns a puzzle into a fact.
+            note = f" ({cached} from cache)" if cached else ""
             _say(
                 f"  {name:<18} {scored}/{len(written)} scored, {right} correct, "
-                f"{unparsed} unparsed, {failed} failed, US${cost:.5f}"
+                f"{unparsed} unparsed, {failed} failed, US${cost:.5f}{note}"
             )
             for record in written:
                 if record.unparsed or record.error is not None:
@@ -570,7 +574,10 @@ def smoke(
                     _say(f"      ! {record.benchmark} {why}: {reply!r}")
     _say(f"\ntotal US${total:.5f}; records in {path}")
     if total == 0.0 and paid:
-        _say("no cost recorded for a paid alias: check the ledger before trusting that.")
+        _say(
+            "no cost recorded for a paid alias. A cache hit is the usual reason and says so "
+            "above; anything else means checking the ledger before trusting it."
+        )
 
 
 @app.command("report")

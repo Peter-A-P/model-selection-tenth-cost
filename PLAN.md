@@ -968,6 +968,48 @@ obviously agree.
 It is worth noting that `anthropic-haiku` is the one Anthropic route carrying a dated
 identifier, and the one that works.
 
+### 15.17 Eleven of eleven, and a prompt change that nearly doubled the bill
+
+**2026-09-12: every alias in the panel scored every item.** Thirty-three calls, US$0.033. Each
+of the eleven routes is now confirmed by a real call rather than by a configuration file, which
+is what section 15.4 said confirming meant.
+
+Two things came out of the run that the pass rate hides.
+
+**Four aliases reported US$0.00000 while scoring.** The development cache had answered, because
+their requests were unchanged since the previous run, which is section 3.3 working exactly as
+written. But a paid alias reporting no spend is either a cache hit or a costing failure, and
+those look identical in a total: it took opening the ledger to tell. A reply now records whether
+the cache answered it, and `mselect smoke` says so. A claim that a rerun costs nothing should be
+checkable from the run's own output rather than from a database.
+
+**`anthropic-haiku` went from four output tokens an item to 291.** It wrote an essay. So did
+Gemini, at 157 and 166, and Together's Llama at 106.
+
+That was self-inflicted, one commit earlier. Rewriting the system prompt for reasoning models
+(section 15.14) dropped "do not explain", on the grounds that a model which reasons cannot obey
+it. **That conflated two different things.** A reasoning model's reasoning is internal and is not
+the text it returns: it happens on a separate channel and the visible output can still be one
+line. Dropping the instruction did not accommodate reasoning models, it invited every model to
+write an essay, and output tokens are the expensive half of the bill.
+
+| Prompt | Whole programme | With margin | Monthly cap |
+|---|---:|---:|---|
+| Answer-only, before the rewrite | US$21.27 | US$26.59 | fits |
+| **After dropping "do not explain"** | **US$31.90** | **US$39.88** | US$40.00, by twelve cents |
+| Answer-only restored, answer-last kept | to be measured | | |
+
+It would have cleared the cap by twelve cents, which is the sort of margin that is indistinguishable
+from luck. The instruction is back, with the guarantee that made the rewrite necessary in the
+first place: reply with the answer only, and if you write more than the answer, put the answer
+last. A model that can answer in one line does; a model that cannot still puts the answer where
+the parser will find it.
+
+The general lesson is worth keeping, because it is the third version of the same mistake this
+week. A change made for good reasons to one part of a measurement moved another part nobody was
+looking at. It was caught only because the estimate reads real output tokens rather than assuming
+them, which was itself a fix made two commits earlier for an unrelated reason.
+
 ### 15.16 Nine of eleven, and the two that were left were the same failure twice more
 
 The smoke run of 2026-09-12 under the fixed parser and the new prompt: **nine of eleven aliases

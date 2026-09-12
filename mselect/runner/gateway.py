@@ -207,6 +207,7 @@ def _reply(response: ChatResponse) -> Reply:
         ledger_id=response.ledger_id,
         error=None if response.ok else _why(response),
         finish_reason=response.finish_reason,
+        cached=response.cached,
     )
 
 

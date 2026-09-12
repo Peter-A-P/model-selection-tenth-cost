@@ -390,3 +390,16 @@ def test_an_unchanged_route_still_resumes_for_free() -> None:
         route=route,
     )
     assert out == [] and again.seen == []
+
+
+def test_a_cached_reply_is_recorded_as_cached() -> None:
+    """Section 3.3 says a rerun costs nothing, and this is what makes that checkable.
+
+    A paid alias reporting no spend is either a cache hit or a costing failure, and those look
+    identical in a total. On 2026-09-12 four of eleven aliases reported US$0.00000 and it took
+    opening the ledger to find out which it was.
+    """
+    written = administer([MC], "m", _always("B", cached=True, cost_usd=0.0))
+    assert written[0].cached is True
+    assert written[0].correct == 1, "a cached reply is still a reply"
+    assert administer([MC], "m", _always("B"))[0].cached is False

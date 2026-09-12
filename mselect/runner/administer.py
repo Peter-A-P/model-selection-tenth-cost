@@ -124,6 +124,10 @@ class Reply:
     # "this request was shaped wrong", which is the difference between changing the panel and
     # changing four lines of configuration.
     finish_reason: str | None = None
+    # Answered from the development cache rather than by the vendor. Section 3.3 says a rerun
+    # costs nothing, and this is what makes that checkable rather than asserted: a run that
+    # reports no spend should be able to show that it made no calls.
+    cached: bool = False
 
 
 class Caller(Protocol):
@@ -163,6 +167,7 @@ class Administration:
     # Why the vendor stopped, when it said. Defaulted rather than required so a record file
     # written before this existed still loads: a resumed run reads its own old lines.
     finish_reason: str | None = None
+    cached: bool = False
     settings: dict[str, Any] = field(default_factory=dict)
 
     @property
@@ -345,6 +350,7 @@ def administer(
                 unparsed=error is None and reply.text is not None and correct is None,
                 reply=reply.text,
                 finish_reason=reply.finish_reason,
+                cached=reply.cached,
                 cost_usd=reply.cost_usd,
                 input_tokens=reply.input_tokens,
                 output_tokens=reply.output_tokens,
