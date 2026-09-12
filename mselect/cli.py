@@ -145,6 +145,130 @@ def crossbank(
     _say(experiment.run(first=first, second=second, kind=model, seed=seed, progress=_say))
 
 
+@app.command("routes")
+def routes() -> None:
+    """Check the panel without calling anything: identifiers, prices, keys and the local server.
+
+    Everything here is free and reads only files and environment variables. Key values are
+    never printed, only whether the variable is set. What this cannot check is the one thing
+    that matters most, and it says so at the end.
+    """
+    import os
+    import socket
+    import ssl
+    import urllib.error
+    import urllib.parse
+    import urllib.request
+
+    import truststore
+
+    from mselect.runner import gateway, prompts
+    from mselect.runner import suite as suite_mod
+
+    def reachable(base_url: str) -> str:
+        """A TLS handshake and nothing else. Proves verification, spends nothing."""
+        host = urllib.parse.urlparse(base_url).hostname
+        if host is None:
+            return "no host in the base url"
+        context = truststore.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
+        try:
+            with (
+                socket.create_connection((host, 443), timeout=8) as raw,
+                context.wrap_socket(raw, server_hostname=host) as tls,
+            ):
+                certificate = tls.getpeercert() or {}
+                # getpeercert types the issuer loosely: a tuple of relative distinguished
+                # names, each a tuple of (key, value) pairs. Flattened rather than trusted.
+                issuer: dict[str, str] = {}
+                for rdn in certificate.get("issuer", ()):
+                    if isinstance(rdn, tuple):
+                        for pair in rdn:
+                            if isinstance(pair, tuple) and len(pair) == 2:
+                                issuer[str(pair[0])] = str(pair[1])
+                who = issuer.get("organizationName") or issuer.get("commonName") or "?"
+                return f"verified, issued by {who}"
+        except ssl.SSLCertVerificationError as e:
+            return f"CERTIFICATE NOT VERIFIED ({e.verify_message or e})"
+        except (OSError, TimeoutError) as e:
+            return f"UNREACHABLE ({type(e).__name__})"
+
+    config = gateway.load_config()
+    all_routes = gateway.routes_of(config)
+    providers = config.get("providers", {})
+    prices = suite_mod.load_prices(
+        suite_mod.latest_price_file(gateway.CONFIG.parent / str(config.get("prices", "prices")))
+    )
+    listed = prices.get("per_million_tokens", {})
+
+    _say(f"panel of {len(prompts.PANEL)}, from {gateway.CONFIG.name}")
+    _say(f"prices from {suite_mod.latest_price_file(gateway.CONFIG.parent / 'prices').name}")
+    _say("")
+    problems: list[str] = []
+    for entry in prompts.PANEL:
+        route = all_routes.get(entry.alias)
+        if route is None:
+            problems.append(f"{entry.alias} has no route in {gateway.CONFIG.name}")
+            _say(f"  {entry.alias:<18} NO ROUTE")
+            continue
+        provider = providers.get(route["provider"], {})
+        free = bool(provider.get("price_zero"))
+        priced = route["model"] in listed.get(route["provider"], {})
+        if not priced and not free:
+            problems.append(f"{entry.alias} ({route['model']}) has no rate in the price file")
+        key_env = provider.get("api_key_env")
+        if key_env is None:
+            key = "not needed"
+        elif os.environ.get(str(key_env)):
+            key = f"{key_env} set"
+        else:
+            key = f"{key_env} MISSING"
+            problems.append(f"{entry.alias} needs {key_env}, which is not set")
+        money = "free" if free else ("priced" if priced else "NO PRICE")
+        _say(f"  {entry.alias:<18} {route['model']:<40} {entry.coverage:<15} {money:<9} {key}")
+
+    # Where the run can happen. A network that inspects TLS re-signs certificates with its own
+    # authority, which shows up here as an issuer that is not the vendor's, or as a refusal.
+    _say("\nTLS to each vendor, verified against the OS trust store, sending nothing:")
+    for name, spec in providers.items():
+        if not isinstance(spec, dict) or spec.get("price_zero"):
+            continue
+        base = str(spec.get("base_url", ""))
+        verdict = reachable(base)
+        _say(f"  {name:<14} {urllib.parse.urlparse(base).hostname:<36} {verdict}")
+        if not verdict.startswith("verified"):
+            problems.append(f"{name} cannot be reached from this network: {verdict}")
+
+    local = [
+        name
+        for name, spec in providers.items()
+        if isinstance(spec, dict) and spec.get("price_zero")
+    ]
+    for name in local:
+        base = str(providers[name].get("base_url", ""))
+        try:
+            with urllib.request.urlopen(f"{base}/models", timeout=3) as response:
+                ok = response.status == 200
+        except (urllib.error.URLError, OSError, ValueError):
+            ok = False
+        _say(f"\nlocal provider {name!r} at {base}: {'answering' if ok else 'not answering'}")
+        if not ok:
+            problems.append(f"the local server for {name!r} is not answering at {base}")
+
+    _say("")
+    if problems:
+        _say(f"{len(problems)} thing(s) to fix before a run:")
+        for problem in problems:
+            _say(f"  ! {problem}")
+    else:
+        _say("every checkable thing checks out: routes, prices, keys, local server.")
+    _say(
+        "\nWhat this cannot check without spending: whether each model answers in the"
+        "\nanswer-only format the run assumes. Google's Flash returned no text inside a"
+        "\nsmall token budget on 2026-09-10 because it reasons by default, which is the"
+        "\nkind of thing only a real call finds. `boundary smoke <provider>` is that call."
+    )
+
+
 @app.command("suite")
 def suite(
     version: str = typer.Option("v1", help="Which bank the items come from."),

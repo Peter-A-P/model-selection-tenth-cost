@@ -210,3 +210,36 @@ def test_every_benchmark_of_the_real_pool_is_in_the_real_suite() -> None:
     }
     assert min(counts.values()) >= 60, counts
     assert sum(counts.values()) == suite.DEFAULT_SIZE
+
+
+def test_the_real_panel_gives_every_model_a_full_suite_run() -> None:
+    """Section 4.2 compares an adaptive ranking against the own-run full-suite ranking.
+
+    A model asked only the adaptive subset cannot be in the second of those, so it widens the
+    panel without widening the validation. Every alias runs the whole suite, which PLAN.md
+    section 7 held budget for and the measured cost made affordable.
+    """
+    assert len(prompts.PANEL) >= 10, "section 7's first choice: ten full-suite models"
+    subset_only = [e.alias for e in prompts.PANEL if e.coverage != "full suite"]
+    assert not subset_only, f"asked the subset only, so absent from the ranking: {subset_only}"
+    assert {e.tier for e in prompts.PANEL} == {"mid", "frontier", "open weights", "local"}
+
+
+def test_every_panel_alias_has_a_route_and_a_price() -> None:
+    """An alias with no route cannot be called; one with no price writes an uncosted row."""
+    from mselect.runner import gateway
+
+    config = gateway.load_config()
+    routes = gateway.routes_of(config)
+    providers = config.get("providers", {})
+    prices = suite.load_prices(suite.latest_price_file(gateway.CONFIG.parent / "prices"))
+    listed = prices.get("per_million_tokens", {})
+
+    for entry in prompts.PANEL:
+        route = routes.get(entry.alias)
+        assert route is not None, f"{entry.alias} has no route"
+        if providers.get(route["provider"], {}).get("price_zero"):
+            continue
+        assert route["model"] in listed.get(route["provider"], {}), (
+            f"{entry.alias} -> {route['model']} has no rate in the price file"
+        )

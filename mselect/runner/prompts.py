@@ -73,14 +73,22 @@ class PanelEntry:
 # PLAN.md section 3.3. Aliases, not vendor model identifiers: the gateway owns the mapping, so
 # this list does not go stale when a vendor renames a model, and nothing here can accidentally
 # become a call.
+#
+# Widened 2026-09-11: every model runs the full suite, where the three frontier models used to
+# run the adaptive subset only. That was a cost compromise and the cost turned out not to exist
+# (section 7: the whole programme is about US$5 measured, against US$60 assumed). It was not
+# free: section 4.2 validates an adaptive ranking against the own-run full-suite ranking, and a
+# model with no full-suite run cannot appear in the second one, so the panel had eleven models
+# and the validation had eight, two of them a 3B and a 7B on the laptop. The frontier check is
+# unchanged, because the adaptive subset is chosen from what was administered.
 PANEL: Final[tuple[PanelEntry, ...]] = (
     PanelEntry("anthropic-haiku", "mid", "full suite", "full-suite anchor"),
     PanelEntry("anthropic-sonnet", "mid", "full suite", "full-suite anchor"),
-    PanelEntry("anthropic-opus", "frontier", "adaptive subset", "frontier check"),
+    PanelEntry("anthropic-opus", "frontier", "full suite", "frontier check, and the top anchor"),
     PanelEntry("openai-mid", "mid", "full suite", "full-suite anchor"),
-    PanelEntry("openai-frontier", "frontier", "adaptive subset", "frontier check"),
+    PanelEntry("openai-frontier", "frontier", "full suite", "frontier check, and the top anchor"),
     PanelEntry("google-mid", "mid", "full suite", "full-suite anchor"),
-    PanelEntry("google-frontier", "frontier", "adaptive subset", "frontier check"),
+    PanelEntry("google-frontier", "frontier", "full suite", "frontier check, and the top anchor"),
     PanelEntry("together-open-a", "open weights", "full suite", "cheap full-suite anchor"),
     PanelEntry("together-open-b", "open weights", "full suite", "cheap full-suite anchor"),
     PanelEntry("local-small-a", "local", "full suite", "extends the ability range downward"),

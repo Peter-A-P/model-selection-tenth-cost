@@ -257,19 +257,28 @@ assumption, and it is regenerated rather than typed.
 
 | Line | Calls | Tokens (in / out) | At the batch rate |
 |---|---:|---|---:|
-| Full suite and frontier check, 11 aliases | 26,700 | 5.0M / 0.43M | **US$2.76** |
-| Test-retest, 8 aliases, 500 items again | 4,000 | 0.71M / 0.06M | US$0.39 |
-| Position bias, 8 aliases, 300 items, 3 further rotations | 7,200 | 1.35M / 0.12M | US$0.72 |
-| Framing, 8 aliases, 300 items, letter-only | 2,400 | 0.47M / 0.04M | US$0.25 |
-| Framing, 8 aliases, 300 items, brief reasoning | 2,400 | 0.50M / 0.61M | US$1.17 |
-| **Total** | **42,700** | **8.1M / 1.3M** | **US$5.29, US$6.62 with a 1.25x margin** |
+| Full suite, all 11 aliases, 3,000 items each | 33,000 | 6.2M / 0.53M | **US$5.80** |
+| Test-retest, 11 aliases, 500 items again | 5,500 | 0.98M / 0.09M | US$0.93 |
+| Position bias, 11 aliases, 300 items, 3 further rotations | 9,900 | 1.85M / 0.16M | US$1.73 |
+| Framing, 11 aliases, 300 items, letter-only | 3,300 | 0.65M / 0.05M | US$0.60 |
+| Framing, 11 aliases, 300 items, brief reasoning | 3,300 | 0.69M / 0.84M | US$3.11 |
+| **Total** | **55,000** | **10.4M / 1.7M** | **US$12.17, US$15.22 with a 1.25x margin** |
 
-That is about **CA$9 against a CA$220 budget**, and it changes what the budget is for. The
-constraint the plan was written around is not binding, so the question is no longer what to cut
-but whether to widen: section 7's own first choice, ten full-suite models rather than six, costs
-about a dollar more. Two things stay true regardless. The estimate is a planning number and the
-gateway's cap is what actually stops a run; and a cheap run is not a free one, so it still waits
-on Peter's go.
+That is about **CA$21 against a CA$220 budget**, and it already includes the widening this
+section held money for. **Decided 2026-09-11: every model runs the full suite**, where the three
+frontier models were on the adaptive subset only. That was a cost compromise, not a method, and
+it cost something real: section 4.2 validates an adaptive ranking against the own-run full-suite
+ranking, and a model with no full-suite run cannot be in the second of those. The panel had
+eleven models and the validation had eight, two of them a 3B and a 7B on the laptop. Now the
+validation has all eleven and the top of the range is in it. The frontier check is unchanged,
+because the adaptive subset is drawn from what was administered.
+
+The first table and this one are both kept. The estimate was high by a factor of ten because it
+assumed 611 input tokens a call against a measured 188, and a plan that quietly swaps its guess
+for the answer teaches nobody where the guess went wrong.
+
+Two things stay true. The estimate is a planning number and the gateway's cap is what actually
+stops a run; and a cheap run is not a free one, so it still waits on Peter's go.
 
 Against the CA$220 line that leaves about CA$140. Spend it, in order, on: (1) widening the
 own-run panel to ten full-suite models, which strengthens the validation; (2) a second
@@ -821,6 +830,31 @@ Proportional to the pool and uniform inside each benchmark, which is two decisio
 
 Every benchmark clears 66 items at this size, which a test asserts, because proportional
 selection can round a small benchmark away and the guard against that is suite size.
+
+### 15.7 What confirming the routes actually means
+
+The routing table is Peter's to confirm, and a decision deserves the checkable parts already
+checked. `mselect routes` does all of them and costs nothing: it reads files and environment
+variables, opens a TLS connection to each vendor and closes it, and asks the local server
+whether it is up. No request is sent, no key is printed, nothing can be billed.
+
+As of 2026-09-11 it reports: every one of the eleven aliases has a route; every vendor model has
+a rate in `prices/2026-09-10.yaml`; the two local models are price-zero by configuration; Ollama
+is answering. **No API key is set in the shell**, which is the blocker, and it is Peter's to
+clear because the keys are his.
+
+One inherited assumption turned out to be wrong and worth re-testing rather than believing.
+Project 04 moved its live calls to GitHub Actions on 2026-09-10 because the laptop's network
+inspected TLS. That is a property of a network, not of a laptop: on 2026-09-11 all four vendor
+certificates verify from here against the operating system trust store, issued by Google Trust
+Services rather than re-signed by an inspecting proxy. So the panel can run from the laptop on
+this network, and `mselect routes` re-answers the question wherever it is next run, because the
+answer changes with the network rather than with the code.
+
+What no amount of reading settles is whether each model answers in the answer-only format the
+run assumes. Google's Flash spent a small token budget on reasoning and returned no text on
+2026-09-10; only a real call finds that. `boundary smoke <provider>` is that call, it costs
+fractions of a cent, and it is the last step before the panel.
 
 ### 15.4 The panel is configured but not yet chosen
 
