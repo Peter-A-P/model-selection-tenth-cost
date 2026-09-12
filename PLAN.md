@@ -968,6 +968,36 @@ obviously agree.
 It is worth noting that `anthropic-haiku` is the one Anthropic route carrying a dated
 identifier, and the one that works.
 
+### 15.18 `mselect run`, the loop that spends the budget
+
+Built 2026-09-12. Everything it needs already existed and had been exercised separately: the
+suite is chosen and committed, `items` rebuilds administrable items from the cache, `administer`
+scores them, `records` makes a run resumable, and the gateway owns the money. This is thin on
+purpose.
+
+Four things it does that a bare loop would not.
+
+- **It writes as it goes**, appending after every chunk rather than every alias, so a run that
+  dies at item 2,900 of 3,000 loses nothing. The record file is the state and the key is the
+  request hash, so an edited configuration re-asks what changed and inherits what did not.
+- **It shows the plan and stops.** Without `--yes` it prints what would be sent, per alias, and
+  sends nothing. The plan names the model each alias resolves to, because a confirmation step
+  that hides what is about to be called is not one.
+- **It carries the per-model configuration**: vendor fields, omitted parameters and token
+  budgets, all keyed by alias, so eleven models that need eleven different things get them
+  without the experiment knowing anything about it.
+- **It counts what a cost table cannot represent.** Unparsed replies and uncosted calls are
+  reported separately from wrong answers and failed calls, because they are four different
+  facts and three of them are findings rather than noise.
+
+Proven end to end at zero cost before any vendor call: twenty items to `local-small-b` in two
+chunks, all twenty scored; the same command again asks nothing and says so; changing the
+template puts all twenty back on the list. Those twenty records are real and stay, which is what
+resume is for.
+
+Template and rotation are arguments, so the framing and position-bias arms of section 4.3 are
+the same command with different flags rather than separate code.
+
 ### 15.17 Eleven of eleven, and a prompt change that nearly doubled the bill
 
 **2026-09-12: every alias in the panel scored every item.** Thirty-three calls, US$0.033. Each

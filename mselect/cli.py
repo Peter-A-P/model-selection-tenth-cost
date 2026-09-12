@@ -590,6 +590,126 @@ def smoke(
         )
 
 
+@app.command("run")
+def run(
+    version: str = typer.Option("v1", help="Which bank the suite and items come from."),
+    alias: str = typer.Option("", "--alias", help="Comma-separated. Default: the whole panel."),
+    template: str = typer.Option("plain", help="plain, letter_only or brief_reasoning."),
+    rotation: int = typer.Option(0, help="Option rotation, for the position-bias experiment."),
+    limit: int = typer.Option(0, help="Stop after this many items per alias. 0 means all."),
+    chunk: int = typer.Option(250, help="Items per write. Smaller loses less to a crash."),
+    batch: bool = typer.Option(True, "--batch/--no-batch", help="Use vendor batches."),
+    yes: bool = typer.Option(False, "--yes", help="Required. Without it, prints the plan only."),
+) -> None:
+    """Administer the committed suite to the panel. This is the run that spends the budget.
+
+    Resumable: the record file is the state, keyed by request hash, so stopping and starting
+    again costs nothing for the part already done and re-asks anything whose request changed.
+    Without --yes it prints the plan and sends nothing.
+    """
+    from mselect.runner import administer, gateway, items, records
+    from mselect.runner import suite as suite_mod
+
+    pool = items.administrable(version)
+    index = pool.index()
+    chosen = suite_mod.Suite.load(suite_mod.default_path(version))
+    ordered = [index[i] for i in chosen.item_ids if i in index]
+    if limit:
+        ordered = ordered[:limit]
+
+    config = gateway.load_config()
+    all_routes = gateway.routes_of(config)
+    extras = gateway.extras_of()
+    omits = gateway.omits_of()
+    budgets = gateway.tokens_of()
+
+    named = [a.strip() for a in alias.split(",") if a.strip()]
+    wanted = named or [e.alias for e in prompts_panel() if e.coverage == "full suite"]
+    unknown = [a for a in wanted if a not in all_routes]
+    if unknown:
+        raise typer.BadParameter(f"no route for {', '.join(unknown)}")
+
+    path = paths.ensure(paths.OUT / version) / f"own-run-{template}-{rotation}.jsonl"
+    already = records.done(path)
+
+    _say(f"suite {chosen.size:,} items, seed {chosen.seed}, drawn {chosen.chosen}")
+    _say(f"template {template!r}, rotation {rotation}, {len(ordered):,} items per alias")
+    _say(f"records {path}")
+
+    plan: list[tuple[str, int]] = []
+    for name in wanted:
+        prompts = administer.build_prompts(
+            ordered,
+            name,
+            template=template,
+            rotation=rotation,
+            settings=prompts_settings(budgets[name]) if name in budgets else None,
+            omit_temperature=gateway.omits_temperature(name, omits),
+            route=gateway.route_key(name, all_routes, extras),
+        )
+        plan.append((name, sum(1 for p in prompts if p.request_sha256 not in already)))
+    outstanding = sum(n for _, n in plan)
+
+    _say("")
+    for name, n in plan:
+        state = "nothing to do" if n == 0 else f"{n:,} to ask"
+        _say(f"  {name:<18} {all_routes[name]['model']:<40} {state}")
+    _say(f"\n{outstanding:,} calls outstanding of {len(ordered) * len(wanted):,}")
+    if already:
+        _say(f"{len(already):,} already recorded and will not be asked again")
+
+    if not outstanding:
+        _say("\nnothing to do.")
+        return
+    if not yes:
+        _say("\nnothing was sent. Add --yes to run it.")
+        raise typer.Exit(code=1)
+
+    spent = records.spend_usd(path)
+    totals = {"scored": 0, "correct": 0, "unparsed": 0, "failed": 0, "uncosted": 0}
+    with gateway.open_gateway() as gw:
+        caller = gateway.BoundaryCaller(
+            gw, purpose="own-run", run_id=f"{version}-{template}-{rotation}", use_batches=batch
+        )
+        for name in wanted:
+            budget = budgets.get(name, 0)
+            asked = 0
+            for start in range(0, len(ordered), chunk):
+                piece = ordered[start : start + chunk]
+                written = administer.administer(
+                    piece,
+                    name,
+                    caller,
+                    template=template,
+                    rotation=rotation,
+                    settings=prompts_settings(budget) if budget else None,
+                    done=already,
+                    omit_temperature=gateway.omits_temperature(name, omits),
+                    route=gateway.route_key(name, all_routes, extras),
+                )
+                if not written:
+                    continue
+                records.append(path, written)
+                asked += len(written)
+                totals["scored"] += sum(1 for r in written if r.correct is not None)
+                totals["correct"] += sum(r.correct or 0 for r in written)
+                totals["unparsed"] += sum(1 for r in written if r.unparsed)
+                totals["failed"] += sum(1 for r in written if r.error is not None)
+                totals["uncosted"] += sum(
+                    1 for r in written if r.cost_usd is None and r.error is None and not r.cached
+                )
+                spent += sum(r.cost_usd or 0.0 for r in written)
+                _say(f"  {name:<18} {asked:>6,} asked, US${spent:,.4f} so far")
+    _say(
+        f"\n{totals['scored']:,} scored, {totals['correct']:,} correct, "
+        f"{totals['unparsed']:,} unparsed, {totals['failed']:,} failed, "
+        f"{totals['uncosted']:,} uncosted"
+    )
+    _say(f"US${spent:,.4f} recorded in {path}")
+    if totals["failed"]:
+        _say("failed calls are not done: running this again picks them up and costs only those.")
+
+
 @app.command("report")
 def report(version: str = typer.Option("v1")) -> None:
     """Regenerate the README results table and the figures from the saved outputs."""

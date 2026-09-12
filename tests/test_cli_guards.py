@@ -40,3 +40,25 @@ def test_routes_and_suite_never_take_a_yes_flag() -> None:
     for command in ("routes", "suite"):
         help_text = runner.invoke(app, [command, "--help"]).output
         assert "--yes" not in help_text, f"{command} should not be able to spend"
+
+
+def test_run_without_yes_sends_nothing_and_says_so() -> None:
+    """The run that spends the budget must not start because someone typed the command."""
+    result = runner.invoke(app, ["run", "--alias", "local-small-a", "--limit", "1"])
+    assert result.exit_code == 1
+    assert "nothing was sent" in result.output
+    assert "--yes" in result.output
+
+
+def test_run_prints_the_plan_before_it_asks_for_permission() -> None:
+    """A plan nobody can read is not a confirmation step."""
+    result = runner.invoke(app, ["run", "--alias", "local-small-a", "--limit", "5"])
+    assert "calls outstanding" in result.output
+    assert "local-small-a" in result.output
+    assert "llama3.2:3b" in result.output, "the model, not just the alias it hides behind"
+
+
+def test_run_refuses_an_alias_with_no_route() -> None:
+    result = runner.invoke(app, ["run", "--alias", "not-a-model", "--limit", "1", "--yes"])
+    assert result.exit_code != 0
+    assert "no route for not-a-model" in result.output
