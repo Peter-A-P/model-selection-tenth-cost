@@ -880,8 +880,8 @@ multiplied by 3,000 items.
 | google-frontier | **0/3, no text at all**, US$0.0014 | reasons before answering | thinking disabled |
 | together-open-b | **0/3, no text at all**, row uncosted | reasons before answering | effort set to low |
 | local-small-b | 0/4 | `qwen2.5:7b` was never pulled | changed to `qwen2.5:3b` |
-| anthropic-sonnet | 0/3, the batch errored | identifier, probably | **unresolved** |
-| anthropic-opus | 0/3, the batch errored | identifier, probably | **unresolved** |
+| anthropic-sonnet | 0/3, the batch errored | not the identifier: see 15.9 | **unresolved** |
+| anthropic-opus | 0/3, the batch errored | not the identifier: see 15.9 | **unresolved** |
 
 **The run also found three defects in this repository**, each one in what a failure is allowed
 to say, and each one worse than the route it was hiding.
@@ -907,7 +907,7 @@ naming the call that proved it. It is deliberately not in `boundary.yaml`, whose
 forbids unknown keys and is right to; the gateway drew the same line when its own smoke command
 needed one, and called it caller's business rather than library's.
 
-**The two Anthropic identifiers are left exactly as they were**, because they are wrong or they
+**The two Anthropic identifiers were left exactly as they were**, because they are wrong or they
 are not and replacing them with a guess is how a wrong one gets into a routing file.
 `mselect models` asks each vendor for its own list and marks every route the vendor does not
 carry, ranking the near misses by how much of the name they share, weighted so that a token
@@ -915,20 +915,59 @@ common to every identifier counts for less: without that, "claude" scores as hig
 and every Claude model ties for first. Listing models generates no tokens and so is billed
 nowhere, which is why it is a check rather than a cost.
 
+### 15.9 What the vendors' own lists said, 2026-09-12
+
+**Every one of the eleven routes is listed.** Anthropic carries all eleven of its models and
+both `claude-sonnet-5` and `claude-opus-5` are among them. So the identifiers were never wrong
+and the Anthropic failure is about the request rather than the route, which is the same
+conclusion the other three failures reached and was worth reaching by evidence rather than by
+pattern-matching. The routes stay as they are.
+
+**The diagnosis needs the batch turned off.** A batched request cannot report why it failed:
+Anthropic returns one outcome word per item, the gateway builds its `ChatResponse` with
+`raw=None` whenever an item did not succeed, and the per-item error string it holds in
+`BatchItemResult.error` is dropped there. So "batch_errored" is the most any batched failure can
+ever say, no matter what this project does with it. That is a real gap in project 04 and is
+worth reporting there. Meanwhile `mselect smoke --no-batch` sends the same request on its own,
+which returns an error body, and a failed call is billed nowhere so the diagnosis is free.
+
+**The OpenAI frontier route was two releases stale.** Peter caught it: `gpt-5.4` has not been
+the frontier for some time. OpenAI's list carries `gpt-5.5` and then the GPT-5.6 line, which is
+three models rather than a size ladder, and the prices are what separate them.
+
+| Model | Input | Output | Nearest Anthropic model by price |
+|---|---:|---:|---|
+| gpt-5.6-luna | 0.20 | 1.20 | below Haiku 4.5 |
+| gpt-5.6-terra | 2.00 | 12.00 | Sonnet 5, at 2.00/10.00 |
+| **gpt-5.6-sol** | **4.00** | **20.00** | **Opus 5, at 5.00/25.00** |
+
+This slot exists to be the OpenAI counterpart of `anthropic-opus`, so it is **`gpt-5.6-sol`**.
+Prices read from the vendor's page on 2026-09-12 and written to a new dated file rather than
+edited into the old one, which is the rule the gateway's ledger depends on: a row has to be able
+to say what it was costed with. Every rate the previous file carried was re-read at the same
+time and none of them had moved, which is only a fact once somebody has looked.
+
+The programme goes from US$12.17 to **US$13.26**, US$16.58 with margin. Both caps still clear.
+
+**Still open: `google-frontier` is `gemini-3.8-flash`**, and a Flash model is not the counterpart
+of Opus 5 or of gpt-5.6-sol whatever else it is. Left alone because the panel is Peter's and he
+has not been asked about it; it is the one remaining place where a tier label and a model do not
+obviously agree.
+
 It is worth noting that `anthropic-haiku` is the one Anthropic route carrying a dated
 identifier, and the one that works.
 
-### 15.9 Local models
+### 15.10 Local models
 
 Run free on 2026-09-11, `local-small-a` answered four items across MMLU, MedQA, LegalBench and
 MATH: four scored, two correct, none unparsed. That is the first end-to-end evidence that the
 rebuilt LegalBench options and the extracted MATH keys work against a real model rather than
 only against their own references.
 
-`local-small-b` is `qwen2.5:3b` as of 2026-09-12, Peter's choice. It was `qwen2.5:7b`, which was
-never pulled and which is about 4.7 GB at 4-bit against the 4 GB card section 7 describes, so it
-would have run on the CPU; the constraint for this slot is 3B to 4B. It needs
-`ollama pull qwen2.5:3b` before the panel runs.
+`local-small-b` is `qwen2.5:3b` as of 2026-09-12, Peter's choice, and it is pulled: 1.93 GB at
+3.1B parameters, beside `llama3.2:3b` at 2.02 GB and 3.2B. It was `qwen2.5:7b`, which was never
+pulled and which is about 4.7 GB at 4-bit against the 4 GB card section 7 describes, so it would
+have run on the CPU; the constraint for this slot is 3B to 4B.
 
 ### 15.4 The panel is configured but not yet chosen
 

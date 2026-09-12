@@ -50,7 +50,7 @@ providers:
 #
 #   anthropic-haiku      3/3 scored, 3 correct                     kept
 #   openai-mid           3/3 scored, 3 correct                     kept
-#   openai-frontier      3/3 scored, 3 correct                     kept
+#   openai-frontier      3/3 scored, 3 correct                     model changed, see below
 #   together-open-a      3/3 scored, 1 correct                     kept
 #   local-small-a        4/4 scored, 2 correct                     kept
 #   google-mid           2/3, one cut off mid-preamble             thinking disabled below
@@ -60,10 +60,10 @@ providers:
 #   anthropic-sonnet     0/3, the batch errored                    UNRESOLVED, see below
 #   anthropic-opus       0/3, the batch errored                    UNRESOLVED, see below
 #
-# The two Anthropic identifiers are left exactly as they were. They are wrong or they are not,
-# and replacing them with a guess is how a wrong one gets into a routing file; `mselect models`
-# asks Anthropic what it serves and that decides it. Note that haiku, which works, is the one
-# route carrying a dated identifier.
+# `mselect models` settled the Anthropic question on 2026-09-12: Anthropic lists all eleven of
+# its models and both `claude-sonnet-5` and `claude-opus-5` are among them. The identifiers were
+# never wrong, so the batch failure is about the request rather than the route, and the two
+# routes stay exactly as they are.
 #
 # Choosing the panel is a decision about the experiment, not a detail of the plumbing, so it is
 # dated and recorded rather than assumed.
@@ -80,9 +80,14 @@ routes:
   openai-mid:
     provider: openai
     model: gpt-5.4-mini
+  # Peter, 2026-09-12: gpt-5.4 was not the frontier and had not been for two releases.
+  # OpenAI's own list carries gpt-5.5 and then the GPT-5.6 line, which is three models rather
+  # than a size ladder. The prices separate them: luna 0.20/1.20, terra 2.00/12.00, sol
+  # 4.00/20.00. sol is the closest thing OpenAI sells to Claude Opus 5 at 5.00/25.00, which is
+  # what this slot is for, so sol it is. terra would pair with Sonnet 5 instead.
   openai-frontier:
     provider: openai
-    model: gpt-5.4
+    model: gpt-5.6-sol
   # Both Gemini models reason before answering; see request-extras.yaml, which tells them not
   # to. Measured 2026-09-12: Flash returned nothing at all on all three smoke items at a cost
   # of US$0.0014, and Flash-Lite got one of three cut off mid-preamble.

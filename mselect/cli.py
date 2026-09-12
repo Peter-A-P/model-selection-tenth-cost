@@ -426,6 +426,9 @@ def smoke(
     yes: bool = typer.Option(
         False, "--yes", help="Required before any alias that costs money is called."
     ),
+    batch: bool = typer.Option(
+        True, "--batch/--no-batch", help="Use vendor batches. --no-batch to see a real error."
+    ),
 ) -> None:
     """Ask a few real items and report what came back. The only check that needs a real call.
 
@@ -435,6 +438,12 @@ def smoke(
 
     Costs nothing by default. Naming a vendor alias needs `--yes`, and `mselect routes` is
     what to run first.
+
+    Use `--no-batch` when a call failed and the reason is not in the output. A batch reports
+    one outcome word per request and the gateway has nowhere to put the vendor's message, so
+    "batch_errored" is all a batched failure can ever say. The same request sent on its own
+    returns an error body, which is the thing worth reading. A failed call is billed nowhere,
+    so the diagnosis is free either way.
     """
     from mselect.runner import administer, gateway, items, records
     from mselect.runner import suite as suite_mod
@@ -491,7 +500,11 @@ def smoke(
     total = 0.0
     with gateway.open_gateway() as gw:
         caller = gateway.BoundaryCaller(
-            gw, purpose="smoke", run_id="smoke", extras=gateway.extras_of()
+            gw,
+            purpose="smoke",
+            run_id="smoke",
+            extras=gateway.extras_of(),
+            use_batches=batch,
         )
         for name in wanted:
             written = administer.administer(asking, name, caller, done=already)
