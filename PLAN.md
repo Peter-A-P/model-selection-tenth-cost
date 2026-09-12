@@ -968,6 +968,59 @@ obviously agree.
 It is worth noting that `anthropic-haiku` is the one Anthropic route carrying a dated
 identifier, and the one that works.
 
+### 15.19 Resuming re-asked every failure, and almost none of them were transient
+
+Found in the live run, 2026-09-12, from its first four models:
+
+```
+ 20  anthropic-sonnet   the model returned no text (max_tokens), 1024 output tokens spent
+  5  anthropic-opus     the model returned no text (max_tokens), 1024 output tokens spent
+  2  anthropic-sonnet   the model returned no text (refusal)
+  2  anthropic-opus     the model returned no text (refusal)
+  1  anthropic-opus     the model returned no text (end_turn), 43 output tokens spent
+```
+
+Section 15.3 said "a cell whose call failed is not done: an error is usually a timeout or a rate
+limit, and resuming should pick it up". **Not one of these 33 is that.** A model that reasons past
+its token budget will reason past it again; a model that declines will decline again. Asking
+again at identical settings buys the identical failure and pays for it, and those 25 truncations
+generated 1024 output tokens each, so one resume repeats about US$0.16 of nothing with five
+experiment arms still to run.
+
+A failure is now recorded as retryable or not, and only a retryable one comes back. The decision
+is made where the information is rather than by matching error strings afterwards: the adapter
+knows the status and the exception type, and `administer` knows that a reply with no text is a
+fact about the model rather than about the network.
+
+**Nothing is lost by settling a deterministic failure**, and that follows from section 15.12
+rather than from a special case. The request hash covers everything that determines the reply, so
+raising the token budget asks all 25 again by itself, because it makes them different requests.
+Keying resume on the request rather than on the cell is what makes this safe.
+
+### 15.20 Items that cannot be answered because the question is not all there
+
+`anthropic-haiku` returned eleven unparsed replies, and they are the most interesting thing in
+the run so far. Three of them:
+
+| Item | What the model said |
+|---|---|
+| "The Anglo-American model being considered the best model in light of the recession in the late 2000s." options `1,2,3` / `1,3,4` / `2,3,4` / `1,2,3,4` | "I need to see the numbered statements to evaluate which ones are correct" |
+| "Which of these qualities is NOT listed as something to consider when choosing an opinion leader" | "I don't have access to the specific source material or textbook that lists the qualities" |
+| "In this chapter's Senior View, Dr. Shealy advises you to" | "I don't have access to the specific chapter" |
+
+The model is right in all three. The first asks which of four numbered statements are correct and
+the statements are not in the item. The second and third refer to a textbook the item does not
+carry. **These questions cannot be answered by anybody**, and a model that says so is describing
+the item rather than failing it.
+
+This is a third category for `docs/items-that-measure-nothing.md`, and it is not the same as the
+first two. An item with near-zero discrimination is found by fitting the bank; an item whose
+answer key is wrong is found by a model disagreeing with it consistently. **An item that is
+incomplete is found by reading what a model says when it refuses**, which is a signal this
+project has been throwing away as "unparsed" and should be reporting instead. The unparsed pile
+is not all noise, and the share of it that is a well-formed complaint about the question is worth
+counting on its own.
+
 ### 15.18 `mselect run`, the loop that spends the budget
 
 Built 2026-09-12. Everything it needs already existed and had been exercised separately: the

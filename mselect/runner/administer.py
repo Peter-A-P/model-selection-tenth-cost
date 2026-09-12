@@ -128,6 +128,10 @@ class Reply:
     # costs nothing, and this is what makes that checkable rather than asserted: a run that
     # reports no spend should be able to show that it made no calls.
     cached: bool = False
+    # Whether asking again could produce a different answer. A timeout or a rate limit could;
+    # a model that reasoned past its token budget, or declined, will do it again, and paying
+    # twice for the identical failure is not resuming, it is repeating.
+    retryable: bool = False
 
 
 class Caller(Protocol):
@@ -168,6 +172,9 @@ class Administration:
     # written before this existed still loads: a resumed run reads its own old lines.
     finish_reason: str | None = None
     cached: bool = False
+    # Defaulted False, so a record written before this existed is treated as settled rather
+    # than re-asked. The failures that predate it were deterministic ones.
+    retryable: bool = False
     settings: dict[str, Any] = field(default_factory=dict)
 
     @property
@@ -351,6 +358,9 @@ def administer(
                 reply=reply.text,
                 finish_reason=reply.finish_reason,
                 cached=reply.cached,
+                # An error this function raised is about the model or the item, never about
+                # the network, so it is never worth repeating. Only the caller's errors can be.
+                retryable=reply.retryable and reply.error is not None,
                 cost_usd=reply.cost_usd,
                 input_tokens=reply.input_tokens,
                 output_tokens=reply.output_tokens,

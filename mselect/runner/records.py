@@ -74,17 +74,29 @@ def done(path: Path, *, include_errors: bool = False) -> frozenset[str]:
     temperature, the vendor fields and the model the alias resolved to, so an edited run
     re-asks what changed and inherits only what did not.
 
-    A call that failed is not done by default: an error is usually the network or a rate
-    limit, and the point of resuming is to pick those up. An unparsed reply is done, because
-    asking the same question the same way again will not read any better, and the unparsed
-    share is a number this project reports rather than retries away.
+    A failed call is done unless the failure was worth repeating, which the record says.
+    **Amended 2026-09-12, against the live run.** This used to re-ask every failure, on the
+    assumption that an error is usually a timeout or a rate limit. The first four models of the
+    panel produced 33 failures and not one was: 25 were models reasoning past their token
+    budget, 4 were refusals, and the rest a model stopping early. Every one of those repeats
+    identically at identical cost, and 25 truncations at 1024 output tokens each is about
+    US$0.16 of nothing per resume, with five experiment arms still to run.
+
+    Nothing is lost by settling them. The request hash covers everything that determines the
+    reply, so raising the token budget asks all 25 again by itself, because that makes them
+    different requests.
+
+    An unparsed reply is done for the same reason it always was: asking the same question the
+    same way will not read any better, and the unparsed share is a number this project reports
+    rather than retries away.
     """
     out: set[str] = set()
     for record in read(path):
         request = record.get("request_sha256")
         if not isinstance(request, str):
             continue
-        if not include_errors and record.get("error") is not None:
+        failed = record.get("error") is not None
+        if failed and not include_errors and record.get("retryable"):
             continue
         out.add(request)
     return frozenset(out)

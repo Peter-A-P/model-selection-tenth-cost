@@ -25,7 +25,7 @@ import hashlib
 import json
 from collections.abc import Iterator, Mapping, Sequence
 from pathlib import Path
-from typing import Any
+from typing import Any, Final
 
 import yaml
 from boundary import (
@@ -35,6 +35,7 @@ from boundary import (
     ChatResponse,
     ConfigError,
     Gateway,
+    ProviderError,
     SpendCapExceeded,
 )
 
@@ -197,6 +198,24 @@ def _why(response: ChatResponse) -> str:
     return f"{response.status}: {detail}" if detail else str(response.status)
 
 
+# Statuses where the same request could succeed next time: the vendor was busy, slow, or
+# briefly broken. Everything else a vendor says with a 4xx is a statement about the request,
+# and repeating it repeats the answer and the bill.
+_TRANSIENT_STATUS: Final = frozenset({408, 409, 429, 500, 502, 503, 504, 529})
+
+
+def _retryable(response: ChatResponse) -> bool:
+    if response.ok:
+        return False
+    status = response.status
+    if isinstance(status, int):
+        return status in _TRANSIENT_STATUS
+    # A non-numeric status is a transport failure or a batch outcome word. A timeout deserves
+    # another go; a batch item that errored does not, because the gateway drops the vendor's
+    # reason (section 15.9) and asking again would only lose it again at the same price.
+    return str(status).lower() in {"timeout", "connect_error", "read_error"}
+
+
 def _reply(response: ChatResponse) -> Reply:
     return Reply(
         text=response.text,
@@ -208,6 +227,7 @@ def _reply(response: ChatResponse) -> Reply:
         error=None if response.ok else _why(response),
         finish_reason=response.finish_reason,
         cached=response.cached,
+        retryable=_retryable(response),
     )
 
 
@@ -291,11 +311,21 @@ class BoundaryCaller:
                 # of the panel's budget recording that there is no budget.
                 raise
             except BatchNotReady as e:
-                out.append(Reply(text=None, error=str(e)))
+                # The results are not in yet, which says nothing at all about the item.
+                out.append(Reply(text=None, error=str(e), retryable=True))
+            except ProviderError as e:
+                # The vendor answered and refused. A 429 or a 503 is worth asking again; a 400
+                # is the vendor describing the request, and asking again gets the same 400.
+                out.append(
+                    Reply(
+                        text=None,
+                        error=f"{type(e).__name__}: {e}",
+                        retryable=getattr(e, "status", None) in _TRANSIENT_STATUS,
+                    )
+                )
             except BoundaryError as e:
-                # A refused or failed call is a fact about the call, not about the item. It
-                # is recorded, the run continues, and `records.done` will offer it again.
-                out.append(Reply(text=None, error=f"{type(e).__name__}: {e}"))
+                # Transport: a timeout, a dropped connection, a proxy. Worth another go.
+                out.append(Reply(text=None, error=f"{type(e).__name__}: {e}", retryable=True))
             else:
                 out.append(_reply(response))
         return out

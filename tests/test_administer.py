@@ -260,22 +260,50 @@ def test_records_round_trip_and_resume(tmp_path: Path) -> None:
     assert records.spend_usd(path) == pytest.approx(0.003)
 
 
-def test_a_failed_cell_is_not_done_but_an_unparsed_one_is(tmp_path: Path) -> None:
-    """Resuming should pick up a timeout. It should not re-ask a question the model answered
-    unreadably at temperature zero: the unparsed share is a number this project reports."""
+def test_only_a_retryable_failure_comes_back_around(tmp_path: Path) -> None:
+    """Resuming should pick up a timeout and settle everything else.
+
+    Amended 2026-09-12 against the live run, which produced 33 failures in its first four
+    models and not one of them was transient: 25 models reasoning past the token budget, 4
+    refusals, 1 stopping early. Re-asking those buys the identical failure at the identical
+    price, and 25 truncations at 1024 output tokens each is real money per resume.
+    """
     path = tmp_path / "run.jsonl"
     records.append(
         path,
         [
             _record("ok"),
-            _record("failed", error="ReadTimeout", correct=None, reply=None),
+            _record("timeout", error="ReadTimeout", retryable=True, correct=None, reply=None),
+            _record("refused", error="the model returned no text (refusal)", correct=None),
+            _record("truncated", error="no text (max_tokens), 1024 spent", correct=None),
             _record("unreadable", correct=None, parsed=None, unparsed=True, reply="hmm"),
         ],
     )
-    assert records.done(path) == frozenset({"hash-of-ok", "hash-of-unreadable"})
+    assert records.done(path) == frozenset(
+        {"hash-of-ok", "hash-of-refused", "hash-of-truncated", "hash-of-unreadable"}
+    ), "only the timeout is asked again"
     assert records.done(path, include_errors=True) == frozenset(
-        {"hash-of-ok", "hash-of-failed", "hash-of-unreadable"}
+        {
+            "hash-of-ok",
+            "hash-of-timeout",
+            "hash-of-refused",
+            "hash-of-truncated",
+            "hash-of-unreadable",
+        }
     )
+
+
+def test_raising_the_budget_re_asks_a_truncated_item_without_being_asked_to(
+    tmp_path: Path,
+) -> None:
+    """Settling a deterministic failure costs nothing, because the request hash is the key.
+
+    A model that reasoned past 1024 tokens will do it again at 1024. At 4096 it is a different
+    request, so it comes back on its own and no special case is needed anywhere.
+    """
+    small = build_prompts([MC], "m")[0]
+    big = build_prompts([MC], "m", settings=Settings(max_tokens=4096))[0]
+    assert small.request_sha256 != big.request_sha256
 
 
 def test_a_half_written_last_line_is_skipped_not_raised_on(tmp_path: Path) -> None:
