@@ -6,9 +6,14 @@ PLAN.md section 5: `mselect bank build`, `mselect fit`, `mselect simulate`, `mse
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 import typer
 
 from mselect import paths
+
+if TYPE_CHECKING:
+    from mselect.runner.prompts import PanelEntry
 
 app = typer.Typer(add_completion=False, help=__doc__)
 bank_app = typer.Typer(
@@ -19,6 +24,13 @@ app.add_typer(bank_app, name="bank")
 
 def _say(message: str) -> None:
     typer.echo(message)
+
+
+def prompts_panel() -> tuple[PanelEntry, ...]:
+    """The panel, imported late so the command line starts without pulling in the runner."""
+    from mselect.runner.prompts import PANEL
+
+    return PANEL
 
 
 @bank_app.command("fetch")
@@ -341,6 +353,107 @@ def suite(
         _say(f"\nwrote {chosen.save(suite_mod.default_path(version))}")
     else:
         _say("\nnothing written; pass --write to save the suite")
+
+
+@app.command("smoke")
+def smoke(
+    alias: str = typer.Option(
+        "", "--alias", help="Comma-separated aliases. Default: the price-zero local ones only."
+    ),
+    items_per_alias: int = typer.Option(3, "--items", help="Items per alias. Keep it small."),
+    version: str = typer.Option("v1", help="Which bank the items come from."),
+    yes: bool = typer.Option(
+        False, "--yes", help="Required before any alias that costs money is called."
+    ),
+) -> None:
+    """Ask a few real items and report what came back. The only check that needs a real call.
+
+    Reports, per alias: how many replies parsed, how many scored, how many came back
+    unreadable, and what it cost. An unparsed reply is the finding, not a wrong answer: it
+    means the answer-only format does not hold for that model and the run would record noise.
+
+    Costs nothing by default. Naming a vendor alias needs `--yes`, and `mselect routes` is
+    what to run first.
+    """
+    from mselect.runner import administer, gateway, items, records
+    from mselect.runner import suite as suite_mod
+
+    config = gateway.load_config()
+    all_routes = gateway.routes_of(config)
+    providers = config.get("providers", {})
+
+    def is_free(name: str) -> bool:
+        route = all_routes.get(name)
+        if route is None:
+            return False
+        return bool(providers.get(route["provider"], {}).get("price_zero"))
+
+    named = [a.strip() for a in alias.split(",") if a.strip()]
+    wanted = named or [e.alias for e in prompts_panel() if is_free(e.alias)]
+    unknown = [a for a in wanted if a not in all_routes]
+    if unknown:
+        raise typer.BadParameter(f"no route for {', '.join(unknown)}")
+    paid = [a for a in wanted if not is_free(a)]
+    if paid and not yes:
+        _say(f"{', '.join(paid)} would cost money. Nothing was called.")
+        _say("Run `mselect routes` first, then add --yes when you mean it.")
+        raise typer.Exit(code=1)
+
+    pool = items.administrable(version)
+    index = pool.index()
+    chosen_suite = suite_mod.Suite.load(suite_mod.default_path(version))
+    # The first few items of the committed suite, so a smoke run asks what the panel will ask
+    # rather than something easier. Spread across benchmarks: a model can parse a multiple
+    # choice and still not box a MATH answer.
+    picked: list[str] = []
+    seen: set[str] = set()
+    for item_id in chosen_suite.item_ids:
+        item = index.get(item_id)
+        if item is None or item.benchmark in seen:
+            continue
+        seen.add(item.benchmark)
+        picked.append(item_id)
+        if len(picked) >= items_per_alias:
+            break
+    for item_id in chosen_suite.item_ids:
+        if len(picked) >= items_per_alias:
+            break
+        if item_id in index and item_id not in picked:
+            picked.append(item_id)
+    asking = [index[i] for i in picked]
+
+    _say(f"asking {len(asking)} items of {len(wanted)} alias(es): {', '.join(wanted)}")
+    _say(f"items: {', '.join(sorted({i.benchmark for i in asking}))}")
+
+    path = paths.ensure(paths.OUT / version) / "smoke.jsonl"
+    already = records.done(path)
+    total = 0.0
+    with gateway.open_gateway() as gw:
+        caller = gateway.BoundaryCaller(gw, purpose="smoke", run_id="smoke")
+        for name in wanted:
+            written = administer.administer(asking, name, caller, done=already)
+            if not written:
+                _say(f"  {name:<18} every cell already recorded; nothing called")
+                continue
+            records.append(path, written)
+            scored = sum(1 for r in written if r.correct is not None)
+            right = sum(r.correct or 0 for r in written)
+            unparsed = sum(1 for r in written if r.unparsed)
+            failed = sum(1 for r in written if r.error is not None)
+            cost = sum(r.cost_usd or 0.0 for r in written)
+            total += cost
+            _say(
+                f"  {name:<18} {scored}/{len(written)} scored, {right} correct, "
+                f"{unparsed} unparsed, {failed} failed, US${cost:.5f}"
+            )
+            for record in written:
+                if record.unparsed or record.error is not None:
+                    reply = (record.reply or "")[:60].replace("\n", " ")
+                    why = record.error or "unparsed"
+                    _say(f"      ! {record.benchmark} {why}: {reply!r}")
+    _say(f"\ntotal US${total:.5f}; records in {path}")
+    if total == 0.0 and paid:
+        _say("no cost recorded for a paid alias: check the ledger before trusting that.")
 
 
 @app.command("report")

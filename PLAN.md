@@ -853,8 +853,23 @@ answer changes with the network rather than with the code.
 
 What no amount of reading settles is whether each model answers in the answer-only format the
 run assumes. Google's Flash spent a small token budget on reasoning and returned no text on
-2026-09-10; only a real call finds that. `boundary smoke <provider>` is that call, it costs
-fractions of a cent, and it is the last step before the panel.
+2026-09-10; only a real call finds that. `mselect smoke` is that call: a few items of the
+committed suite, spread across benchmarks, reported per alias as parsed, scored, unparsed and
+failed. An unparsed reply is the finding, because a model whose answers cannot be read would
+have its noise recorded as wrong answers across 3,000 items.
+
+It cannot spend by default. With no arguments it calls the price-zero local models only; a
+vendor alias needs `--yes` and is refused before a gateway is opened, which
+`tests/test_cli_guards.py` asserts rather than trusting to habit.
+
+Run free on 2026-09-11 it already earned itself. `local-small-a` answered four items across
+MMLU, MedQA, LegalBench and MATH: four scored, two correct, none unparsed, which is the first
+end-to-end evidence that the rebuilt LegalBench options and the extracted MATH keys work against
+a real model rather than only against their own references. `local-small-b` failed all four:
+**`qwen2.5:7b` is not pulled**, and at 4-bit it is about 4.7 GB against the 4 GB card section 7
+describes, so it would run on the CPU. The panel's own constraint is 3B to 4B at 4-bit, so the
+route wants either a pull and an overnight run, or a smaller model such as `qwen2.5:3b`. That is
+a panel decision and it is Peter's, like the vendor routes.
 
 ### 15.4 The panel is configured but not yet chosen
 
