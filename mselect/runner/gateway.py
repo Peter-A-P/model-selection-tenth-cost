@@ -21,7 +21,7 @@ Three things are decided here rather than in the experiment:
 
 from __future__ import annotations
 
-from collections.abc import Iterator, Sequence
+from collections.abc import Iterator, Mapping, Sequence
 from pathlib import Path
 from typing import Any
 
@@ -39,6 +39,7 @@ from boundary import (
 from mselect.runner.administer import Prompt, Reply
 
 CONFIG = Path(__file__).resolve().parent.parent / "config" / "boundary.yaml"
+EXTRAS = CONFIG.parent / "request-extras.yaml"
 PROJECT = "model-selection-tenth-cost"
 
 # Anthropic accepts far more than this in one batch. The limit here is about what a failure
@@ -79,7 +80,24 @@ def routes_of(config: dict[str, Any]) -> dict[str, dict[str, str]]:
     return routes
 
 
-def _request(prompt: Prompt) -> ChatRequest:
+def extras_of(path: Path = EXTRAS) -> dict[str, dict[str, Any]]:
+    """alias -> vendor fields merged into that model's request body.
+
+    Kept out of the gateway's routing file, whose schema forbids unknown route keys and is
+    right to. A property of the model rather than of the provider: two Gemini models in one
+    panel do not need the same thing, and a model that reasons by default has to be told not
+    to or it spends an answer-only budget on thinking and returns nothing.
+    """
+    if not path.is_file():
+        return {}
+    loaded = yaml.safe_load(path.read_text(encoding="utf-8"))
+    aliases = loaded.get("aliases") if isinstance(loaded, dict) else None
+    if not isinstance(aliases, dict):
+        return {}
+    return {str(a): dict(v) for a, v in aliases.items() if isinstance(v, dict)}
+
+
+def _request(prompt: Prompt, extra: Mapping[str, Any] | None = None) -> ChatRequest:
     """One prompt as a vendor-neutral request. The alias goes through unresolved: the
     routes file decides what it means, which is the reason the panel is named by alias."""
     return ChatRequest(
@@ -88,7 +106,29 @@ def _request(prompt: Prompt) -> ChatRequest:
         messages=[{"role": "user", "content": prompt.user}],
         max_tokens=prompt.max_tokens,
         temperature=prompt.temperature,
+        extra=dict(extra) if extra else {},
     )
+
+
+def _why(response: ChatResponse) -> str:
+    """A failed call, in the vendor's own words where it gave any.
+
+    `str(response.status)` alone is "errored" or "batch_errored", which names the shape of the
+    failure and not the failure. The body is already parsed on the response; six Anthropic
+    failures reported nothing at all before this read it.
+    """
+    detail = ""
+    raw = response.raw
+    if isinstance(raw, dict):
+        error = raw.get("error")
+        if isinstance(error, dict):
+            parts = [str(error[k]) for k in ("type", "message") if error.get(k)]
+            detail = ": ".join(parts)
+        elif isinstance(error, str):
+            detail = error
+        if not detail and raw.get("message"):
+            detail = str(raw["message"])
+    return f"{response.status}: {detail}" if detail else str(response.status)
 
 
 def _reply(response: ChatResponse) -> Reply:
@@ -99,7 +139,8 @@ def _reply(response: ChatResponse) -> Reply:
         output_tokens=response.usage.output_tokens,
         model_returned=response.model_returned,
         ledger_id=response.ledger_id,
-        error=None if response.ok else str(response.status),
+        error=None if response.ok else _why(response),
+        finish_reason=response.finish_reason,
     )
 
 
@@ -121,10 +162,14 @@ class BoundaryCaller:
         batch_size: int = DEFAULT_BATCH_SIZE,
         wait_s: float = 3600.0,
         poll_s: float = 30.0,
+        extras: Mapping[str, Mapping[str, Any]] | None = None,
     ) -> None:
         self.gateway = gateway
         self.purpose = purpose
         self.run_id = run_id
+        # Per-alias vendor fields from the routing file. Empty for most models; the ones that
+        # reason by default need to be told not to, or an answer-only budget buys no answer.
+        self.extras: Mapping[str, Mapping[str, Any]] = extras or {}
         self.use_batches = use_batches
         self.batch_size = batch_size
         self.wait_s = wait_s
@@ -152,7 +197,9 @@ class BoundaryCaller:
         for chunk in _chunks(prompts, self.batch_size):
             try:
                 handle = self.gateway.batch_submit(
-                    [_request(p) for p in chunk], purpose=self.purpose, run_id=self.run_id
+                    [_request(p, self.extras.get(p.alias)) for p in chunk],
+                    purpose=self.purpose,
+                    run_id=self.run_id,
                 )
             except ConfigError:
                 # No batch support for this provider. Remembered, and the whole group falls
@@ -168,7 +215,9 @@ class BoundaryCaller:
         for prompt in prompts:
             try:
                 response = self.gateway.chat(
-                    _request(prompt), purpose=self.purpose, run_id=self.run_id
+                    _request(prompt, self.extras.get(prompt.alias)),
+                    purpose=self.purpose,
+                    run_id=self.run_id,
                 )
             except SpendCapExceeded:
                 # The one error that must not become a row. Carrying on would spend the rest

@@ -355,6 +355,67 @@ def suite(
         _say("\nnothing written; pass --write to save the suite")
 
 
+@app.command("models")
+def models(
+    show: str = typer.Option(
+        "", "--show", help="Also print every listed model for these providers, comma-separated."
+    ),
+    like: str = typer.Option("", "--like", help="With --show, only ids containing this."),
+) -> None:
+    """Ask each vendor what it serves today and check the panel against the answer.
+
+    Listing models generates no tokens, so it is billed nowhere and cannot spend. It needs the
+    keys, which is the only reason it is not part of `mselect routes`.
+
+    A model the vendor does not list is reported as "not listed" rather than wrong, because
+    some accounts can call models that do not appear. It tells you which routes to doubt;
+    `mselect smoke` is what settles them.
+    """
+    from mselect.runner import catalogue, gateway
+
+    config = gateway.load_config()
+    all_routes = gateway.routes_of(config)
+    providers = config.get("providers", {})
+    aliases = [e.alias for e in prompts_panel()]
+
+    checks, catalogues = catalogue.check_routes(providers, all_routes, aliases)
+
+    for name, found in sorted(catalogues.items()):
+        if found.ok:
+            _say(f"{name}: {len(found.models)} models listed")
+        else:
+            _say(f"{name}: could not ask ({found.error})")
+
+    _say("")
+    missing: list[catalogue.RouteCheck] = []
+    for check in checks:
+        if check.listed:
+            mark, note = "ok", ""
+        elif not check.known:
+            mark, note = "?", "provider did not answer"
+        else:
+            mark, note = "NOT LISTED", ""
+            missing.append(check)
+        _say(f"  {mark:<10} {check.alias:<18} {check.provider}/{check.model} {note}")
+
+    if missing:
+        _say(f"\n{len(missing)} route(s) name something the vendor does not list:")
+        for check in missing:
+            near = ", ".join(check.nearest) if check.nearest else "nothing similar listed"
+            _say(f"  {check.alias} -> {check.model}")
+            _say(f"      the vendor does list: {near}")
+
+    for name in [s.strip() for s in show.split(",") if s.strip()]:
+        found = catalogues.get(name) or catalogue.fetch(name, providers.get(name, {}))
+        if not found.ok:
+            _say(f"\n{name}: {found.error}")
+            continue
+        wanted = [m for m in found.models if not like or like.lower() in m.lower()]
+        _say(f"\n{name}, {len(wanted)} of {len(found.models)} models:")
+        for model in wanted:
+            _say(f"  {model}")
+
+
 @app.command("smoke")
 def smoke(
     alias: str = typer.Option(
@@ -429,7 +490,9 @@ def smoke(
     already = records.done(path)
     total = 0.0
     with gateway.open_gateway() as gw:
-        caller = gateway.BoundaryCaller(gw, purpose="smoke", run_id="smoke")
+        caller = gateway.BoundaryCaller(
+            gw, purpose="smoke", run_id="smoke", extras=gateway.extras_of()
+        )
         for name in wanted:
             written = administer.administer(asking, name, caller, done=already)
             if not written:

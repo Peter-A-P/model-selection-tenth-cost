@@ -44,13 +44,29 @@ providers:
 
 # The panel of PLAN.md section 3.3, one alias per entry in prompts.PANEL.
 #
-# The local routes are settled: llama3.2:3b is pulled and has answered through the gateway.
-# **The vendor routes below are provisional and are Peter's to confirm before any vendor
-# spending.** They are the current identifiers from the 2026-09-10 price list and from the
-# live calls the gateway made on 2026-09-10, which found that Google's Flash thinks by
-# default and returns no text in a small budget while Flash-Lite answers. Choosing the panel
-# is a decision about the experiment, not a detail of the plumbing, so it is dated and
-# recorded rather than assumed.
+# **Confirmed against real calls on 2026-09-12** by `mselect smoke`, which is the only thing
+# that settles a route. Seven of eleven answered and were scored. What the run found, and what
+# was done about each:
+#
+#   anthropic-haiku      3/3 scored, 3 correct                     kept
+#   openai-mid           3/3 scored, 3 correct                     kept
+#   openai-frontier      3/3 scored, 3 correct                     kept
+#   together-open-a      3/3 scored, 1 correct                     kept
+#   local-small-a        4/4 scored, 2 correct                     kept
+#   google-mid           2/3, one cut off mid-preamble             thinking disabled below
+#   google-frontier      0/3, no text at all, US$0.0014 spent      thinking disabled below
+#   together-open-b      0/3, no text at all, row uncosted         reasoning effort set below
+#   local-small-b        0/4, the model was never pulled           changed to qwen2.5:3b
+#   anthropic-sonnet     0/3, the batch errored                    UNRESOLVED, see below
+#   anthropic-opus       0/3, the batch errored                    UNRESOLVED, see below
+#
+# The two Anthropic identifiers are left exactly as they were. They are wrong or they are not,
+# and replacing them with a guess is how a wrong one gets into a routing file; `mselect models`
+# asks Anthropic what it serves and that decides it. Note that haiku, which works, is the one
+# route carrying a dated identifier.
+#
+# Choosing the panel is a decision about the experiment, not a detail of the plumbing, so it is
+# dated and recorded rather than assumed.
 routes:
   anthropic-haiku:
     provider: anthropic
@@ -67,6 +83,9 @@ routes:
   openai-frontier:
     provider: openai
     model: gpt-5.4
+  # Both Gemini models reason before answering; see request-extras.yaml, which tells them not
+  # to. Measured 2026-09-12: Flash returned nothing at all on all three smoke items at a cost
+  # of US$0.0014, and Flash-Lite got one of three cut off mid-preamble.
   google-mid:
     provider: google
     model: gemini-3.5-flash-lite
@@ -76,15 +95,20 @@ routes:
   together-open-a:
     provider: openweights
     model: meta-llama/Llama-3.3-70B-Instruct-Turbo
+  # gpt-oss reasons by default too: 16 output tokens spent, no text, on all three smoke items,
+  # and the row was uncosted as well. See request-extras.yaml.
   together-open-b:
     provider: openweights
     model: openai/gpt-oss-120b
   local-small-a:
     provider: local
     model: llama3.2:3b
+  # Peter's choice 2026-09-12. qwen2.5:7b was the first pick and is about 4.7 GB at 4-bit
+  # against a 4 GB card, so it would have run on the CPU; section 7's constraint for this slot
+  # is 3B to 4B. Needs `ollama pull qwen2.5:3b`.
   local-small-b:
     provider: local
-    model: qwen2.5:7b
+    model: qwen2.5:3b
 
 prices: prices
 caps: caps.yaml

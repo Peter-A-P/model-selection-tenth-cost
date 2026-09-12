@@ -1,0 +1,34 @@
+# Vendor fields merged into the request body for one alias, by `runner/gateway.py`.
+#
+# Not in boundary.yaml: that is the gateway's file, its route schema forbids unknown keys, and
+# it is right to. These are a property of how this experiment asks a question rather than of
+# where the question is sent, which is the same line the gateway drew when its own smoke command
+# needed one: the value belongs to the caller, not the library.
+#
+# Everything here exists because a model returned no text. This project's answer-only format
+# gives a reply 16 tokens, and a model that reasons first spends all 16 on the reasoning and
+# has nothing left to answer with. That is not a model failing the task; it is a request shaped
+# for a model that answers immediately. Each entry below names the call that proved it.
+
+version: 1
+
+aliases:
+  # 2026-09-12: 0 of 3 items returned any text, 13 output tokens each, US$0.0014 spent on
+  # nothing. The gateway merges these into the built `generationConfig` rather than replacing
+  # it, so `maxOutputTokens` survives.
+  google-frontier:
+    generationConfig:
+      thinkingConfig:
+        thinkingBudget: 0
+
+  # 2026-09-12: 2 of 3 scored; the third came back as "To determine which developmental
+  # milestone is delayed, let's" and stopped, which is the same failure with a shorter preamble.
+  google-mid:
+    generationConfig:
+      thinkingConfig:
+        thinkingBudget: 0
+
+  # 2026-09-12: 0 of 3 returned text, 16 output tokens each, and the ledger could not cost the
+  # row either. Together takes the effort as a top-level field.
+  together-open-b:
+    reasoning_effort: low

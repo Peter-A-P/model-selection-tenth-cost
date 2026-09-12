@@ -278,3 +278,34 @@ def test_a_half_written_last_line_is_skipped_not_raised_on(tmp_path: Path) -> No
         handle.write('{"cell": "b", "correct"')
     assert records.done(path) == frozenset({"a"})
     assert len(list(records.read(path))) == 1
+
+
+def test_a_reply_with_no_text_is_a_finding_not_a_silence() -> None:
+    """A 200 with an empty completion used to count as neither unparsed nor failed.
+
+    It is what a model does when it spends its whole token budget reasoning before answering,
+    and it is the failure this check exists to catch. `google-frontier` reported "0 scored,
+    0 correct, 0 unparsed, 0 failed" on 2026-09-12 and had cost real money.
+    """
+    empty = Reply(text=None, output_tokens=13, finish_reason="max_tokens", cost_usd=0.0002)
+    written = administer([MC], "some-alias", FakeCaller(lambda _p: empty))
+    assert len(written) == 1
+    record = written[0]
+    assert record.correct is None and record.unparsed is False
+    assert record.error is not None, "an empty reply has to say something"
+    assert "no text" in record.error
+    assert "max_tokens" in record.error, "the vendor's reason is the useful part"
+    assert "13 output tokens" in record.error
+    assert record.finish_reason == "max_tokens"
+
+
+def test_whitespace_only_is_no_text_too() -> None:
+    written = administer([MC], "some-alias", _always("   " + chr(10)))
+    assert written[0].error is not None and "no text" in written[0].error
+
+
+def test_a_real_answer_is_not_mistaken_for_an_empty_one() -> None:
+    written = administer([MC], "some-alias", _always("B", finish_reason="stop"))
+    assert written[0].error is None
+    assert written[0].correct == 1
+    assert written[0].finish_reason == "stop"

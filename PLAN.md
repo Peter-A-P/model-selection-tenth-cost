@@ -862,14 +862,73 @@ It cannot spend by default. With no arguments it calls the price-zero local mode
 vendor alias needs `--yes` and is refused before a gateway is opened, which
 `tests/test_cli_guards.py` asserts rather than trusting to habit.
 
-Run free on 2026-09-11 it already earned itself. `local-small-a` answered four items across
-MMLU, MedQA, LegalBench and MATH: four scored, two correct, none unparsed, which is the first
-end-to-end evidence that the rebuilt LegalBench options and the extracted MATH keys work against
-a real model rather than only against their own references. `local-small-b` failed all four:
-**`qwen2.5:7b` is not pulled**, and at 4-bit it is about 4.7 GB against the 4 GB card section 7
-describes, so it would run on the CPU. The panel's own constraint is 3B to 4B at 4-bit, so the
-route wants either a pull and an overnight run, or a smaller model such as `qwen2.5:3b`. That is
-a panel decision and it is Peter's, like the vendor routes.
+### 15.8 The first paid smoke run, 2026-09-12
+
+Peter set the keys and ran it across all nine vendor aliases. **Twenty-seven calls, US$0.011,
+and four of eleven routes were wrong.** The whole own-run programme is about US$12, so this
+found four defects for a tenth of one percent of the budget, before any of them could be
+multiplied by 3,000 items.
+
+| Alias | Result | Cause | Done |
+|---|---|---|---|
+| anthropic-haiku | 3/3 scored, 3 correct | | kept |
+| openai-mid | 3/3 scored, 3 correct | | kept |
+| openai-frontier | 3/3 scored, 3 correct | | kept |
+| together-open-a | 3/3 scored, 1 correct | | kept |
+| local-small-a | 4/4 scored, 2 correct | | kept |
+| google-mid | 2/3, one cut off mid-preamble | reasons before answering | thinking disabled |
+| google-frontier | **0/3, no text at all**, US$0.0014 | reasons before answering | thinking disabled |
+| together-open-b | **0/3, no text at all**, row uncosted | reasons before answering | effort set to low |
+| local-small-b | 0/4 | `qwen2.5:7b` was never pulled | changed to `qwen2.5:3b` |
+| anthropic-sonnet | 0/3, the batch errored | identifier, probably | **unresolved** |
+| anthropic-opus | 0/3, the batch errored | identifier, probably | **unresolved** |
+
+**The run also found three defects in this repository**, each one in what a failure is allowed
+to say, and each one worse than the route it was hiding.
+
+- **A failed call said "errored".** `str(response.status)` names the shape of a failure, not the
+  failure, and the vendor's own message was sitting parsed on the response and being thrown
+  away. Six Anthropic failures reported nothing at all.
+- **A call that succeeded and returned no text was invisible.** `unparsed` needs text to parse
+  and an error needs a failure, so a 200 with an empty completion counted as neither:
+  `google-frontier` reported "0 scored, 0 correct, 0 unparsed, 0 failed" and had spent money.
+  That is precisely the failure this check exists to catch and it was the one shape it could not
+  see. An empty reply is now an error that names the finish reason and the tokens spent.
+- **`finish_reason` never reached the record.** It is the field that separates "this model will
+  not do this" from "this request was shaped wrong", which is the difference between changing
+  the panel and changing four lines of configuration.
+
+**Three of the four route failures are the same failure.** A model that reasons before answering
+spends the whole 16-token answer-only budget on the reasoning and has nothing left to answer
+with. That is not a model failing the task; it is a request shaped for a model that answers
+immediately. `boundary.ChatRequest` has always had `extra` for this and this adapter never used
+it, so the fix is now configuration: `mselect/config/request-extras.yaml`, per alias, each entry
+naming the call that proved it. It is deliberately not in `boundary.yaml`, whose route schema
+forbids unknown keys and is right to; the gateway drew the same line when its own smoke command
+needed one, and called it caller's business rather than library's.
+
+**The two Anthropic identifiers are left exactly as they were**, because they are wrong or they
+are not and replacing them with a guess is how a wrong one gets into a routing file.
+`mselect models` asks each vendor for its own list and marks every route the vendor does not
+carry, ranking the near misses by how much of the name they share, weighted so that a token
+common to every identifier counts for less: without that, "claude" scores as highly as "opus"
+and every Claude model ties for first. Listing models generates no tokens and so is billed
+nowhere, which is why it is a check rather than a cost.
+
+It is worth noting that `anthropic-haiku` is the one Anthropic route carrying a dated
+identifier, and the one that works.
+
+### 15.9 Local models
+
+Run free on 2026-09-11, `local-small-a` answered four items across MMLU, MedQA, LegalBench and
+MATH: four scored, two correct, none unparsed. That is the first end-to-end evidence that the
+rebuilt LegalBench options and the extracted MATH keys work against a real model rather than
+only against their own references.
+
+`local-small-b` is `qwen2.5:3b` as of 2026-09-12, Peter's choice. It was `qwen2.5:7b`, which was
+never pulled and which is about 4.7 GB at 4-bit against the 4 GB card section 7 describes, so it
+would have run on the CPU; the constraint for this slot is 3B to 4B. It needs
+`ollama pull qwen2.5:3b` before the panel runs.
 
 ### 15.4 The panel is configured but not yet chosen
 

@@ -100,6 +100,10 @@ class Reply:
     model_returned: str | None = None
     ledger_id: int | None = None
     error: str | None = None
+    # Why the vendor stopped. The field that separates "this model will not do this" from
+    # "this request was shaped wrong", which is the difference between changing the panel and
+    # changing four lines of configuration.
+    finish_reason: str | None = None
 
 
 class Caller(Protocol):
@@ -136,6 +140,9 @@ class Administration:
     ledger_id: int | None
     error: str | None
     request_sha256: str
+    # Why the vendor stopped, when it said. Defaulted rather than required so a record file
+    # written before this existed still loads: a resumed run reads its own old lines.
+    finish_reason: str | None = None
     settings: dict[str, Any] = field(default_factory=dict)
 
     @property
@@ -270,6 +277,13 @@ def administer(
         error = reply.error
         if error is None and key is None:
             error = "item has no usable answer key"
+        elif error is None and not (reply.text or "").strip():
+            # A 200 with an empty completion. Not a wrong answer and not a failed call, so
+            # without this it was recorded as neither and disappeared from every count. It
+            # happens when a model spends its whole token budget reasoning before answering.
+            spent = f", {reply.output_tokens} output tokens spent" if reply.output_tokens else ""
+            because = f" ({reply.finish_reason})" if reply.finish_reason else ""
+            error = f"the model returned no text{because}{spent}"
         records.append(
             Administration(
                 cell=prompt.cell,
@@ -284,6 +298,7 @@ def administer(
                 correct=correct,
                 unparsed=error is None and reply.text is not None and correct is None,
                 reply=reply.text,
+                finish_reason=reply.finish_reason,
                 cost_usd=reply.cost_usd,
                 input_tokens=reply.input_tokens,
                 output_tokens=reply.output_tokens,
