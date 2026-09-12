@@ -145,6 +145,80 @@ def crossbank(
     _say(experiment.run(first=first, second=second, kind=model, seed=seed, progress=_say))
 
 
+@app.command("suite")
+def suite(
+    version: str = typer.Option("v1", help="Which bank the items come from."),
+    size: int = typer.Option(3_000, help="How many items every full-suite model is asked."),
+    seed: int = typer.Option(20_260_911, help="The draw. Recorded in the file."),
+    write: bool = typer.Option(False, "--write", help="Save the suite. Without this, print only."),
+) -> None:
+    """Choose the own-run item set and price it. Sends nothing and costs nothing.
+
+    Run this before `mselect run`. It prints what each panel member would be asked, what the
+    bill would be against the committed price file, and how that compares with the cap. The
+    cap is enforced by the gateway regardless; this is so nobody finds out the expensive way.
+    """
+    from mselect.runner import gateway, items
+    from mselect.runner import suite as suite_mod
+
+    pool = items.administrable(version)
+    _say(pool.summary())
+    for reason, n in pool.by_reason().items():
+        _say(f"  excluded {n:,}: {reason}")
+
+    chosen = suite_mod.choose(pool, size, seed=seed)
+    counts = ", ".join(f"{k} {v:,}" for k, v in chosen.by_benchmark(pool).items())
+    _say(f"\nsuite: {chosen.size:,} items, seed {chosen.seed}, drawn {chosen.chosen}")
+    _say(f"  {counts}")
+
+    config = gateway.load_config()
+    prices = suite_mod.load_prices(
+        suite_mod.latest_price_file(gateway.CONFIG.parent / str(config.get("prices", "prices")))
+    )
+    routes = gateway.routes_of(config)
+    lines = suite_mod.programme(chosen, pool, routes, prices)
+    _say("\nestimated at the batch rate, before any call:")
+    total = 0.0
+    unpriced: set[str] = set()
+    for name, part in lines.items():
+        _say(f"\n  {name}")
+        for line in part.lines:
+            money = "no price listed" if line.usd is None else f"US${line.usd:>8,.2f}"
+            _say(
+                f"    {line.alias:<18} {line.calls:>7,} calls  "
+                f"{line.input_tokens:>10,} in  {line.output_tokens:>8,} out  {money}"
+            )
+        total += part.usd
+        unpriced |= set(part.unpriced)
+        _say(f"    {'':<18} {'':>7}         subtotal US${part.usd:,.2f}")
+    _say(
+        f"\nwhole programme: US${total:,.2f}, "
+        f"US${total * suite_mod.MARGIN:,.2f} with the {suite_mod.MARGIN:g}x margin"
+    )
+    for alias in sorted(unpriced):
+        _say(f"  ! {alias} has no rate in the price file and is not counted as free")
+    estimate = lines["full suite and frontier check"]
+
+    caps = suite_mod.load_prices(gateway.CONFIG.parent / str(config.get("caps", "caps.yaml")))
+    per_run = caps.get("projects", {}).get("model-selection-tenth-cost", {}).get("per_run_usd")
+    if per_run is not None:
+        verdict = "fits" if estimate.with_margin <= float(per_run) else "DOES NOT FIT"
+        _say(
+            f"\nper-run cap US${float(per_run):,.2f}: the largest single run "
+            f"(US${estimate.with_margin:,.2f} with margin) {verdict}"
+        )
+    monthly = caps.get("projects", {}).get("model-selection-tenth-cost", {}).get("monthly_usd")
+    if monthly is not None:
+        fits = total * suite_mod.MARGIN <= float(monthly)
+        verdict = "fits" if fits else "DOES NOT FIT"
+        _say(f"monthly cap US${float(monthly):,.2f}: the whole programme {verdict}")
+
+    if write:
+        _say(f"\nwrote {chosen.save(suite_mod.default_path(version))}")
+    else:
+        _say("\nnothing written; pass --write to save the suite")
+
+
 @app.command("report")
 def report(version: str = typer.Option("v1")) -> None:
     """Regenerate the README results table and the figures from the saved outputs."""

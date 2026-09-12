@@ -25,6 +25,7 @@ from collections.abc import Iterator, Sequence
 from pathlib import Path
 from typing import Any
 
+import yaml
 from boundary import (
     BatchNotReady,
     BoundaryError,
@@ -54,6 +55,28 @@ def open_gateway(
 ) -> Gateway:
     """A gateway configured for this project's panel. The caller closes it."""
     return Gateway.from_config(config, project=project, ledger_path=ledger_path)
+
+
+def load_config(path: Path = CONFIG) -> dict[str, Any]:
+    """The routing file as plain data, for reading rather than for calling.
+
+    Opening a gateway constructs transports and a ledger. Pricing a run that has not happened
+    yet needs neither, and should not be able to make a request by accident.
+    """
+    loaded = yaml.safe_load(path.read_text(encoding="utf-8"))
+    return dict(loaded) if isinstance(loaded, dict) else {}
+
+
+def routes_of(config: dict[str, Any]) -> dict[str, dict[str, str]]:
+    """alias -> {provider, model}, as the routing file states it."""
+    routes: dict[str, dict[str, str]] = {}
+    for alias, route in config.get("routes", {}).items():
+        if isinstance(route, dict) and "provider" in route and "model" in route:
+            routes[str(alias)] = {
+                "provider": str(route["provider"]),
+                "model": str(route["model"]),
+            }
+    return routes
 
 
 def _request(prompt: Prompt) -> ChatRequest:

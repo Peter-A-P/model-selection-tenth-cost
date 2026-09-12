@@ -38,6 +38,10 @@ dependencies = [
   # enforced there, and Anthropic's Message Batches at half price. Pinned to >=0.2 because the
   # batch endpoint arrived in 0.2.0; below 1 because Part B of that project is a major bump.
   "boundary>=0.2,<1",
+  # The routing, price and cap files are YAML, and this project reads them directly to price a
+  # run before making one. It arrived transitively through the gateway before; a module that
+  # imports it declares it. 6.x is the current line.
+  "pyyaml>=6,<7",
 ]
 
 [tool.uv.sources]
@@ -57,6 +61,9 @@ dev = [
   # Mocks the gateway's httpx transport, so the one place this project talks to a vendor is
   # tested without talking to one. Same pin as the gateway repository uses.
   "respx>=0.22,<1",
+  # Stubs for the YAML reader above, so `mypy --strict` checks the config parsing rather than
+  # waving it through as Any.
+  "types-PyYAML>=6,<7",
 ]
 
 [project.scripts]

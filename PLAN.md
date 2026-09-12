@@ -249,6 +249,28 @@ their price pages before the first run. Answer-only format keeps outputs near 40
 | Development and re-runs not covered by cache | | | ~US$10 |
 | **Total** | | | **~US$60, about CA$80** |
 
+**Measured 2026-09-11, and the estimate above was high by a factor of ten.** The table was
+written before a single item had been looked at, so its per-call input figure was a guess: it
+assumed 611 tokens and the suite actually averages **188**. `mselect suite` prices the run from
+the items themselves against the committed price file, so this is now a number rather than an
+assumption, and it is regenerated rather than typed.
+
+| Line | Calls | Tokens (in / out) | At the batch rate |
+|---|---:|---|---:|
+| Full suite and frontier check, 11 aliases | 26,700 | 5.0M / 0.43M | **US$2.76** |
+| Test-retest, 8 aliases, 500 items again | 4,000 | 0.71M / 0.06M | US$0.39 |
+| Position bias, 8 aliases, 300 items, 3 further rotations | 7,200 | 1.35M / 0.12M | US$0.72 |
+| Framing, 8 aliases, 300 items, letter-only | 2,400 | 0.47M / 0.04M | US$0.25 |
+| Framing, 8 aliases, 300 items, brief reasoning | 2,400 | 0.50M / 0.61M | US$1.17 |
+| **Total** | **42,700** | **8.1M / 1.3M** | **US$5.29, US$6.62 with a 1.25x margin** |
+
+That is about **CA$9 against a CA$220 budget**, and it changes what the budget is for. The
+constraint the plan was written around is not binding, so the question is no longer what to cut
+but whether to widen: section 7's own first choice, ten full-suite models rather than six, costs
+about a dollar more. Two things stay true regardless. The estimate is a planning number and the
+gateway's cap is what actually stops a run; and a cheap run is not a free one, so it still waits
+on Peter's go.
+
 Against the CA$220 line that leaves about CA$140. Spend it, in order, on: (1) widening the
 own-run panel to ten full-suite models, which strengthens the validation; (2) a second
 test-retest run a week later; (3) nothing. Record the actual invoice in the portfolio's
@@ -756,6 +778,49 @@ The general lesson is not about licensing. It is that **a claim in a document is
 of a repository until something checks it**, and this project had already learned that about
 credentials and had not applied it to content.
 
+
+### 15.5 What a public release will not let you re-ask, 2026-09-11
+
+The bank stores no item text, so an own run rebuilds each question from the cached release.
+`runner/items.py` is that lookup, and writing it turned up the thing worth writing down: a
+per-instance release is published so that a score can be checked, not so that a question can be
+asked again, and three of bank v1's eight benchmarks do not survive the round trip. None of them
+fails loudly. Each would have produced a plausible number, at full price, that meant nothing.
+
+| Benchmark | What arrives | What it would have done | What happens instead |
+|---|---|---|---|
+| GPQA, 446 items | Every question and option is a placeholder, `[encrypted_text_N]` | Asked a model to choose between four placeholders | Excluded, with the reason recorded. The items stay in the bank, which needs only the 0 or 1 |
+| LegalBench, 2,047 items | One option, which is the correct answer | Offered a single choice that was the right one, and scored every model 100 percent | Options rebuilt from the task's own label set: 5 tasks, of 2, 5 and 7 labels |
+| GSM8K and MATH, 1,437 items | The answer key is the full worked solution | Compared a model's final answer against a paragraph of derivation, and scored every model 0 | The final value is extracted, by the same parser that reads a model's reply |
+
+GPQA's placeholders are deliberate on HELM's part and correct: its authors ask that the
+questions not be published in scrapeable form. That is a benchmark being careful, and the cost
+of being careful is that nobody else can re-administer it. Worth saying plainly in the write-up,
+because it is the same trade-off this repository makes when it commits no item text.
+
+The check that says all of this is now right is one line: **every one of the 19,919 administrable
+items grades its own reference answer as correct**, with the reply shaped the way the prompt asks
+for it. It runs in CI whenever the cache is present. The first time it ran, 105 items failed, all
+of them symbolic MATH answers sent bare rather than boxed, which was the check being wrong and
+not the pipeline; the version that is committed sends what a model would send.
+
+### 15.6 The suite is chosen
+
+`mselect/config/own-run-suite-v1.json`: 3,000 of the 19,919 administrable items, seed 20260911,
+drawn 2026-09-11. Committed rather than written to `out/`, because which items the panel was
+asked is part of the record of the experiment, the same as the routing table.
+
+Proportional to the pool and uniform inside each benchmark, which is two decisions:
+
+- **Proportional**, so the own-run "full suite" is a miniature of the bank the items were
+  calibrated on. MMLU is 70 percent of bank v1 and 2,099 of these 3,000. A rebalanced suite
+  would be a different measurement wearing the same name.
+- **Uniform inside a benchmark, ignoring the fitted parameters.** Choosing informative items
+  would tilt the suite toward exactly what adaptive selection is good at, and the headline claim
+  is measured against this suite. The draw must not know what the answer is supposed to be.
+
+Every benchmark clears 66 items at this size, which a test asserts, because proportional
+selection can round a small benchmark away and the guard against that is suite size.
 
 ### 15.4 The panel is configured but not yet chosen
 
