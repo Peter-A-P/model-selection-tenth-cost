@@ -181,15 +181,15 @@ def test_administer_skips_cells_already_done(tmp_path: Path) -> None:
     assert len(first) == 2 and len(caller.seen) == 2
 
     again = FakeCaller(lambda _p: Reply(text="B"))
-    out = administer([MC, MATH], "m", again, done=frozenset({first[0].cell}))
-    assert len(out) == 1, "only the cell that was not done"
+    out = administer([MC, MATH], "m", again, done=frozenset({first[0].request_sha256}))
+    assert len(out) == 1, "only the request that was not already made"
     assert out[0].item_id == "math:7"
     assert [p.item_id for p in again.seen] == ["math:7"], "nothing was sent for the done cell"
 
 
 def test_administer_sends_nothing_when_everything_is_done() -> None:
     caller = _always("B")
-    every = frozenset(p.cell for p in build_prompts([MC, MATH], "m"))
+    every = frozenset(p.request_sha256 for p in build_prompts([MC, MATH], "m"))
     assert administer([MC, MATH], "m", caller, done=every) == []
     assert caller.seen == []
 
@@ -220,6 +220,7 @@ def test_an_error_from_the_caller_is_recorded_rather_than_scored() -> None:
 def _record(cell: str, **kw: object) -> Administration:
     base: dict[str, object] = {
         "cell": cell,
+        # Distinct per record, because resume keys on the request rather than the cell.
         "item_id": "mmlu:1",
         "alias": "m",
         "benchmark": "mmlu",
@@ -237,7 +238,7 @@ def _record(cell: str, **kw: object) -> Administration:
         "model_returned": "claude-haiku-4-5-20251001",
         "ledger_id": 1,
         "error": None,
-        "request_sha256": "abc",
+        "request_sha256": f"hash-of-{cell}",
     }
     base.update(kw)
     return Administration(**base)  # type: ignore[arg-type]
@@ -247,9 +248,9 @@ def test_records_round_trip_and_resume(tmp_path: Path) -> None:
     path = tmp_path / "run.jsonl"
     assert records.done(path) == frozenset(), "a missing file is simply nothing done"
     assert records.append(path, [_record("a"), _record("b")]) == 2
-    assert records.done(path) == frozenset({"a", "b"})
+    assert records.done(path) == frozenset({"hash-of-a", "hash-of-b"})
     records.append(path, [_record("c")])
-    assert records.done(path) == frozenset({"a", "b", "c"})
+    assert records.done(path) == frozenset({"hash-of-a", "hash-of-b", "hash-of-c"})
     assert records.spend_usd(path) == pytest.approx(0.003)
 
 
@@ -265,8 +266,10 @@ def test_a_failed_cell_is_not_done_but_an_unparsed_one_is(tmp_path: Path) -> Non
             _record("unreadable", correct=None, parsed=None, unparsed=True, reply="hmm"),
         ],
     )
-    assert records.done(path) == frozenset({"ok", "unreadable"})
-    assert records.done(path, include_errors=True) == frozenset({"ok", "failed", "unreadable"})
+    assert records.done(path) == frozenset({"hash-of-ok", "hash-of-unreadable"})
+    assert records.done(path, include_errors=True) == frozenset(
+        {"hash-of-ok", "hash-of-failed", "hash-of-unreadable"}
+    )
 
 
 def test_a_half_written_last_line_is_skipped_not_raised_on(tmp_path: Path) -> None:
@@ -275,8 +278,8 @@ def test_a_half_written_last_line_is_skipped_not_raised_on(tmp_path: Path) -> No
     path = tmp_path / "run.jsonl"
     records.append(path, [_record("a")])
     with path.open("a", encoding="utf-8") as handle:
-        handle.write('{"cell": "b", "correct"')
-    assert records.done(path) == frozenset({"a"})
+        handle.write('{"cell": "b", "request_sha256": "hash-of-b", "correct"')
+    assert records.done(path) == frozenset({"hash-of-a"})
     assert len(list(records.read(path))) == 1
 
 
@@ -335,3 +338,49 @@ def test_the_record_says_what_was_sent_not_what_was_configured() -> None:
     assert written[0].settings["temperature"] is None
     normal = administer([MC], "anthropic-haiku", _always("B"))
     assert normal[0].settings["temperature"] == 0.0
+
+
+def test_repointing_an_alias_at_another_model_re_asks_its_items() -> None:
+    """The bug this contract exists for.
+
+    `openai-frontier` moved from gpt-5.4 to gpt-5.6-sol on 2026-09-12 and a resume reported
+    "every cell already recorded; nothing called". The cell was the same; the measurement was
+    not. A run that inherited those answers would have a column of one model's replies
+    labelled with another model's name and no way to tell.
+    """
+    before = build_prompts([MC], "openai-frontier", route="openai/gpt-5.4")[0]
+    after = build_prompts([MC], "openai-frontier", route="openai/gpt-5.6-sol")[0]
+    assert before.cell == after.cell, "same model slot, same item: one cell"
+    assert before.request_sha256 != after.request_sha256, "different model: different request"
+
+    caller = _always("B")
+    out = administer(
+        [MC],
+        "openai-frontier",
+        caller,
+        done=frozenset({before.request_sha256}),
+        route="openai/gpt-5.6-sol",
+    )
+    assert len(out) == 1, "the new model is asked even though the cell was recorded"
+
+
+def test_changing_a_vendor_field_re_asks_too() -> None:
+    """Disabling a model's reasoning changes what it answers, so old answers do not count."""
+    plain = build_prompts([MC], "google-mid", route="google/gemini-3.5-flash-lite")[0]
+    fixed = build_prompts([MC], "google-mid", route="google/gemini-3.5-flash-lite+abc123")[0]
+    assert plain.request_sha256 != fixed.request_sha256
+
+
+def test_an_unchanged_route_still_resumes_for_free() -> None:
+    """The whole point of resume: an interrupted run must not pay twice for the same work."""
+    route = "anthropic/claude-haiku-4-5-20251001"
+    first = administer([MC, MATH], "anthropic-haiku", _always("B"), route=route)
+    again = _always("B")
+    out = administer(
+        [MC, MATH],
+        "anthropic-haiku",
+        again,
+        done=frozenset(r.request_sha256 for r in first),
+        route=route,
+    )
+    assert out == [] and again.seen == []

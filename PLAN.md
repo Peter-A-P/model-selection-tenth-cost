@@ -960,6 +960,62 @@ obviously agree.
 It is worth noting that `anthropic-haiku` is the one Anthropic route carrying a dated
 identifier, and the one that works.
 
+### 15.13 Opus 5 reasons before it answers, and Sonnet 5 does not
+
+With the temperature fixed, `anthropic-sonnet` scored 3 of 3. `anthropic-opus` scored 1 of 3 and
+returned **no text at all** on the other two, 16 output tokens spent, finish reason `max_tokens`.
+So it reasons before answering and the answer-only budget buys none of the answer. That is the
+fourth model to do this and the third distinct vendor, which makes it a property of the current
+generation rather than of any one of them.
+
+The same finding also says the diagnostic added on 2026-09-12 works: "the model returned no text
+(max_tokens), 16 output tokens spent" is a sentence the previous version of this code could not
+have produced, and it took one run to earn itself.
+
+`request-extras.yaml` gains a `tokens` section for a per-alias budget, deliberately **left
+empty** until the number is measured rather than guessed:
+`mselect smoke --alias anthropic-opus --max-tokens N --yes` finds it, and because a budget is
+inside the request hash, raising it really does re-ask the items.
+
+What has to be decided once the number is known, and it is a decision about the experiment
+rather than about configuration: section 3.3 says answer-only for the bank runs and reserves
+reasoning prompts for the framing experiment. A model that reasons internally whatever it is
+asked cannot be held to that condition. The honest reading is that "answer-only" describes the
+**output format** this project requires and not the computation the vendor performs, that the
+distinction has stopped being observable from outside, and that the framing experiment's
+comparison of a plain against a brief-reasoning template is measuring something narrower than it
+was designed to. That belongs in the write-up.
+
+### 15.12 Resume was keyed on the wrong thing, and it took a repointed alias to show it
+
+The third smoke run, 2026-09-12, reported **"every cell already recorded; nothing called"** for
+four of seven aliases, including `openai-frontier`, which had been repointed from `gpt-5.4` to
+`gpt-5.6-sol` an hour earlier. A different model answering the same question is a different
+measurement and resume could not see it.
+
+`records.done` keyed on the cell: alias, item, template, rotation. That is the right name for a
+result and the wrong key for "have we already asked this", because it says nothing about what
+was asked. Meanwhile `request_sha256` sat in every record, claimed in its own docstring to be
+"everything that determines the reply", and was read by nothing. It was not true either: it
+covered the prompt but not the model the alias resolves to, nor the vendor fields merged into
+the body.
+
+Both halves are fixed. A `Prompt` now carries the route it was sent by, which is
+`provider/model` plus a fingerprint of its vendor fields, and that is inside the hash; `done`
+returns hashes. Change a template, a token budget, a temperature, a vendor field or a model, and
+those items are asked again. Change nothing, and an interrupted run resumes for free, which is
+what section 15.3 promised.
+
+**This mattered much more for the panel than for the smoke test.** A smoke run that skips four
+aliases wastes a minute. A 3,000-item run that is interrupted, edited and resumed would have
+produced a column of one model's answers under another model's name, with nothing anywhere
+saying so, and the calibration would have been fitted on it.
+
+Two defects in one week have had the same shape: a piece of evidence that described the
+configuration rather than the request. The temperature in section 15.11 was the other. A record
+that says what was configured instead of what was sent is not a small inaccuracy, because the
+whole claim of this repository is that a stranger can check the numbers.
+
 ### 15.11 Two models will not take a temperature, which section 3.3 assumed they all would
 
 `mselect smoke --no-batch` returned the same 400 six times on 2026-09-12:

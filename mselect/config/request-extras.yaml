@@ -48,3 +48,18 @@ aliases:
 omit:
   anthropic-sonnet: [temperature]
   anthropic-opus: [temperature]
+
+# Answer-only token budgets, where the default of 16 is not enough.
+#
+# Section 3.3 gives a reply a small budget because the format is answer-only: a letter, or a
+# boxed value. A model that reasons before it answers needs room for the reasoning too, and
+# giving it none does not produce a shorter answer, it produces no answer.
+#
+# Measured 2026-09-12: `anthropic-opus` returned no text on 2 of 3 smoke items, 16 output
+# tokens spent each time, finish reason max_tokens. `anthropic-sonnet` answered all 3 inside
+# 16, so this is a property of the model and not of the family.
+#
+# Left empty until the right number is measured rather than guessed:
+# `mselect smoke --alias anthropic-opus --max-tokens N --yes` finds it, and changing the
+# budget changes the request hash, so the items really are asked again.
+tokens: {}

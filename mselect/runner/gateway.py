@@ -21,6 +21,8 @@ Three things are decided here rather than in the experiment:
 
 from __future__ import annotations
 
+import hashlib
+import json
 from collections.abc import Iterator, Mapping, Sequence
 from pathlib import Path
 from typing import Any
@@ -118,6 +120,47 @@ def omits_of(path: Path = EXTRAS) -> dict[str, frozenset[str]]:
 
 def omits_temperature(alias: str, omits: dict[str, frozenset[str]] | None = None) -> bool:
     return "temperature" in (omits if omits is not None else omits_of()).get(alias, frozenset())
+
+
+def tokens_of(path: Path = EXTRAS) -> dict[str, int]:
+    """alias -> answer-only token budget, where the default is not enough.
+
+    Section 3.3 gives every reply a small budget because the format is answer-only. A model
+    that reasons before answering needs room for the reasoning as well, and giving it none
+    does not produce a short answer, it produces no answer. Per alias and recorded, because
+    a model that needs more room is a fact about that model worth reporting.
+    """
+    if not path.is_file():
+        return {}
+    loaded = yaml.safe_load(path.read_text(encoding="utf-8"))
+    tokens = loaded.get("tokens") if isinstance(loaded, dict) else None
+    if not isinstance(tokens, dict):
+        return {}
+    return {str(a): int(n) for a, n in tokens.items() if isinstance(n, int)}
+
+
+def route_key(
+    alias: str,
+    routes: dict[str, dict[str, str]],
+    extras: dict[str, dict[str, Any]] | None = None,
+) -> str:
+    """What an alias resolves to right now, as one short string for the request hash.
+
+    Everything outside the prompt that changes the reply: the provider, the model and any
+    vendor fields sent with it. A run that is edited and resumed compares this, so repointing
+    an alias at another model re-asks its items instead of inheriting the old model's answers.
+    """
+    route = routes.get(alias)
+    if route is None:
+        return ""
+    key = f"{route['provider']}/{route['model']}"
+    extra = (extras or {}).get(alias)
+    if extra:
+        digest = hashlib.sha256(
+            json.dumps(extra, sort_keys=True, separators=(",", ":")).encode()
+        ).hexdigest()[:12]
+        key = f"{key}+{digest}"
+    return key
 
 
 def _request(prompt: Prompt, extra: Mapping[str, Any] | None = None) -> ChatRequest:

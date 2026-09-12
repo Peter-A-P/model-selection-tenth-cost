@@ -13,7 +13,7 @@ import typer
 from mselect import paths
 
 if TYPE_CHECKING:
-    from mselect.runner.prompts import PanelEntry
+    from mselect.runner.prompts import PanelEntry, Settings
 
 app = typer.Typer(add_completion=False, help=__doc__)
 bank_app = typer.Typer(
@@ -24,6 +24,18 @@ app.add_typer(bank_app, name="bank")
 
 def _say(message: str) -> None:
     typer.echo(message)
+
+
+def prompts_settings(max_tokens: int) -> Settings:
+    """Run settings with a bigger budget, to smoke-test a model that reasons before answering.
+
+    Both budgets move together: the point of the override is to find out how much room a
+    model needs before it produces any text at all, and the reasoning template is not a
+    separate question at that stage.
+    """
+    from mselect.runner.prompts import Settings as RunSettings
+
+    return RunSettings(max_tokens=max_tokens, reasoning_max_tokens=max_tokens)
 
 
 def prompts_panel() -> tuple[PanelEntry, ...]:
@@ -429,6 +441,9 @@ def smoke(
     batch: bool = typer.Option(
         True, "--batch/--no-batch", help="Use vendor batches. --no-batch to see a real error."
     ),
+    max_tokens: int = typer.Option(
+        0, "--max-tokens", help="Override the answer-only budget, to test a model that reasons."
+    ),
 ) -> None:
     """Ask a few real items and report what came back. The only check that needs a real call.
 
@@ -507,13 +522,20 @@ def smoke(
             use_batches=batch,
         )
         omits = gateway.omits_of()
+        extras = gateway.extras_of()
+        budgets = gateway.tokens_of()
         for name in wanted:
+            # --max-tokens overrides everything, for exploring; otherwise a model that needs
+            # more room than the answer-only default takes it from the configuration.
+            budget = max_tokens or budgets.get(name, 0)
             written = administer.administer(
                 asking,
                 name,
                 caller,
                 done=already,
+                settings=prompts_settings(budget) if budget else None,
                 omit_temperature=gateway.omits_temperature(name, omits),
+                route=gateway.route_key(name, all_routes, extras),
             )
             if not written:
                 _say(f"  {name:<18} every cell already recorded; nothing called")

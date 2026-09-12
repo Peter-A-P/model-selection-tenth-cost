@@ -66,21 +66,27 @@ def read(path: Path) -> Iterator[dict[str, object]]:
 
 
 def done(path: Path, *, include_errors: bool = False) -> frozenset[str]:
-    """The cells already recorded, for `administer` to skip.
+    """The request hashes already recorded, for `administer` to skip.
 
-    A cell whose call failed is not done by default: an error is usually the network or a
-    rate limit, and the point of resuming is to pick those up. An unparsed reply is done,
-    because asking the same question at temperature 0 again will not read any better, and
-    the unparsed share is a number this project reports rather than retries away.
+    Hashes and not cell names. A cell is a model, an item, a template and a rotation, which
+    is what to call a result; it is not what to key "have we asked this on", because it says
+    nothing about what was asked. A request hash covers the prompt, the token budget, the
+    temperature, the vendor fields and the model the alias resolved to, so an edited run
+    re-asks what changed and inherits only what did not.
+
+    A call that failed is not done by default: an error is usually the network or a rate
+    limit, and the point of resuming is to pick those up. An unparsed reply is done, because
+    asking the same question the same way again will not read any better, and the unparsed
+    share is a number this project reports rather than retries away.
     """
     out: set[str] = set()
     for record in read(path):
-        cell = record.get("cell")
-        if not isinstance(cell, str):
+        request = record.get("request_sha256")
+        if not isinstance(request, str):
             continue
         if not include_errors and record.get("error") is not None:
             continue
-        out.add(cell)
+        out.add(request)
     return frozenset(out)
 
 

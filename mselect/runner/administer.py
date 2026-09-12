@@ -70,10 +70,15 @@ class Prompt:
     system: str
     user: str
     max_tokens: int
+    # What the alias resolved to when this was asked: "provider/model", plus a fingerprint of
+    # any vendor fields merged into the body. Part of the request hash because a different
+    # model answering the same question is a different measurement, and because a run that is
+    # edited and resumed must not quietly mix the two in one column of the matrix.
     # None means no temperature is sent at all, which is not the same as sending zero.
     # Anthropic's 5 family rejects the parameter outright, so those models run at the
     # vendor's default sampling and every record of them says so.
     temperature: float | None
+    route: str = ""
 
     @property
     def cell(self) -> str:
@@ -81,12 +86,18 @@ class Prompt:
 
     @property
     def request_sha256(self) -> str:
-        """Content hash of everything that determines the reply. The gateway caches on its
-        own request bytes; this is the same idea one level up, and it is what a record
-        carries so that a changed prompt can never be mistaken for a cached old one."""
+        """Content hash of everything that determines the reply.
+
+        The gateway caches on its own request bytes; this is the same idea one level up, and
+        it is what makes a resumed run safe: `records.done` keys on this, so a cell is skipped
+        only when the identical request has already been answered. Change the template, the
+        token budget, the temperature, a vendor field or the model an alias points at, and
+        those cells are asked again instead of being silently inherited.
+        """
         body = json.dumps(
             [
                 self.alias,
+                self.route,
                 self.system,
                 self.user,
                 self.max_tokens,
@@ -174,6 +185,7 @@ def build_prompts(
     rotation: int = 0,
     settings: Settings | None = None,
     omit_temperature: bool = False,
+    route: str = "",
 ) -> list[Prompt]:
     """The exact messages for one model over a set of items.
 
@@ -210,6 +222,7 @@ def build_prompts(
                 ),
                 max_tokens=fixed.tokens_for(template),
                 temperature=None if omit_temperature else fixed.temperature,
+                route=route,
             )
         )
     return out
@@ -261,13 +274,19 @@ def administer(
     settings: Settings | None = None,
     done: frozenset[str] = frozenset(),
     omit_temperature: bool = False,
+    route: str = "",
 ) -> list[Administration]:
     """Ask one model every item it has not already been asked, and score the replies.
 
-    `done` is the set of cells already on disk, so a run that stopped half way is resumed by
-    reading its own record file rather than by paying for the first half again. Nothing is
-    sent for a cell in `done`, and nothing is returned for it either: the record that exists
-    is the record.
+    `done` is the set of request hashes already on disk, from `records.done`, so a run that
+    stopped half way is resumed by reading its own record file rather than by paying for the
+    first half again. Nothing is sent for a request in `done` and nothing is returned for it:
+    the record that exists is the record.
+
+    Hashes rather than cell names, because a cell says which model and item, and the question
+    resume has to answer is whether this exact request was already made. `openai-frontier`
+    asking MMLU item 42 is one cell and two different measurements if the alias was repointed
+    at another model in between.
     """
     fixed = settings or Settings()
     prompts = [
@@ -279,8 +298,9 @@ def administer(
             rotation=rotation,
             settings=fixed,
             omit_temperature=omit_temperature,
+            route=route,
         )
-        if p.cell not in done
+        if p.request_sha256 not in done
     ]
     if not prompts:
         return []
