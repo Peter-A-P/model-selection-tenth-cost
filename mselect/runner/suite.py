@@ -153,6 +153,10 @@ class Line:
     input_tokens: int
     output_tokens: int
     usd: float | None  # None when no price is listed, which is never treated as zero
+    # Where the output-token figure came from. A measured line rests on what this model
+    # actually generated in a smoke run; a capped line assumes it generates the maximum it is
+    # allowed, which for a reasoning model is a worst case rather than an expectation.
+    measured: bool = False
 
     @property
     def priced(self) -> bool:
@@ -178,11 +182,17 @@ class Estimate:
     def unpriced(self) -> tuple[str, ...]:
         return tuple(line.alias for line in self.lines if not line.priced)
 
+    @property
+    def capped(self) -> tuple[str, ...]:
+        """Aliases whose output is the cap rather than a measurement: an upper bound."""
+        return tuple(line.alias for line in self.lines if not line.measured)
+
     def table(self) -> str:
         width = max((len(line.alias) for line in self.lines), default=5)
         rows = [
             f"  {line.alias:<{width}}  {line.calls:>7,} calls  "
-            f"{line.input_tokens:>10,} in  {line.output_tokens:>7,} out  "
+            f"{line.input_tokens:>10,} in  {line.output_tokens:>7,} out"
+            f"{'' if line.measured else ' (cap)'}  "
             + ("no price listed" if line.usd is None else f"US${line.usd:>8,.2f}")
             for line in self.lines
         ]
@@ -195,6 +205,36 @@ class Estimate:
 
 def _tokens(characters: int) -> int:
     return int(characters / CHARS_PER_TOKEN + 0.5)
+
+
+def observed_output(path: Path) -> dict[str, float]:
+    """Mean output tokens per alias over replies that actually finished. Empty when there are none.
+
+    **Only scored replies count, and the distinction is the whole point.** A reply that was cut
+    off by the token cap did not generate what the model would have generated; it generated what
+    it was allowed to. Averaging those in would report a reasoning model as costing sixteen
+    tokens an item because sixteen was all it could have, which is the truncation reading itself
+    back as a measurement and would understate the bill by an order of magnitude.
+
+    A scored reply reached an identifiable answer, so the generation ran to the end of the thing
+    being measured. An alias with none of those gets no entry, and the estimate falls back to the
+    cap and says it is doing so, which is the right answer to "we have not measured this yet".
+    """
+    if not path.is_file():
+        return {}
+    totals: dict[str, list[int]] = defaultdict(list)
+    for line in path.read_text(encoding="utf-8").splitlines():
+        if not line.strip():
+            continue
+        try:
+            record = json.loads(line)
+        except json.JSONDecodeError:
+            continue
+        alias, out = record.get("alias"), record.get("output_tokens")
+        finished = record.get("error") is None and record.get("correct") is not None
+        if finished and isinstance(alias, str) and isinstance(out, int) and out > 0:
+            totals[alias].append(out)
+    return {alias: sum(seen) / len(seen) for alias, seen in totals.items() if seen}
 
 
 def _rate(prices: dict[str, Any], provider: str, model: str) -> dict[str, Any] | None:
@@ -228,11 +268,17 @@ def estimate(
     template: str = "plain",
     batch: bool = True,
     margin: float = MARGIN,
+    observed: dict[str, float] | None = None,
 ) -> Estimate:
     """Price a run of `suite` against `panel`, from the committed price file.
 
     A model with no rate in the price file is reported as unpriced rather than as free, which
     is the same rule the gateway's ledger follows: the library never fills a rate in.
+
+    `observed` gives mean output tokens per alias from a real run. Without it a line assumes
+    the model generates its whole token budget, which since that budget became large enough
+    for reasoning is a worst case and not an expectation. Lines built from the cap are marked,
+    so a total can be read for what it is.
     """
     settings = settings or prompts.Settings()
     index = pool.index()
@@ -248,7 +294,8 @@ def estimate(
         )
         characters += len(settings.system) + len(body)
     per_item_in = _tokens(characters) / max(len(chosen), 1)
-    out_tokens = settings.tokens_for(template)
+    cap = settings.tokens_for(template)
+    seen = observed or {}
 
     lines: list[Line] = []
     for entry in panel:
@@ -259,7 +306,9 @@ def estimate(
         provider = route["provider"]
         model = route["model"]
         input_tokens = int(per_item_in * calls + 0.5)
-        output_tokens = out_tokens * calls
+        per_item_out = seen.get(entry.alias)
+        measured = per_item_out is not None
+        output_tokens = int(min(per_item_out or cap, cap) * calls + 0.5)
 
         rate = _rate(prices, provider, model)
         usd: float | None
@@ -281,6 +330,7 @@ def estimate(
                 input_tokens=input_tokens,
                 output_tokens=output_tokens,
                 usd=usd,
+                measured=measured,
             )
         )
     return Estimate(lines=tuple(lines), margin=margin)
@@ -320,6 +370,7 @@ def programme(
     adaptive_items: int = 300,
     batch: bool = True,
     margin: float = MARGIN,
+    observed: dict[str, float] | None = None,
 ) -> dict[str, Estimate]:
     """Every line of PLAN.md section 7, priced from the items rather than from an assumption.
 
@@ -338,6 +389,7 @@ def programme(
             adaptive_items=adaptive_items,
             batch=batch,
             margin=margin,
+            observed=observed,
         )
     }
     # The experiments run on the full-suite models only: a frontier model is asked the adaptive
@@ -363,6 +415,7 @@ def programme(
             template=template,
             batch=batch,
             margin=margin,
+            observed=observed,
         )
         out[name] = Estimate(
             lines=tuple(
@@ -373,6 +426,7 @@ def programme(
                     input_tokens=line.input_tokens * repeats,
                     output_tokens=line.output_tokens * repeats,
                     usd=None if line.usd is None else line.usd * repeats,
+                    measured=line.measured,
                 )
                 for line in one.lines
             ),

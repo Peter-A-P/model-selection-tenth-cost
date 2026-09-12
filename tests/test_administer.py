@@ -73,13 +73,19 @@ def test_build_prompts_renders_the_item_and_carries_the_fixed_settings() -> None
     assert prompt.cell == cell_key("mmlu:42", "anthropic-haiku", "plain", 0)
 
 
-def test_the_reasoning_template_gets_its_own_token_budget() -> None:
+def test_every_template_gets_the_same_token_budget() -> None:
+    """Changed 2026-09-12, when reasoning models joined the panel.
+
+    The budgets differed when the answer-only cap was 16, which was a cost decision that saved
+    nothing (output is billed on what is generated, not on the cap) and cost four models their
+    answers. Giving the reasoning template more room than the others would have measured the
+    room alongside the framing, and the framing is the thing the experiment is about.
+    """
     settings = Settings()
     plain = build_prompts([MC], "m", template="plain")[0]
     reasoning = build_prompts([MC], "m", template="brief_reasoning")[0]
-    assert plain.max_tokens == settings.max_tokens
-    assert reasoning.max_tokens == settings.reasoning_max_tokens
-    assert reasoning.max_tokens > plain.max_tokens
+    assert plain.max_tokens == settings.max_tokens == reasoning.max_tokens
+    assert plain.max_tokens >= 512, "room for a model that reasons before it answers"
 
 
 def test_a_free_response_item_cannot_be_rotated() -> None:

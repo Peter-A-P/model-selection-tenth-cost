@@ -7,6 +7,7 @@ here: the mix follows the pool, and the draw does not look at any item's fitted 
 
 from __future__ import annotations
 
+import json
 from collections import Counter
 from pathlib import Path
 
@@ -154,16 +155,39 @@ def test_the_experiments_are_priced_on_the_full_suite_models_only() -> None:
     assert rotations["anthropic-haiku"] == 900, "three further rotations of 300 items"
 
 
-def test_the_reasoning_template_costs_more_output_than_the_answer_only_one() -> None:
+def test_a_measured_output_beats_the_cap_and_says_so() -> None:
+    """The estimate must not price a reasoning budget as though every model fills it.
+
+    With a cap large enough for reasoning, assuming every model generates the maximum is a
+    worst case multiplied by eleven models and 3,000 items, and it is the number that
+    authorises the spend. A line built from real output tokens is marked measured; one built
+    from the cap is marked as the upper bound it is.
+    """
     pool = _pool({"mmlu": 4_000})
     drawn = suite.choose(pool, 3_000, seed=1, today="2026-09-11")
-    parts = suite.programme(drawn, pool, ROUTES, PRICES, panel=PANEL)
-    plain = next(x for x in parts["framing (letter-only)"].lines if x.alias == "anthropic-haiku")
-    reasoning = next(
-        x for x in parts["framing (brief reasoning)"].lines if x.alias == "anthropic-haiku"
+    capped = suite.estimate(drawn, pool, ROUTES, PRICES, panel=PANEL)
+    measured = suite.estimate(
+        drawn, pool, ROUTES, PRICES, panel=PANEL, observed={"anthropic-haiku": 6.0}
     )
-    assert reasoning.calls == plain.calls
-    assert reasoning.output_tokens > plain.output_tokens * 10
+
+    before = next(x for x in capped.lines if x.alias == "anthropic-haiku")
+    after = next(x for x in measured.lines if x.alias == "anthropic-haiku")
+    assert not before.measured and after.measured
+    assert after.output_tokens < before.output_tokens / 10
+    assert after.usd is not None and before.usd is not None and after.usd < before.usd
+    assert "anthropic-haiku" in capped.capped
+    assert "anthropic-haiku" not in measured.capped
+
+
+def test_a_measurement_above_the_cap_is_held_to_the_cap() -> None:
+    """A model cannot generate more than it is allowed, whatever an old record says."""
+    pool = _pool({"mmlu": 100})
+    drawn = suite.choose(pool, 10, seed=1, today="2026-09-11")
+    huge = suite.estimate(
+        drawn, pool, ROUTES, PRICES, panel=PANEL, observed={"anthropic-haiku": 10_000.0}
+    )
+    line = next(x for x in huge.lines if x.alias == "anthropic-haiku")
+    assert line.output_tokens == prompts.Settings().tokens_for("plain") * line.calls
 
 
 def test_the_committed_suite_is_the_one_the_code_draws() -> None:
@@ -243,3 +267,58 @@ def test_every_panel_alias_has_a_route_and_a_price() -> None:
         assert route["model"] in listed.get(route["provider"], {}), (
             f"{entry.alias} -> {route['model']} has no rate in the price file"
         )
+
+
+def _records(path: Path, rows: list[dict[str, object]]) -> Path:
+    path.write_text("\n".join(json.dumps(row) for row in rows) + "\n", encoding="utf-8")
+    return path
+
+
+def test_a_truncated_reply_is_not_counted_as_a_measurement(tmp_path: Path) -> None:
+    """The trap this nearly walked into.
+
+    A reply cut off by the token cap generated what it was allowed to, not what the model
+    would have generated. Counting those would report a reasoning model at sixteen tokens an
+    item because sixteen was the cap, which is the truncation reading itself back as evidence
+    and understates the bill by an order of magnitude.
+    """
+    path = _records(
+        tmp_path / "smoke.jsonl",
+        [
+            {
+                "alias": "reasoner",
+                "output_tokens": 16,
+                "error": "the model returned no text (max_tokens), 16 output tokens spent",
+                "correct": None,
+            },
+            {
+                "alias": "reasoner",
+                "output_tokens": 16,
+                "error": "the model returned no text (max_tokens), 16 output tokens spent",
+                "correct": None,
+            },
+            {"alias": "answerer", "output_tokens": 5, "error": None, "correct": 1},
+            {"alias": "answerer", "output_tokens": 7, "error": None, "correct": 0},
+        ],
+    )
+    observed = suite.observed_output(path)
+    assert "reasoner" not in observed, "every one of its replies was cut off"
+    assert observed["answerer"] == pytest.approx(6.0), "a wrong answer is still a finished one"
+
+
+def test_an_unparsed_reply_is_not_counted_either(tmp_path: Path) -> None:
+    """Unparsed usually means the reply stopped mid-sentence, which is truncation by another
+    name. `google-mid` returned "To determine which developmental milestone is delayed, let's"
+    and nothing more."""
+    path = _records(
+        tmp_path / "smoke.jsonl",
+        [
+            {"alias": "m", "output_tokens": 12, "error": None, "correct": None, "unparsed": True},
+            {"alias": "m", "output_tokens": 4, "error": None, "correct": 1},
+        ],
+    )
+    assert suite.observed_output(path)["m"] == pytest.approx(4.0)
+
+
+def test_no_records_means_no_measurement_rather_than_zero(tmp_path: Path) -> None:
+    assert suite.observed_output(tmp_path / "missing.jsonl") == {}

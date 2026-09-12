@@ -110,10 +110,18 @@ calibration never saw. Eight to ten current models:
 | Local | Two or three small models (3B to 8B, 4-bit) on the laptop | Free; they also spread the ability range downward, which item calibration needs |
 
 Run settings: temperature 0, fixed system prompt, answer-only output format (a letter for
-multiple choice, a boxed final answer for MATH), `max_tokens` small. **Amended 2026-09-12:
-temperature 0 holds for nine of the eleven models. Claude Sonnet 5 and Claude Opus 5 reject the
-parameter, so they run at Anthropic's default sampling and every record of them says so; section
-15.11 has what that costs.** Development caching
+multiple choice, a boxed final answer for MATH). **Amended 2026-09-12, twice, because the panel
+contains reasoning models and that is deliberate:**
+
+- **Temperature 0 holds for nine of the eleven.** Claude Sonnet 5 and Claude Opus 5 reject the
+  parameter, so they run at Anthropic's default sampling and every record of them says so.
+  Section 15.11 has what that costs.
+- **`max_tokens` is no longer small.** It is 1024 for every model and every template. A cap is a
+  ceiling and not a bill, so the small one saved nothing and cost four models their answers.
+  Section 15.14.
+- **Answer-only describes the output, not the computation.** A model that reasons internally
+  does so whatever it is asked. The prompt now requires the answer on a final line, so that the
+  run measures ability rather than format compliance. Section 15.14. Development caching
 is on: every response is cached by content hash of the request so a rerun costs nothing.
 This is the opposite of the drift-run rule in project 03, and deliberately so; here the
 question is about the items, not about whether the vendor changed.
@@ -959,6 +967,72 @@ obviously agree.
 
 It is worth noting that `anthropic-haiku` is the one Anthropic route carrying a dated
 identifier, and the one that works.
+
+### 15.14 The panel keeps its reasoning models, so the run settings are built for them
+
+**Peter's call, 2026-09-12, and it settles section 15.13.** A frontier tier without reasoning
+models is not a frontier tier. Four of the eleven models reason before answering, across three
+vendors, so this is what the current generation is rather than a quirk to route around. Three
+things changed, and the token budget is the least of them.
+
+**The budget is a ceiling, not a bill.** Output is billed on what a model generates, not on the
+cap, so a model that replies "B" costs two tokens whether the cap is 16 or 1024. The 16-token
+cap therefore saved nothing and cost four models their answers outright. It is now 1024 for
+every model and every template. Uniform on purpose: a per-model budget is a per-model tuning
+decision inside a comparison between models, and there is no version of that which is not a
+thumb on the scale. The `tokens` override in `request-extras.yaml` remains for a model that
+needs more than 1024, and any use of it is a fact about that model that gets reported.
+
+The two budgets in `Settings` are now equal for the same reason. They differed when the
+answer-only cap was 16, and giving the brief-reasoning template more room than the others would
+have measured the room alongside the framing, when the framing is the thing being compared.
+
+**The prompt now guarantees a final answer marker, and this is the real fix.** The parser
+refuses to choose between letters when a reply names several without saying which is the answer.
+That is correct, and reasoning replies trip it constantly: "rule out A, and C is negative, so D"
+is three letters and no statement. Loosening the parser to take the last letter would be
+guessing, and would guess wrong on "so it is not D". Instead `plain` now ends with `Give the
+answer on a final line as "Answer: X"`, so the explicit branch fires for any model that
+complies, and a model that does not is genuinely unparsed rather than ambiguous.
+
+Without that change the run would have confounded ability with format compliance, and the
+models penalised would have been exactly the reasoning ones. That is the failure this project
+exists to find in other people's benchmarks, and it would have been in this one.
+
+The system prompt changed for the same reason. It used to forbid explanation outright, which a
+model that reasons internally cannot obey; it now requires the answer, in the format asked for,
+as the last thing written.
+
+**The cost estimate now uses what models actually generate.** It assumed every model fills its
+token budget, which was a small overestimate at a cap of 16 and is nonsense at 1024: the worst
+case times eleven models times 3,000 items, presented as the number that authorises the spend.
+`mselect suite` reads real output-token counts from the smoke records, marks which lines rest on
+measurement and which on the cap, and improves every time a smoke run happens.
+
+**One trap inside that, which this nearly walked into.** A reply cut off by the cap is not a
+measurement of what a model generates, it is a measurement of what it was allowed. Counting
+those would have reported a reasoning model at sixteen tokens an item because sixteen was the
+cap: the truncation reading itself back as evidence, understating the bill by an order of
+magnitude. Only replies that reached a scorable answer count. The two aliases with no such reply
+yet, `google-frontier` and `together-open-b`, are priced at the cap and labelled as the upper
+bound they are.
+
+| Estimate | Whole programme | Note |
+|---|---:|---|
+| Before any measurement, cap of 16 | US$13.26 | assumed every model fills a 16-token budget |
+| Measured, cap of 1024 | **US$21.27** | nine aliases measured, two at the cap as a worst case |
+
+Both caps still clear at the worst case, which is the version that matters. The two unmeasured
+aliases have had their reasoning disabled since those records were written, so the figure should
+fall once they are smoked again; it is not adjusted downward in advance of that.
+
+**What this costs the framing experiment** is what section 15.13 said and is now settled rather
+than open. Section 3.3 reserved reasoning for the framing experiment; that distinction is no
+longer observable from outside, because a model that reasons internally does so under all three
+templates. "Answer-only" is a claim about the output this project requires and not about the
+computation the vendor performs. The three templates still measure exactly what they ask for,
+which is a narrower question than the plan intended, and the write-up says so rather than
+reporting the old one.
 
 ### 15.13 Opus 5 reasons before it answers, and Sonnet 5 does not
 

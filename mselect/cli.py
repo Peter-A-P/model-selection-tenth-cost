@@ -324,7 +324,13 @@ def suite(
         suite_mod.latest_price_file(gateway.CONFIG.parent / str(config.get("prices", "prices")))
     )
     routes = gateway.routes_of(config)
-    lines = suite_mod.programme(chosen, pool, routes, prices)
+    # What the models actually generated, where a smoke run has measured it. Without this the
+    # output figure is the token cap, which since the cap became big enough for reasoning is a
+    # worst case rather than an expectation.
+    observed = suite_mod.observed_output(paths.OUT / version / "smoke.jsonl")
+    lines = suite_mod.programme(chosen, pool, routes, prices, observed=observed)
+    if observed:
+        _say(f"\noutput tokens measured for {len(observed)} alias(es) from the smoke records")
     _say("\nestimated at the batch rate, before any call:")
     total = 0.0
     unpriced: set[str] = set()
@@ -345,6 +351,12 @@ def suite(
     )
     for alias in sorted(unpriced):
         _say(f"  ! {alias} has no rate in the price file and is not counted as free")
+    capped = sorted({a for part in lines.values() for a in part.capped})
+    if capped:
+        _say(
+            f"  (cap) on {len(capped)} alias(es) means the output figure is the token budget "
+            "rather than a measurement, so those lines are an upper bound: " + ", ".join(capped)
+        )
     estimate = lines["full suite and frontier check"]
 
     caps = suite_mod.load_prices(gateway.CONFIG.parent / str(config.get("caps", "caps.yaml")))
