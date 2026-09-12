@@ -98,3 +98,75 @@ def test_grading_returns_none_rather_than_scoring_an_unparsed_reply_wrong() -> N
     assert parse.grade_math(r"\boxed{7}", "7") == 1
     assert parse.grade_math(r"\boxed{8}", "7") == 0
     assert parse.grade_math("no idea", "7") is None
+
+
+# -- prose replies, which the panel now produces on purpose ---------------------------------
+#
+# Every case below is a shape a reasoning model actually produces. The first two are the
+# defects found on 2026-09-12 by a 3B model on a MedQA item; both were invisible while every
+# reply was a single letter.
+
+
+def test_a_capital_answer_line_is_read() -> None:
+    """`prompts.TEMPLATES["plain"]` asks for exactly this, and the parser could not read it.
+
+    The explicit pattern was case sensitive, so "Answer: B" fell through to the fallback and
+    the fallback got it wrong. Every compliant reply from a model that capitalises was at risk.
+    """
+    reply = (
+        "The infant's inability to pull himself to stand, grasp his rattle, and transfer it "
+        "from one hand to the other suggest a delay in social development. This is because "
+        "these behaviors are indicative of attachment anxiety.\n\nAnswer: B"
+    )
+    assert parse.parse_choice(reply, 4) == "B"
+    assert parse.grade_choice(reply, "B", 4) == 1
+    assert parse.grade_choice(reply, "A", 4) == 0
+
+
+def test_prose_that_never_answers_is_unparsed_rather_than_an_invented_letter() -> None:
+    """The worst failure available to this module: producing a score instead of an absence.
+
+    A standalone letter A to J counted as a candidate, and "a" is the indefinite article. A
+    reply that reasoned and never answered scored as answering A, with a letter the model
+    never chose, and `docs/items-that-measure-nothing.md` would have been describing this
+    function rather than the benchmark.
+    """
+    assert parse.parse_choice("This is a question about a delay in development.", 4) is None
+    assert parse.grade_choice("This is a question about a delay.", "A", 4) is None
+    assert parse.parse_choice("I think this needs a moment of thought.", 4) is None
+
+
+def test_a_lone_letter_is_still_an_answer_in_any_case() -> None:
+    """The exclusion is about prose. A reply that is nothing but a letter is an answer."""
+    assert parse.parse_choice("a", 4) == "A"
+    assert parse.parse_choice("A.", 4) == "A"
+    assert parse.parse_choice(" (a) ", 4) == "A"
+    assert parse.parse_choice("I", 10) == "I"
+
+
+def test_an_explicit_statement_beats_the_word_exclusion() -> None:
+    """Excluding the article must not cost a model that explicitly answers A or I."""
+    assert parse.parse_choice("After a long look at a hard question, the answer is A.", 4) == "A"
+    assert parse.parse_choice("Answer: A", 4) == "A"
+    assert parse.parse_choice("Answer: I", 10) == "I"
+
+
+def test_reasoning_that_names_options_then_answers() -> None:
+    assert parse.parse_choice("Rule out A since it is too small. Answer: D", 4) == "D"
+    assert parse.parse_choice("B looks right at first. The answer is C.", 4) == "C"
+
+
+def test_reasoning_that_names_options_and_never_settles_is_refused() -> None:
+    """Taking the last letter mentioned would be a guess, and would be wrong as often as not:
+    "so it is not D" ends on D."""
+    assert parse.parse_choice("B says one thing and C says another, so it is not D", 4) is None
+
+
+def test_a_model_that_corrects_itself_is_taken_at_its_last_word() -> None:
+    assert parse.parse_choice("Answer: B. Wait, rereading it, Answer: D", 4) == "D"
+
+
+def test_free_response_reasoning_ends_in_the_box() -> None:
+    reply = "First 2 plus 2 is 4, and 4 times 3 is 12. So the total is \boxed{12}."
+    assert parse.parse_math(reply) == "12"
+    assert parse.grade_math(reply, "12") == 1

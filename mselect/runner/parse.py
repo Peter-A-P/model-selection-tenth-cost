@@ -12,6 +12,11 @@ Two rules run through everything here:
   number worth reporting on its own.
 * Prefer the explicit. "The answer is B" beats a stray "A" earlier in the sentence, and the
   last explicit statement beats an earlier one, because models correct themselves.
+
+Both rules were tested against answer-only replies and both broke the first time a model
+replied in prose, which is now the normal case: the panel contains reasoning models on purpose
+(PLAN.md section 15.14). A parser that reads the article "a" as option A does not fail loudly,
+it produces a score, and that is worse than producing nothing.
 """
 
 from __future__ import annotations
@@ -22,13 +27,29 @@ from fractions import Fraction
 
 LETTERS = "ABCDEFGHIJ"
 
+# Case-insensitive since 2026-09-12. It was not, so "Answer: B" did not match while
+# "answer: B" did, and "Answer: X" is precisely the form `prompts.TEMPLATES["plain"]` asks
+# every model to end with. A compliant reply fell through to the fallback below, which is
+# where the damage was.
 _EXPLICIT = re.compile(
     r"(?:final\s+answer|answer|option|choice|response)\s*(?:is|:|=)?\s*"
     r"[\*\s\(\[\{\"']*([A-Ja-j])(?![A-Za-z0-9])",
+    re.IGNORECASE,
 )
 _BARE_LETTER = re.compile(
     r"(?<![A-Za-z0-9])[\*\(\[\{\"']*([A-Ja-j])[\*\)\]\}\"'\.,:]*(?![A-Za-z0-9])"
 )
+# A reply that is nothing but a letter, which is what the answer-only format asks for. Matched
+# separately so that a bare "a" on its own is read as option A while the same letter inside a
+# sentence is read as the article it almost always is.
+_SOLE_LETTER = re.compile(r"^[\*\s\(\[\{\"']*([A-Ja-j])[\*\)\]\}\"'\.,:\s]*$")
+
+# Letters that are also English words. Inside prose they are the article and the pronoun far
+# more often than they are an option, and reading one as an answer invents a response the model
+# never gave. Excluded from the prose fallback only: "Answer: A" still reads as A, and a reply
+# of "a" on its own still reads as A.
+_WORD_LETTERS = frozenset({"a", "i", "I"})
+
 _BOXED = re.compile(r"\\boxed\s*\{")
 _NUMBER = re.compile(r"-?\d[\d,]*\.?\d*")
 
@@ -59,7 +80,20 @@ def parse_choice(text: str, n_options: int = 4) -> str | None:
         if letter in allowed:
             return letter
 
-    bare = [match.group(1).upper() for match in _BARE_LETTER.finditer(body)]
+    sole = _SOLE_LETTER.match(body)
+    if sole is not None:
+        letter = sole.group(1).upper()
+        return letter if letter in allowed else None
+
+    # Prose, with no explicit statement. Letters that are also English words are dropped
+    # first: without that, a reply that reasons and never answers scores as answering A
+    # because it contained the word "a", which invents a response rather than recording that
+    # none was given.
+    bare = [
+        match.group(1).upper()
+        for match in _BARE_LETTER.finditer(body)
+        if match.group(1) not in _WORD_LETTERS
+    ]
     bare = [letter for letter in bare if letter in allowed]
     if not bare:
         return None

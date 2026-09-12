@@ -968,6 +968,51 @@ obviously agree.
 It is worth noting that `anthropic-haiku` is the one Anthropic route carrying a dated
 identifier, and the one that works.
 
+### 15.15 The parser could not read the format it asks for, and invented answers instead
+
+The first smoke run under the new prompt, 2026-09-12. `local-small-a` replied with a paragraph
+ending **"Answer: B"** and was recorded unparsed. Two defects, both harmless while every reply
+was a single letter, both waiting for the moment replies became prose. That moment was section
+15.14, one commit earlier.
+
+**The explicit pattern was case sensitive.** It matched `answer: B` and not `Answer: B`, which is
+the exact string `TEMPLATES["plain"]` now asks every model to end with. Every compliant reply
+from a model that capitalises fell through to the fallback below.
+
+**The fallback then manufactured answers out of English.** A standalone letter A to J counted as
+a candidate, and "a" is the indefinite article. So a reply that reasoned and never answered,
+containing the word "a", **scored as answering A**: not unparsed, not wrong, scored, with a
+letter the model never chose.
+
+That second one is the worst failure available to this code, and it is worth being precise about
+why. Everything else that has gone wrong this week produced an absence: a failed call, an empty
+reply, a refused parse. Each is visible and each is counted. This produced a **number**. Thirty
+thousand cells of a response matrix, some unknown share of them answers no model gave, fitted
+into item parameters and published as a calibration. And the document it would have corrupted
+first is `docs/items-that-measure-nothing.md`, which would have become a report about this
+function rather than about the benchmark. The module's own docstring names that risk in its
+opening paragraph. It was still there.
+
+The fallback stays, because "It's B." is a real answer and no template makes every model comply.
+It now ignores the two letters that are also English words and refuses when more than one
+candidate survives, which is the rule the module was written to follow. A reply that is nothing
+but a letter is still read in any case, so "a" alone is still option A.
+
+**Nothing published is affected.** `runner/parse.py` scores this project's own vendor calls and
+nothing else; bank v1 and bank v2 carry per-item correctness as HELM and lm-eval-harness scored
+it. No own run has happened. The cost of this defect was one smoke reply and an afternoon.
+
+**It is also recoverable after the fact, by design.** `Administration.reply` stores the reply
+text, so a scoring change can be applied to records that already exist without asking a vendor
+anything. Section 15.3 stores replies under `out/`, which is gitignored, for the same reason it
+stores no item text: a reply can quote the question back. That they are kept at all is what
+makes a scorer fix free rather than a rerun.
+
+Eight adversarial fixtures now cover prose replies specifically: a capital answer line, prose
+that never answers, a lone letter in either case, an explicit A or I surviving the word
+exclusion, reasoning that names options before settling, reasoning that never settles, and a
+model correcting itself.
+
 ### 15.14 The panel keeps its reasoning models, so the run settings are built for them
 
 **Peter's call, 2026-09-12, and it settles section 15.13.** A frontier tier without reasoning
