@@ -33,12 +33,18 @@ dependencies = [
   "typer>=0.15,<1",
   # The charts in the README and the write-up. 3.x is the current line.
   "matplotlib>=3,<4",
+  # Every vendor call in the own-run panel (PLAN.md section 3.3) goes through the portfolio
+  # gateway: routing by alias, one ledger row and one span per call, this project's spend cap
+  # enforced there, and Anthropic's Message Batches at half price. Pinned to >=0.2 because the
+  # batch endpoint arrived in 0.2.0; below 1 because Part B of that project is a major bump.
+  "boundary>=0.2,<1",
 ]
 
-# Vendor calls (the own-run panel, section 3.3 of PLAN.md) go through the portfolio gateway
-# library `boundary`, pinned to >=0.2 once its Message Batches support lands. That dependency
-# is added with the runner, not before: it lives in a private repository and CI would need a
-# token to install it for code that does not exist yet.
+[tool.uv.sources]
+# A private repository, installed from the tag. CI authenticates with a fine-grained
+# read-only token held as the BOUNDARY_GITHUB_TOKEN secret; the tag, not a branch, so a
+# lockfile resolves to one commit and a rerun is the same library.
+boundary = { git = "https://github.com/Peter-A-P/compliant-ai-gateway", tag = "v0.2.0" }
 
 [project.urls]
 Repository = "https://github.com/Peter-A-P/model-selection-tenth-cost"
@@ -48,6 +54,9 @@ dev = [
   "pytest>=9,<10",
   "mypy>=1,<2",
   "ruff>=0.13,<1",
+  # Mocks the gateway's httpx transport, so the one place this project talks to a vendor is
+  # tested without talking to one. Same pin as the gateway repository uses.
+  "respx>=0.22,<1",
 ]
 
 [project.scripts]

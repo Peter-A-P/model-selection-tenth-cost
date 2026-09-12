@@ -608,21 +608,34 @@ Three rules are enforced there rather than assumed:
 - Replies are matched to prompts by position, and a caller that returns a different number of
   them raises rather than scoring one item against another item's answer.
 
-### 15.2 What is left, and what it waits on
+### 15.2 The gateway is wired in, and the local arm runs
 
-`administer.py` and `records.py` are built and tested. The gateway adapter, the roughly sixty
-lines that turn a `Prompt` into a `boundary.ChatRequest` and a `ChatResponse` back into a
-`Reply`, is not, and deliberately: `boundary` is a git dependency on a private repository and
-its `v0.2.0` tag does not exist yet. Adding the dependency against an untagged commit would
-put an unverifiable pin in `pyproject.toml` and would need a token in this repository's CI for
-code that cannot run. The pin goes in when the tag does, which is the same staging the
-`pyproject.toml` comment already described.
+`boundary` v0.2.0 was tagged on 2026-09-11, so the dependency is in `pyproject.toml` pinned
+to that tag, the lockfile resolves it to one commit, and CI installs it from the private
+repository with a fine-grained read-only token held as `BOUNDARY_GITHUB_TOKEN`. That token
+and the step that uses it both disappear when the gateway repository goes public.
 
-Batching is an implementation detail of that adapter and not of the experiment, which is why
-it is invisible in `administer.py`. That matters for scheduling: the gateway's Message
-Batches support halves the Anthropic share of the bill and changes nothing else, so if it
-were ever late or broken, the panel can run one call at a time for a few dollars more rather
-than wait. The batch endpoint is the default; it is not a blocker.
+`runner/gateway.py` is the adapter: prompts in, replies out, roughly a hundred lines and no
+scoring. It decides three things the experiment should not have to know about.
+
+Batching is a price, not a method. Anthropic's Message Batches cost half as much and answer
+later, which is fine everywhere here, so it is the default and it is a flag. A provider with
+no batch endpoint falls back to one call at a time, automatically and once per alias rather
+than once per chunk. A batch problem can therefore delay the bill but never the panel.
+
+A spend cap is a stop, not a result. A failed call is recorded and the run carries on,
+because a timeout says nothing about an item. `SpendCapExceeded` is re-raised, because
+carrying on would spend the rest of the panel's budget recording that there is no budget.
+
+The gateway owns the money and the record. Every call writes a ledger row costed from
+returned usage, and this project's cap is enforced before the request leaves. Nothing in the
+adapter adds a price or a retry of its own.
+
+**Proven end to end on 2026-09-11, at zero cost.** Three items administered to
+`local-small-a`, which resolves to `llama3.2:3b` on a local Ollama server: all three scored,
+none unparsed, the free-response item graded from its answer as well as the two
+multiple-choice ones, three ledger rows, none uncosted, and a second pass with the recorded
+cells marked done made no calls at all.
 
 ### 15.3 Resuming is reading your own record file
 
@@ -742,3 +755,25 @@ columns a bank may carry, so adding one back is a decision somebody has to make 
 The general lesson is not about licensing. It is that **a claim in a document is not a property
 of a repository until something checks it**, and this project had already learned that about
 credentials and had not applied it to content.
+
+
+### 15.4 The panel is configured but not yet chosen
+
+`mselect/config/boundary.yaml` carries one route per alias in `prompts.PANEL`, so the code is
+wired end to end. The local routes are settled and have answered. **The vendor routes are
+provisional and are Peter's to confirm before any vendor spending.** They hold the current
+identifiers from the 2026-09-10 price list and from the live calls the gateway made that day,
+which found that Google's Flash thinks by default and returns no text inside a small token
+budget while Flash-Lite answers.
+
+Choosing the panel is a decision about the experiment rather than a detail of the plumbing,
+and project 03 treated its own panel the same way: identifiers chosen, dated and recorded
+before the first run rather than inherited from a configuration file nobody reread. The
+`describe` helper exists so a run prints what each alias resolves to before it spends
+anything.
+
+The project's own caps live in `mselect/config/caps.yaml`, confirmed by Peter on 2026-09-11
+at US$40 a month and US$30 a run, and the same figures appear in the gateway repository's
+caps file so the portfolio total stays honest. The development cache is on, as section 3.3
+requires, so a rerun costs nothing; that is the opposite of the drift runner's rule and
+deliberately so.

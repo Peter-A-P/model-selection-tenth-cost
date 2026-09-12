@@ -1,0 +1,22 @@
+# Spend caps for this project's own-run panel, enforced by the gateway before a call is
+# made. Second line of defence: the first is the hard cap in each vendor's console.
+#
+# Amounts are USD because vendors bill in USD. Raise a cap here, deliberately, in a commit;
+# never bypass it in code. Set by Peter on 2026-09-11, and the same figures appear in the
+# gateway repository's own caps file so the portfolio total stays honest.
+#
+# The reasoning: PLAN.md section 7 puts the own-run full suite at about US$25 with the
+# Anthropic share batched, and the whole project's API line at about US$60. A month holds
+# one full suite plus a rerun; a run holds one full suite with the frontier subset beside it.
+
+version: 1
+portfolio_monthly_usd: 200
+
+projects:
+  model-selection-tenth-cost:
+    monthly_usd: 40
+    per_run_usd: 30
+
+default:
+  monthly_usd: 5
+  per_run_usd: 2

@@ -1,0 +1,116 @@
+# Gateway configuration for the own-run panel (PLAN.md section 3.3).
+#
+# Every vendor call this project makes goes through the portfolio gateway, so that a model
+# can be swapped in one file, every call has a cost record, and this project's spend cap is
+# enforced before the request leaves. Keys come from the environment variables named below
+# and never from this file.
+#
+# The panel is addressed by alias, not by vendor model identifier, which is the whole point:
+# `prompts.py` names the aliases and nothing in the code goes stale when a vendor renames a
+# model. Changing a route here moves every call that uses that alias.
+#
+# The opposite rule to the drift runner's, deliberately: development caching is ON here, so
+# a rerun costs nothing. This project asks questions about the items, not about whether the
+# vendor changed underneath it.
+
+version: 1
+
+providers:
+  anthropic:
+    kind: anthropic
+    base_url: https://api.anthropic.com
+    api_key_env: ANTHROPIC_API_KEY
+    api_version: "2023-06-01"
+  openai:
+    kind: openai_compat
+    base_url: https://api.openai.com/v1
+    api_key_env: OPENAI_API_KEY
+    max_tokens_field: max_completion_tokens
+  google:
+    kind: google
+    base_url: https://generativelanguage.googleapis.com
+    api_key_env: GOOGLE_API_KEY
+    api_version: v1beta
+  openweights:
+    kind: openai_compat
+    base_url: https://api.together.xyz/v1
+    api_key_env: OPENWEIGHTS_API_KEY
+  # Small models on the laptop. They cost nothing and they spread the ability range
+  # downward, which is where item calibration needs points it cannot buy.
+  local:
+    kind: openai_compat
+    base_url: http://127.0.0.1:11434/v1
+    price_zero: true
+
+# The panel of PLAN.md section 3.3, one alias per entry in prompts.PANEL.
+#
+# The local routes are settled: llama3.2:3b is pulled and has answered through the gateway.
+# **The vendor routes below are provisional and are Peter's to confirm before any vendor
+# spending.** They are the current identifiers from the 2026-09-10 price list and from the
+# live calls the gateway made on 2026-09-10, which found that Google's Flash thinks by
+# default and returns no text in a small budget while Flash-Lite answers. Choosing the panel
+# is a decision about the experiment, not a detail of the plumbing, so it is dated and
+# recorded rather than assumed.
+routes:
+  anthropic-haiku:
+    provider: anthropic
+    model: claude-haiku-4-5-20251001
+  anthropic-sonnet:
+    provider: anthropic
+    model: claude-sonnet-5
+  anthropic-opus:
+    provider: anthropic
+    model: claude-opus-5
+  openai-mid:
+    provider: openai
+    model: gpt-5.4-mini
+  openai-frontier:
+    provider: openai
+    model: gpt-5.4
+  google-mid:
+    provider: google
+    model: gemini-3.5-flash-lite
+  google-frontier:
+    provider: google
+    model: gemini-3.8-flash
+  together-open-a:
+    provider: openweights
+    model: meta-llama/Llama-3.3-70B-Instruct-Turbo
+  together-open-b:
+    provider: openweights
+    model: openai/gpt-oss-120b
+  local-small-a:
+    provider: local
+    model: llama3.2:3b
+  local-small-b:
+    provider: local
+    model: qwen2.5:7b
+
+prices: prices
+caps: caps.yaml
+
+defaults:
+  # Answer-only output. The framing experiment's reasoning template asks for more and says
+  # so per request; this is the floor, not the rule.
+  max_tokens: 16
+  timeouts:
+    connect_s: 10
+    read_s: 120
+
+retry:
+  max_attempts: 4
+  base_delay_s: 0.5
+  max_delay_s: 30
+
+ledger:
+  path: ../../out/own-run-ledger.sqlite
+  env: local
+
+telemetry:
+  exporter: none
+
+# Every response cached by request content hash, so a rerun costs nothing. This is the rule
+# for this project and the opposite of the drift runner's; do not confuse them.
+cache:
+  enabled: true
+  path: ../../out/own-run-cache
