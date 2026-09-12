@@ -21,12 +21,11 @@ aliases:
       thinkingConfig:
         thinkingBudget: 0
 
-  # 2026-09-12: 2 of 3 scored; the third came back as "To determine which developmental
-  # milestone is delayed, let's" and stopped, which is the same failure with a shorter preamble.
-  google-mid:
-    generationConfig:
-      thinkingConfig:
-        thinkingBudget: 0
+  # google-mid had one of these and it is gone again. gemini-3.5-flash-lite answers a
+  # thinkingConfig with 400 INVALID_ARGUMENT where gemini-3.8-flash accepts it, so the field is
+  # not a property of the vendor or even of the family. Its original problem was one reply
+  # truncated mid-preamble at 16 tokens, which the 1024-token budget of section 15.14 solves
+  # without asking the vendor for anything.
 
   # 2026-09-12: 0 of 3 returned text, 16 output tokens each, and the ledger could not cost the
   # row either. Together takes the effort as a top-level field.
@@ -48,6 +47,13 @@ aliases:
 omit:
   anthropic-sonnet: [temperature]
   anthropic-opus: [temperature]
+  # 2026-09-12, three times identically:
+  #   openai returned 400: Unsupported value: 'temperature' does not support 0.0 with this
+  #   model. Only the default (1) value is supported.
+  # A third model, and the second vendor, to take temperature away. Whatever the reason each
+  # gives, the effect on this experiment is one thing: three of eleven models run at the
+  # vendor's default sampling and cannot be pinned. PLAN.md section 15.11.
+  openai-frontier: [temperature]
 
 # Answer-only token budgets, where the default of 16 is not enough.
 #

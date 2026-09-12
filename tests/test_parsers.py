@@ -170,3 +170,85 @@ def test_free_response_reasoning_ends_in_the_box() -> None:
     reply = "First 2 plus 2 is 4, and 4 times 3 is 12. So the total is \boxed{12}."
     assert parse.parse_math(reply) == "12"
     assert parse.grade_math(reply, "12") == 1
+
+
+# -- naming an option instead of lettering it -----------------------------------------------
+#
+# LegalBench offers Yes, No, Analysis and Rule rather than lettered alternatives, and it is
+# 2,047 items of bank v1. `openai-mid` answered "Answer: No" correctly on 2026-09-12 and lost
+# the item, which is format compliance scored as ability.
+
+YES_NO = ["No", "Yes"]
+
+
+def test_an_option_named_in_an_explicit_statement_is_the_answer() -> None:
+    assert parse.parse_choice("Answer: No", 2, YES_NO) == "A"
+    assert parse.parse_choice("Answer: Yes", 2, YES_NO) == "B"
+    assert parse.parse_choice("The answer is yes.", 2, YES_NO) == "B"
+    assert parse.grade_choice("Answer: No", "A", 2, YES_NO) == 1
+    assert parse.grade_choice("Answer: No", "B", 2, YES_NO) == 0
+
+
+def test_a_reply_that_is_only_the_option_text_is_the_answer() -> None:
+    assert parse.parse_choice("No", 2, YES_NO) == "A"
+    assert parse.parse_choice("  Yes.  ", 2, YES_NO) == "B"
+
+
+def test_an_option_mentioned_inside_prose_is_not_a_choice() -> None:
+    """The restraint that makes the rest safe.
+
+    "Yes" and "No" are ordinary English words. `together-open-a` wrote "there is no clear
+    connection" in a reply whose answer was A, and reading that "no" as the answer would be a
+    coin toss dressed as a measurement.
+    """
+    prose = "Based on the information provided, there is no clear connection between them."
+    assert parse.parse_choice(prose, 2, YES_NO) is None
+    assert parse.grade_choice(prose, "A", 2, YES_NO) is None
+
+
+def test_a_letter_still_wins_over_the_option_text() -> None:
+    """A model that letters its answer has said which one, and that is the stronger signal."""
+    assert parse.parse_choice("Yes, the answer is A.", 2, YES_NO) == "A"
+
+
+def test_option_text_respects_the_rotation_the_model_was_shown() -> None:
+    """The position-bias experiment permutes the display order, so "No" is not always A."""
+    from mselect.runner.prompts import rotate
+
+    shown = rotate(YES_NO, 1)
+    assert shown == ["Yes", "No"], "rotation moves each option one place later"
+    assert parse.parse_choice("Answer: No", 2, shown) == "B"
+    assert parse.parse_choice("Answer: Yes", 2, shown) == "A"
+
+
+def test_without_options_nothing_changes() -> None:
+    """Callers that pass no options get exactly the old behaviour."""
+    assert parse.parse_choice("Answer: No", 2) is None
+    assert parse.parse_choice("Answer: B", 2) == "B"
+
+
+def test_an_ambiguous_name_is_refused() -> None:
+    """Two options that normalise the same cannot be told apart, so neither is chosen."""
+    assert parse.parse_choice("Answer: yes", 2, ["Yes", "yes."]) is None
+
+
+def test_a_bare_letter_is_a_label_before_it_is_content() -> None:
+    """MMLU has items whose options are themselves letters, and they collide.
+
+    A logic item offers "A", "~A", "B", "~B"; a physics item offers "2c", "c", "0.8c", "0.5c".
+    A reply of "B" there is ambiguous between the label and the content, and the label is what
+    the model was asked for. Reading option text first got all four of these wrong, which the
+    self-administration check over the whole bank caught.
+    """
+    logic = ["A", "~A", "B", "~B"]
+    assert parse.parse_choice("B", 4, logic) == "B", "the second option, not the one reading B"
+    assert parse.parse_choice("Answer: B", 4, logic) == "B"
+
+    physics = ["2c", "c", "0.8c", "0.5c"]
+    assert parse.parse_choice("C", 4, physics) == "C", "not the option whose text is c"
+
+
+def test_option_text_still_wins_when_it_is_not_a_letter() -> None:
+    """The collision rule must not cost LegalBench the fix it exists for."""
+    assert parse.parse_choice("No", 2, YES_NO) == "A"
+    assert parse.parse_choice("Answer: No", 2, YES_NO) == "A"

@@ -113,9 +113,9 @@ Run settings: temperature 0, fixed system prompt, answer-only output format (a l
 multiple choice, a boxed final answer for MATH). **Amended 2026-09-12, twice, because the panel
 contains reasoning models and that is deliberate:**
 
-- **Temperature 0 holds for nine of the eleven.** Claude Sonnet 5 and Claude Opus 5 reject the
-  parameter, so they run at Anthropic's default sampling and every record of them says so.
-  Section 15.11 has what that costs.
+- **Temperature 0 holds for eight of the eleven.** Claude Sonnet 5, Claude Opus 5 and
+  gpt-5.6-sol reject the parameter, so they run at their vendor's default sampling and every
+  record of them says so. Section 15.11 has what that costs.
 - **`max_tokens` is no longer small.** It is 1024 for every model and every template. A cap is a
   ceiling and not a bill, so the small one saved nothing and cost four models their answers.
   Section 15.14.
@@ -968,6 +968,60 @@ obviously agree.
 It is worth noting that `anthropic-haiku` is the one Anthropic route carrying a dated
 identifier, and the one that works.
 
+### 15.16 Nine of eleven, and the two that were left were the same failure twice more
+
+The smoke run of 2026-09-12 under the fixed parser and the new prompt: **nine of eleven aliases
+scored every item**, twenty-seven calls for US$0.029. Three things left, and none of them is a
+model that cannot do the work.
+
+**`openai-frontier` refuses temperature, exactly as Claude 5 does.**
+
+```
+openai returned 400: Unsupported value: 'temperature' does not support 0.0 with this model.
+Only the default (1) value is supported.
+```
+
+A third model and a second vendor. Whatever reason each gives, the effect on this experiment is
+one thing: **three of eleven models run at the vendor's default sampling and cannot be pinned**,
+so section 15.11's consequence grows by one. Test-retest now measures the temperature-0 floor
+for eight models and default nondeterminism for three, and gpt-5.6-sol at temperature 1 is the
+noisiest of them.
+
+**`google-mid` refuses the thinking field that `google-frontier` accepts.** Same vendor, same
+family, 400 INVALID_ARGUMENT on `gemini-3.5-flash-lite` and a clean 3 of 3 on
+`gemini-3.8-flash`. So a vendor field is a property of the model and not of the provider, which
+is the reason `request-extras.yaml` is keyed by alias. The field is removed for that route and
+nothing is lost: its original problem was one reply truncated mid-preamble at sixteen tokens,
+and the 1024-token budget of section 15.14 solves that without asking the vendor for anything.
+
+**`openai-mid` answered a LegalBench item correctly and lost it.** The reply was `Answer: No`.
+The options are `("No", "Yes")` and the key is A. The model named the right option and was
+recorded unparsed for not lettering it.
+
+That is the confound of section 15.14 again, in the one place it does the most damage.
+LegalBench is 2,047 items of bank v1 and about 308 of the own-run suite, and **not one of them
+offers lettered alternatives**: the options are Yes, No, Analysis, Rule. A model answering "No"
+there is not failing an instruction in any way that should cost it an item, and MMLU has the
+same shape whenever a model replies "Answer: Paris".
+
+So an explicit statement is now matched against the option text as well as the letters, and only
+where it is unambiguous: the statement names exactly one option, or the whole reply is one
+option's text. **Never inside prose**, and that restraint is the point. "Yes" and "No" are
+ordinary English words; `together-open-a` wrote "there is no clear connection" in a reply whose
+answer was A, and reading that "no" as a choice would be a coin toss dressed as a measurement.
+
+**The whole-bank check earned its keep here.** Reading option text before letters broke four
+items, and they are a nice demonstration of why benchmarks are hard to score: MMLU carries logic
+items whose options are `A`, `~A`, `B`, `~B`, and physics items offering `2c`, `c`, `0.8c`,
+`0.5c`. On those, a reply of "B" or "c" is ambiguous between the label and the content. The
+label is what the model was asked for, so a reply that is nothing but a letter is read as a
+letter first, and option text only afterwards. Four items out of 19,919, caught by a test that
+runs the whole bank rather than a fixture, before any of it cost a call.
+
+Option text maps to a letter through `prompts.rotate`, the same function that lays the options
+out in the prompt. The position-bias experiment permutes the display order, so "No" is not
+always A, and two implementations of that rotation would come apart the first time one changed.
+
 ### 15.15 The parser could not read the format it asks for, and invented answers instead
 
 The first smoke run under the new prompt, 2026-09-12. `local-small-a` replied with a paragraph
@@ -1154,14 +1208,17 @@ sampling because there is no longer any way to ask for anything else.
 
 What follows, and what has to be said wherever these numbers are reported:
 
-- **The test-retest experiment measures two different things.** For nine models it is the
-  temperature-0 floor the plan intended. For Sonnet 5 and Opus 5 it is the vendor's default
-  nondeterminism, which is a different and probably larger quantity. Reporting one mean across
+- **The test-retest experiment measures two different things.** For eight models it is the
+  temperature-0 floor the plan intended. For Sonnet 5, Opus 5 and gpt-5.6-sol it is the
+  vendor's default nondeterminism, which is a different and probably larger quantity.
+  **Updated 2026-09-12**: gpt-5.6-sol refuses temperature too, in a second vendor's words
+  ("does not support 0.0 with this model. Only the default (1) value is supported"), so this
+  is three of eleven rather than two. Reporting one mean across
   all eleven would be averaging two measurements that are not the same measurement. Section 4.3
   gets a per-model column rather than a single figure, which it should have had anyway.
 - **Their item responses are noisier than the rest of the panel's**, by an amount the
-  test-retest will measure rather than assume. A 0 or a 1 from those two carries more sampling
-  noise than a 0 or a 1 from the other nine, and the calibration should be read knowing that.
+  test-retest will measure rather than assume. A 0 or a 1 from those three carries more sampling
+  noise than a 0 or a 1 from the other eight, and the calibration should be read knowing that.
 - **It is not a reason to drop them.** A panel of current models that excluded the two most
   capable ones because their vendor removed a parameter would be a worse panel and a less
   honest one. The answer is to measure the difference and report it.

@@ -29,7 +29,7 @@ from dataclasses import asdict, dataclass, field
 from typing import Any, Protocol
 
 from mselect.runner import parse
-from mselect.runner.prompts import Settings, answer_letter, render
+from mselect.runner.prompts import Settings, answer_letter, render, rotate
 
 MULTIPLE_CHOICE = "multiple_choice"
 
@@ -258,9 +258,12 @@ def score(item: Item, reply: Reply, *, rotation: int = 0) -> tuple[str | None, i
     if item.free_response:
         return parse.parse_math(reply.text), parse.grade_math(reply.text, key)
     n_options = len(item.options)
+    # The options as the model saw them, so that a reply naming one maps to the letter it was
+    # shown against. The same helper laid them out in the prompt.
+    shown = rotate(list(item.options), rotation)
     return (
-        parse.parse_choice(reply.text, n_options),
-        parse.grade_choice(reply.text, key, n_options),
+        parse.parse_choice(reply.text, n_options, shown),
+        parse.grade_choice(reply.text, key, n_options, shown),
     )
 
 

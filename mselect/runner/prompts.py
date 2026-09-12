@@ -128,20 +128,29 @@ PANEL: Final[tuple[PanelEntry, ...]] = (
 )
 
 
-def format_options(options: list[str], *, rotation: int = 0) -> str:
-    """Lettered options, optionally cyclically rotated for the position-bias experiment.
+def rotate(options: list[str], rotation: int = 0) -> list[str]:
+    """The options in the order the model is shown them.
 
     A rotation of k moves every option k places later in the list, so the correct answer takes a
     different letter without the wording of any option changing. PLAN.md section 4.3 asks for
     four cyclic permutations, which is `rotation` 0 to 3.
+
+    One function for this, used to write the prompt and to read the reply. A parser that maps
+    option text back to a letter has to agree with the prompt about which letter that was, and
+    two implementations of a rotation come apart the first time one of them changes.
     """
     if not options:
-        return ""
+        return []
     size = len(options)
     if size > len(LETTERS):
         raise ValueError(f"{size} options is more than the {len(LETTERS)} letters available")
-    rotated = [options[(index - rotation) % size] for index in range(size)]
-    return "\n".join(f"{LETTERS[index]}. {text}" for index, text in enumerate(rotated))
+    return [options[(index - rotation) % size] for index in range(size)]
+
+
+def format_options(options: list[str], *, rotation: int = 0) -> str:
+    """Lettered options, in the order `rotate` puts them."""
+    shown = rotate(options, rotation)
+    return "\n".join(f"{LETTERS[index]}. {text}" for index, text in enumerate(shown))
 
 
 def answer_letter(options: list[str], answer: str, *, rotation: int = 0) -> str:

@@ -23,6 +23,7 @@ from __future__ import annotations
 
 import re
 import unicodedata
+from collections.abc import Sequence
 from fractions import Fraction
 
 LETTERS = "ABCDEFGHIJ"
@@ -50,6 +51,13 @@ _SOLE_LETTER = re.compile(r"^[\*\s\(\[\{\"']*([A-Ja-j])[\*\)\]\}\"'\.,:\s]*$")
 # of "a" on its own still reads as A.
 _WORD_LETTERS = frozenset({"a", "i", "I"})
 
+# The tail of the last explicit answer statement, whatever it says. Used to read a reply that
+# names an option rather than lettering it: "Answer: No" on an item whose options are words.
+_ANSWER_MARK = re.compile(
+    r"(?:final\s+answer|answer|option|choice|response)\s*(?:is|:|=)\s*",
+    re.IGNORECASE,
+)
+
 _BOXED = re.compile(r"\\boxed\s*\{")
 _NUMBER = re.compile(r"-?\d[\d,]*\.?\d*")
 
@@ -62,11 +70,62 @@ def clean(text: str) -> str:
     return " ".join(text.split())
 
 
-def parse_choice(text: str, n_options: int = 4) -> str | None:
+_EDGE_PUNCTUATION = ".,:;!?\"'()[]{} "
+
+
+def _normalise_option(text: str) -> str:
+    """Case and edge punctuation removed, from both sides of a comparison.
+
+    Symmetric on purpose. Stripping only the reply would let two options that differ by a full
+    stop look like different answers, and then a reply matching both would look like a reply
+    matching one.
+    """
+    return text.strip().strip(_EDGE_PUNCTUATION).casefold()
+
+
+def _same(first: str, second: str) -> bool:
+    """Two short answers as the same answer, ignoring case and surrounding punctuation."""
+    return _normalise_option(first) == _normalise_option(second)
+
+
+def stated_answer(body: str) -> str | None:
+    """Whatever the last explicit answer statement names, or None if there is none."""
+    marks = list(_ANSWER_MARK.finditer(body))
+    if not marks:
+        return None
+    tail = body[marks[-1].end() :].strip()
+    return tail or None
+
+
+def _by_option_text(body: str, options: Sequence[str] | None) -> str | None:
+    """The letter of the option a reply names, when it names exactly one and means it.
+
+    Only an explicit statement or a reply that is nothing but the option text. Never a mention
+    inside prose: "Yes" and "No" are ordinary English words, and a reply reading "there is no
+    clear connection" names no option at all.
+    """
+    if not options:
+        return None
+    candidates = [stated_answer(body), body]
+    for candidate in candidates:
+        if candidate is None:
+            continue
+        hits = [index for index, option in enumerate(options) if _same(candidate, option)]
+        if len(hits) == 1:
+            return LETTERS[hits[0]]
+    return None
+
+
+def parse_choice(text: str, n_options: int = 4, options: Sequence[str] | None = None) -> str | None:
     """The chosen option letter, or None when the reply does not identify one.
 
     `n_options` matters: a reply of "E" to a four-option item is not an answer, it is a model
     that has lost the plot, and scoring it as incorrect would blame the item.
+
+    `options` are the option texts **in the order the model was shown them**, which is what
+    `prompts.rotate` produces. Given them, a reply that names an option rather than lettering
+    it is read as the answer it plainly is: LegalBench offers Yes, No, Analysis and Rule rather
+    than lettered alternatives, and a model answering "No" there should not lose the item.
     """
     if n_options < 1 or n_options > len(LETTERS):
         raise ValueError(f"n_options must be between 1 and {len(LETTERS)}")
@@ -80,10 +139,19 @@ def parse_choice(text: str, n_options: int = 4) -> str | None:
         if letter in allowed:
             return letter
 
+    # A reply that is nothing but a letter is read as that option's letter, and this has to
+    # come before reading option text or it collides with items whose options are themselves
+    # letters. MMLU carries logic items offering "A", "~A", "B", "~B", and physics items
+    # offering "2c", "c", "0.8c": there, a reply of "B" or "c" is ambiguous between the label
+    # and the content, and the label is what the model was asked for.
     sole = _SOLE_LETTER.match(body)
     if sole is not None:
         letter = sole.group(1).upper()
         return letter if letter in allowed else None
+
+    named = _by_option_text(body, options)
+    if named is not None and named in allowed:
+        return named
 
     # Prose, with no explicit statement. Letters that are also English words are dropped
     # first: without that, a reply that reasons and never answers scores as answering A
@@ -198,9 +266,11 @@ def math_equivalent(first: str, second: str) -> bool:
     return value_a == value_b
 
 
-def grade_choice(text: str, key: str, n_options: int = 4) -> int | None:
+def grade_choice(
+    text: str, key: str, n_options: int = 4, options: Sequence[str] | None = None
+) -> int | None:
     """1, 0, or None when the reply cannot be parsed at all."""
-    choice = parse_choice(text, n_options)
+    choice = parse_choice(text, n_options, options)
     if choice is None:
         return None
     return int(choice == key.strip().upper())
