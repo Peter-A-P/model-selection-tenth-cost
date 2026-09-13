@@ -9,12 +9,31 @@
 # Anthropic share batched, and the whole project's API line at about US$60. A month holds
 # one full suite plus a rerun; a run holds one full suite with the frontier subset beside it.
 
+# **September 2026 is deliberately loose, and goes back to normal at the October budget
+# review (04's PLAN.md section 5.1, Oct 1 to 3).**
+#
+# Peter is away 2026-09-25 to 10-08 and is pushing several projects ahead of that, so a
+# monthly cap that refuses work in week three is the expensive failure and a cap that allows
+# more than planned is the cheap one. Measured from the ledgers on 2026-09-12: 03 at US$23.45
+# across seven dry runs, 02 at US$10.02, 04 at US$0.00, US$33 of a US$200 portfolio.
+#
+# **The monthly caps are loosened. The per-run caps are NOT, and that is the point.** A
+# monthly cap only gates how much planned work may happen; a per-run cap is what catches a
+# single run going wrong, which is the failure that actually burns money without anyone
+# watching. On 2026-09-12 the control arm looped on one item and filled 4,096 tokens
+# restarting the same derivation; that is what a per-run cap is for, and loosening it while
+# nobody is at the laptop would be exactly the wrong trade.
+#
+# Raising these does NOT raise the vendor console caps, which are the hard stop and fail far
+# less gracefully: an internal cap refuses a call cleanly before it leaves, a console cap
+# returns errors partway through a four-hour run.
+
 version: 1
-portfolio_monthly_usd: 200
+portfolio_monthly_usd: 350
 
 projects:
   model-selection-tenth-cost:
-    monthly_usd: 40
+    monthly_usd: 100
     per_run_usd: 30
 
 default:
