@@ -968,6 +968,58 @@ obviously agree.
 It is worth noting that `anthropic-haiku` is the one Anthropic route carrying a dated
 identifier, and the one that works.
 
+### 15.22 A missing verdict is not a verdict, and 1,910 calls nearly went quiet
+
+Found on the morning of 2026-09-13, in the run that was still going.
+
+`google-frontier` finished the night with **1,088 items scored of 3,000**. At 00:23 Google's
+free-tier daily quota for `gemini-3.8-flash` ran out and refused every remaining call:
+
+    1,908  google returned 429: RESOURCE_EXHAUSTED, generate_requests_per_model_per_day
+        2  google returned 503: UNAVAILABLE
+
+That on its own is an inconvenience with a known remedy, which is to ask again after the quota
+resets. The defect is what would have happened next.
+
+**Section 15.19 settled them.** That section, written at 21:29 the previous evening, made a
+failure retryable or not at the point where the information is, and defaulted a record with no
+verdict to "not retryable". The reasoning was recorded in the code: the only verdict-less
+records in existence were the 33 deterministic failures from the first four models, so reading
+"no verdict" as "settled" described them correctly.
+
+It stopped describing them correctly three minutes later, because the run was started at 18:39
+and Python had already imported the old module. The process went on writing verdict-less
+records for another nine hours, and 1,910 of them were the most repeatable failure a vendor
+produces. `records.done` read every one as settled. Resuming would have skipped all 1,910 in
+silence and left the panel with one model measured on 36% of the suite, with nothing in the
+run's own output to say so: the resume prints what it will ask, and it would have said there
+was nothing to ask.
+
+Checked rather than reasoned about, against the live file:
+
+    records.done() before the fix: all 1,910 google-frontier failures settled
+    records.done() after  the fix: 1,910 asked again, 68 deterministic ones still settled
+
+The fix is to keep three states apart where there were two. A verdict of True is asked again,
+a verdict of False is settled, and **no verdict at all is decided from the recorded error**,
+which is the only thing those records have left. Reading a status back out of an error string
+is what `gateway._retryable` refuses to do and should keep refusing, because the adapter holds
+the status and the exception type and a sentence is a lossy copy of both. That refusal is about
+records that have a verdict. This is about records that never got one, and for those the
+sentence is not a lossy copy of the information, it is the information.
+
+The general lesson is the one about long-running processes rather than about defaults. A
+default chosen against the data in front of you is a claim about data that does not exist yet,
+and a six-hour run is long enough for the code to change underneath it. Anything that reads a
+record file has to treat an absent field as absent, not as its current default.
+
+**Two facts about the quota, for the arms still to come.** The reset is at midnight UTC, so
+the 1,910 can be re-asked after about 21:30 local. And the 1,908 refusals cost 4 HTTP requests
+each, one call and three retries, because the gateway retries a 429 as though it were a busy
+minute rather than an exhausted day: 5,724 requests spent on a wall that was not going to move.
+Whether the panel keeps a free-tier route at all is a question for section 15.4, which already
+has `google-frontier` open on other grounds.
+
 ### 15.21 `mselect rescore`: a scoring fix should not cost a run
 
 Three of the defects found on 2026-09-12 were in scoring rather than in asking: a parser that
@@ -1303,6 +1355,24 @@ bound they are.
 Both caps still clear at the worst case, which is the version that matters. The two unmeasured
 aliases have had their reasoning disabled since those records were written, so the figure should
 fall once they are smoked again; it is not adjusted downward in advance of that.
+
+**What it actually cost, 2026-09-13.** The full-suite arm was estimated at US$13.40 and the
+ledger says **US$16.42**, 22% over, with `google-frontier` still owing about US$1.85 of items it
+was refused. Which direction the error runs is the useful part: the estimate reads output
+tokens from a smoke run of three items per model, and three items is too few to see a reasoning
+model's spread. Two models account for the whole overrun, and both are the reasoning ones:
+
+| alias | output tokens per item | share of the arm |
+|---|---:|---:|
+| `anthropic-opus` | 73.5 | US$4.92 |
+| `openai-frontier` | 43.5 | US$4.99 |
+| everything else together | - | US$6.51 |
+
+So the estimator is sound and its sample is not. The smoke run exists to settle whether a route
+works, and it was read as though it also settled what a route generates. The remaining arms are
+estimated on the same three-item basis and should be read as low by something like a fifth;
+there is now 3,000 items of measurement to re-estimate from, which is section 15.18's
+`observed_output` reading the real record file rather than the smoke file.
 
 **What this costs the framing experiment** is what section 15.13 said and is now settled rather
 than open. Section 3.3 reserved reasoning for the framing experiment; that distinction is no

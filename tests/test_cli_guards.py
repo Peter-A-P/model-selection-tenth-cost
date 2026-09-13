@@ -9,11 +9,26 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import pytest
 from typer.testing import CliRunner
 
+from mselect import paths
 from mselect.cli import app
 
 runner = CliRunner()
+
+
+@pytest.fixture
+def elsewhere(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
+    """Send `mselect run`'s records somewhere with nothing in it.
+
+    Without this a guard test reads whatever the real panel run has recorded, and a run that
+    has already covered the item under test leaves the command with nothing outstanding. It
+    then exits 0 for a reason that has nothing to do with the guard, which is how this was
+    found: green all evening, red at 07:30 the next morning, with no code changed between.
+    """
+    monkeypatch.setattr(paths, "OUT", tmp_path)
+    return tmp_path
 
 
 def test_naming_a_paid_alias_without_yes_calls_nothing() -> None:
@@ -44,15 +59,16 @@ def test_routes_and_suite_never_take_a_yes_flag() -> None:
         assert "--yes" not in help_text, f"{command} should not be able to spend"
 
 
-def test_run_without_yes_sends_nothing_and_says_so() -> None:
+def test_run_without_yes_sends_nothing_and_says_so(elsewhere: Path) -> None:
     """The run that spends the budget must not start because someone typed the command."""
     result = runner.invoke(app, ["run", "--alias", "local-small-a", "--limit", "1"])
+    assert "nothing to do" not in result.output, "the guard needs something to guard"
     assert result.exit_code == 1
     assert "nothing was sent" in result.output
     assert "--yes" in result.output
 
 
-def test_run_prints_the_plan_before_it_asks_for_permission() -> None:
+def test_run_prints_the_plan_before_it_asks_for_permission(elsewhere: Path) -> None:
     """A plan nobody can read is not a confirmation step."""
     result = runner.invoke(app, ["run", "--alias", "local-small-a", "--limit", "5"])
     assert "calls outstanding" in result.output

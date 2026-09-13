@@ -7,6 +7,7 @@ code rather than the benchmark. Every path through it is exercised against a fak
 
 from __future__ import annotations
 
+import json
 from collections.abc import Callable, Sequence
 from pathlib import Path
 
@@ -291,6 +292,73 @@ def test_only_a_retryable_failure_comes_back_around(tmp_path: Path) -> None:
             "hash-of-unreadable",
         }
     )
+
+
+def test_a_failure_with_no_verdict_is_read_from_what_it_says(tmp_path: Path) -> None:
+    """A record written before `retryable` existed must not be mistaken for a settled one.
+
+    Found 2026-09-13 in the live panel run. The run began at 18:39 on 2026-09-12 and
+    `retryable` was added to the code at 21:29, so the running process kept writing records
+    without the field for another nine hours. At 00:23 Google's daily free-tier quota for
+    `gemini-3.8-flash` ran out and refused the remaining 1,910 calls with a 429, and every one
+    of those records reached `done` with no verdict in it. Defaulting that to "not retryable"
+    settled all 1,910: resuming would have skipped them in silence and left that model scored
+    on 1,088 items of 3,000.
+
+    So the three cases are distinct, and stay distinct: a verdict of True is asked again, a
+    verdict of False is settled, and no verdict at all is decided from the recorded error.
+    """
+    path = tmp_path / "run.jsonl"
+    quota = (
+        "ProviderError: google returned 429 after 0 retries: RESOURCE_EXHAUSTED: You exceeded "
+        "your current quota. Quota exceeded for metric: generate_requests_per_model_per_day, "
+        "limit: 10000, model: gemini-3.8-flash. Please retry in 21h6m2.949697714s."
+    )
+    legacy = [
+        (quota, "quota"),
+        ("ProviderError: google returned 503 after 0 retries: UNAVAILABLE", "unavailable"),
+        ("the model returned no text (max_tokens), 1024 output tokens spent", "truncated"),
+        ("the model returned no text (refusal)", "refused"),
+        ("ProviderError: openai returned 400 after 0 retries: bad request", "rejected"),
+    ]
+    with path.open("w", encoding="utf-8") as handle:
+        for error, cell in legacy:
+            handle.write(
+                json.dumps(
+                    {
+                        "cell": cell,
+                        "request_sha256": f"hash-of-{cell}",
+                        "error": error,
+                        "correct": None,
+                    }
+                )
+                + "\n"
+            )
+
+    settled = records.done(path)
+    assert "hash-of-quota" not in settled, "a daily quota is the most repeatable failure there is"
+    assert "hash-of-unavailable" not in settled
+    assert "hash-of-truncated" in settled, "a model that overran its budget will overrun it again"
+    assert "hash-of-refused" in settled
+    assert "hash-of-rejected" in settled, "a 400 describes the request, and will describe it again"
+
+
+def test_a_recorded_verdict_beats_what_the_error_string_looks_like(tmp_path: Path) -> None:
+    """The error text is consulted only when there is no verdict, never instead of one.
+
+    The adapter holds the status and the exception type; a sentence is a lossy copy of both.
+    A record that carries `retryable` carries the adapter's answer, and that is the one that
+    counts even where the words point the other way.
+    """
+    path = tmp_path / "run.jsonl"
+    records.append(
+        path,
+        [
+            _record("says-429", error="returned 429 but settled", retryable=False, correct=None),
+            _record("says-400", error="returned 400 but transient", retryable=True, correct=None),
+        ],
+    )
+    assert records.done(path) == frozenset({"hash-of-says-429"})
 
 
 def test_raising_the_budget_re_asks_a_truncated_item_without_being_asked_to(
