@@ -968,6 +968,34 @@ obviously agree.
 It is worth noting that `anthropic-haiku` is the one Anthropic route carrying a dated
 identifier, and the one that works.
 
+### 15.21 `mselect rescore`: a scoring fix should not cost a run
+
+Three of the defects found on 2026-09-12 were in scoring rather than in asking: a parser that
+could not read "Answer: B", a fallback that invented answers out of the article "a", and a
+refusal to read an option named rather than lettered. Every one was found after real calls had
+been made.
+
+Section 15.15 said a scoring change "is recoverable after the fact, by design", because
+`Administration.reply` keeps the text. That was an intention rather than a fact: nothing could
+do it. This is the command that makes the claim true, and the distinction it draws is the one
+that governs what future compute this project needs.
+
+- **Changing what is asked** costs a full run. The request hash covers the prompt, the system
+  message, the budget, the temperature, the model and the vendor fields, so changing any of them
+  re-asks those cells deliberately: US$13.40 and about six hours for the full-suite arm.
+- **Changing how a stored reply is scored** should cost nothing, and now does. `mselect rescore`
+  reads a record file, scores every stored reply again with the current parser, reports what
+  moved and writes only when told to, keeping the previous file beside it.
+
+Run against the live panel records while the run was still going: **15,020 records read, 14,982
+rescored, none changed.** The 38 it skipped had no reply to score, which is what a failed or
+truncated call leaves behind. So the scoring in the run agrees with the parser as it stands, and
+the first use of the tool was as a check rather than a repair.
+
+This matters most for the arms still to come. After tonight the settings are frozen in practice,
+because a prompt change is no longer cheap. A parser change is, and the two should not be
+confused when the next defect turns up.
+
 ### 15.19 Resuming re-asked every failure, and almost none of them were transient
 
 Found in the live run, 2026-09-12, from its first four models:

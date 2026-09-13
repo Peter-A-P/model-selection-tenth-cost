@@ -710,6 +710,96 @@ def run(
         _say("failed calls are not done: running this again picks them up and costs only those.")
 
 
+@app.command("rescore")
+def rescore(
+    records_path: str = typer.Argument(..., help="A record file written by `mselect run`."),
+    version: str = typer.Option("v1", help="Which bank the items come from."),
+    write: bool = typer.Option(False, "--write", help="Replace the file. Without this, report."),
+) -> None:
+    """Score stored replies again with the current parser. Calls nothing and costs nothing.
+
+    Three of this project's scoring defects were found after the calls were paid for. The reply
+    text is kept precisely so that fixing one of those never means asking again: a run costs
+    US$13.40 and six hours, and a parser fix should cost neither.
+
+    Prints what moved and why. `--write` replaces the file, keeping the previous one beside it.
+    """
+    import json
+    import pathlib
+    import shutil
+
+    from mselect.runner import administer, items
+
+    path = pathlib.Path(records_path)
+    if not path.is_file():
+        raise typer.BadParameter(f"no record file at {path}")
+
+    pool = items.administrable(version)
+    index = pool.index()
+
+    rows: list[dict[str, object]] = []
+    moved: list[tuple[str, object, object]] = []
+    counts = {"read": 0, "rescored": 0, "changed": 0, "no reply": 0, "unknown item": 0}
+    for line in path.read_text(encoding="utf-8").splitlines():
+        if not line.strip():
+            continue
+        try:
+            row = json.loads(line)
+        except json.JSONDecodeError:
+            continue
+        counts["read"] += 1
+        rows.append(row)
+
+        reply_text = row.get("reply")
+        if not isinstance(reply_text, str) or not reply_text.strip():
+            counts["no reply"] += 1
+            continue
+        item = index.get(str(row.get("item_id")))
+        if item is None:
+            counts["unknown item"] += 1
+            continue
+
+        rotation = int(row.get("rotation") or 0)
+        key = administer.expected_key(item, rotation=rotation)
+        parsed, correct = administer.score(
+            item, administer.Reply(text=reply_text), rotation=rotation
+        )
+        counts["rescored"] += 1
+        before = (row.get("parsed"), row.get("correct"))
+        if before != (parsed, correct):
+            counts["changed"] += 1
+            moved.append((str(row.get("item_id")), before, (parsed, correct)))
+        row["key"] = key
+        row["parsed"] = parsed
+        row["correct"] = correct
+        row["unparsed"] = correct is None and row.get("error") is None
+
+    _say(f"{counts['read']:,} records, {counts['rescored']:,} rescored")
+    _say(f"  {counts['no reply']:,} had no reply to score, and keep what they said")
+    if counts["unknown item"]:
+        _say(f"  {counts['unknown item']:,} name an item not in the pool and were left alone")
+    _say(f"  {counts['changed']:,} changed")
+    for item_id, was, now in moved[:10]:
+        _say(f"      {item_id}  {was} -> {now}")
+    if len(moved) > 10:
+        _say(f"      and {len(moved) - 10:,} more")
+
+    if not counts["changed"]:
+        _say("\nthe current parser agrees with every stored score. Nothing to write.")
+        return
+    if not write:
+        _say("\nnothing written; pass --write to apply this.")
+        return
+
+    backup = path.with_suffix(path.suffix + ".before-rescore")
+    shutil.copy2(path, backup)
+    path.write_text(
+        "\n".join(json.dumps(row, ensure_ascii=False) for row in rows) + "\n", encoding="utf-8"
+    )
+    _say(f"\nwrote {path}")
+    _say(f"previous version kept at {backup}")
+
+
 @app.command("report")
 def report(version: str = typer.Option("v1")) -> None:
     """Regenerate the README results table and the figures from the saved outputs."""

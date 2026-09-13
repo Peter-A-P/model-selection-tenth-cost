@@ -443,3 +443,29 @@ def test_a_reply_the_gateway_could_not_price_keeps_a_null_cost() -> None:
     written = administer([MC], "m", _always("B", cost_usd=None, input_tokens=200))
     assert written[0].cost_usd is None, "never coerced to zero"
     assert written[0].error is None and written[0].correct == 1, "the call worked"
+
+
+def test_a_scoring_fix_is_recoverable_from_the_stored_reply() -> None:
+    """The claim that makes a parser defect cheap, tested rather than asserted.
+
+    Three of this project's defects on 2026-09-12 were in scoring, found after the calls were
+    paid for. Because the reply text is kept, the repair is rescoring rather than re-asking:
+    the panel costs US$13.40 and six hours to ask, and a parser fix should cost neither.
+
+    The reply below is the one that exposed the case-sensitivity defect, from a 3B model on a
+    MedQA item. Scoring it now, from text alone, gets the answer the model actually gave.
+    """
+    stored = (
+        "The infant's inability to pull himself to stand suggests a delay in social "
+        "development, because these behaviors indicate attachment anxiety.\n\nAnswer: B"
+    )
+    item = Item(
+        item_id="mmlu:1",
+        benchmark="mmlu",
+        kind="multiple_choice",
+        question="Which milestone is delayed?",
+        options=("Fine motor", "Social", "Gross motor", "Speech"),
+        answer="Social",
+    )
+    parsed, correct = score(item, Reply(text=stored))
+    assert parsed == "B" and correct == 1, "scored from the reply alone, with no vendor call"

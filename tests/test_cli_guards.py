@@ -7,6 +7,8 @@ an alias that costs money without saying so is refused before a gateway is even 
 
 from __future__ import annotations
 
+from pathlib import Path
+
 from typer.testing import CliRunner
 
 from mselect.cli import app
@@ -62,3 +64,18 @@ def test_run_refuses_an_alias_with_no_route() -> None:
     result = runner.invoke(app, ["run", "--alias", "not-a-model", "--limit", "1", "--yes"])
     assert result.exit_code != 0
     assert "no route for not-a-model" in result.output
+
+
+def test_rescore_reports_without_writing_by_default(tmp_path: Path) -> None:
+    """A record file is evidence. Rewriting it should take saying so."""
+    path = tmp_path / "run.jsonl"
+    path.write_text("", encoding="utf-8")
+    result = runner.invoke(app, ["rescore", str(path)])
+    assert result.exit_code == 0
+    assert "--write" not in result.output or "nothing written" in result.output
+
+
+def test_rescore_refuses_a_file_that_is_not_there(tmp_path: Path) -> None:
+    result = runner.invoke(app, ["rescore", str(tmp_path / "nope.jsonl")])
+    assert result.exit_code != 0
+    assert "no record file" in result.output
