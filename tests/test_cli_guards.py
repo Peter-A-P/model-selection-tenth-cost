@@ -95,3 +95,42 @@ def test_rescore_refuses_a_file_that_is_not_there(tmp_path: Path) -> None:
     result = runner.invoke(app, ["rescore", str(tmp_path / "nope.jsonl")])
     assert result.exit_code != 0
     assert "no record file" in result.output
+
+
+def test_a_repeat_administration_writes_somewhere_else(elsewhere: Path) -> None:
+    """Test-retest compares two administrations, so merging them into one file loses the arm."""
+    plain = runner.invoke(app, ["run", "--alias", "local-small-a", "--limit", "1"])
+    again = runner.invoke(app, ["run", "--alias", "local-small-a", "--limit", "1", "--repeat", "2"])
+    assert "own-run-plain-0.jsonl" in plain.output
+    assert "own-run-plain-0-r2.jsonl" in again.output
+    assert "administration 2" in again.output
+
+
+def test_a_repeat_administration_says_it_will_not_read_the_first_one_s_cache(
+    elsewhere: Path,
+) -> None:
+    """The defect this flag exists for, found 2026-09-14 before the arm was paid for.
+
+    Test-retest asks the same model the same items at the same settings a day apart, so the
+    request bytes are identical by design and this project caches every vendor response by the
+    hash of exactly those bytes. `out/own-run-cache` held 24,053 replies at the time. The second
+    administration would have been answered from the first one's replies for every model not
+    going through a batch: free, instant, and in perfect agreement, which is the cache reading
+    itself back as a reliability coefficient.
+
+    So the plan a repeat prints has to say that it is not doing that, because a run that quietly
+    costs nothing is exactly what a correct resume looks like.
+    """
+    result = runner.invoke(
+        app, ["run", "--alias", "local-small-a", "--limit", "1", "--repeat", "2"]
+    )
+    assert "cache namespace 'r2'" in result.output
+    assert "made again rather than answered from administration 1" in result.output
+
+
+def test_repeat_zero_is_refused(elsewhere: Path) -> None:
+    result = runner.invoke(
+        app, ["run", "--alias", "local-small-a", "--limit", "1", "--repeat", "0"]
+    )
+    assert result.exit_code != 0
+    assert "repeat starts at 1" in result.output

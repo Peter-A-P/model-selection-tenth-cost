@@ -975,6 +975,55 @@ exists to check.
 It is worth noting that `anthropic-haiku` is the one Anthropic route carrying a dated
 identifier, and the one that works.
 
+### 15.25 The cache would have answered the test-retest arm out of its own records
+
+Found on 2026-09-14, while costing the four remaining arms and before any of them were run.
+
+Test-retest (section 4.3) asks the same model the same 500 items at the same settings a day
+apart. Holding the settings identical is the design rather than an accident: anything that
+varied the request would measure the variation instead of the model, and what moves between two
+identical administrations is the noise floor under every "the new version dropped two points"
+claim anyone will ever make about that model.
+
+Identical settings means identical request bytes, and section 3.3 caches every vendor response
+by the hash of exactly those bytes. `out/own-run-cache` held **24,053 replies, 46.8 MB**, from
+the full-suite arm. The second administration would have been answered from the first one's
+replies: free, instant, and in perfect agreement. The arm would have reported a reliability
+coefficient of 1.0 and it would have been measuring the cache.
+
+Worse than a clean failure, it would have half worked. Anthropic's three models go through the
+Message Batches endpoint and boundary deliberately does not consult the cache inside a batch, so
+the arm would have produced three honest rows and eight fabricated ones, in one table, with
+nothing to tell them apart.
+
+**Both rules are right.** Section 3.3's "cache every vendor response, a rerun must cost nothing"
+is correct and is not weakened here. The mistake was in the word rerun. A second administration
+is not a rerun: it sends the same bytes in order to measure a different thing, and no hash of
+the request can see the difference, because the difference is not in the request.
+
+So an administration gets a cache namespace of its own. `mselect run --repeat 2` writes to
+`own-run-plain-0-r2.jsonl` and reads and writes `out/own-run-cache/r2`. Inside one
+administration a rerun still costs nothing, which is what section 3.3 is actually for; across
+administrations nothing is shared, so a repeat genuinely calls the vendor. The two have to move
+together, and the code comment says why: changing only the record file would write the same
+fabricated agreement into a fresh file and look like it had worked.
+
+A flag that simply turned the cache off would have been the wrong fix. Resuming a half-finished
+repeat would then pay full price for everything already asked, and resuming is not re-measuring.
+
+**The good news in this.** The first administration is already paid for. The full-suite arm asked
+every model all 3,000 items on 2026-09-12 and 2026-09-13, so test-retest needs only its second
+administration, which is what the US$2.83 estimate already assumed. The day's gap the design
+calls for is satisfied by the calendar rather than by waiting.
+
+**Where this generalises.** Position bias and prompt framing are unaffected, because rotating the
+options and changing the template both change the prompt and so change the hash honestly. The
+class of defect is the one this project keeps finding in itself: a measurement that reads its own
+machinery back and reports it as a result. A truncated reply read as a token count (15.17), an
+error string read as a settled verdict (15.22), a model's own item set read as a common frame
+(15.23), a published batch rate read as a discount received (15.24). Four of the five were found
+by not believing a number that looked reasonable.
+
 ### 15.24 A discount that was never earned, and a tier label that was right all along
 
 **`google-frontier` is settled.** Section 15.4 has carried "a Flash model is not the counterpart

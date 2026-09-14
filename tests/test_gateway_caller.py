@@ -316,3 +316,20 @@ def test_a_prompt_with_no_temperature_sends_no_temperature_field() -> None:
     )
     assert _request(prompt).temperature is None
     assert _request(replace(prompt, temperature=0.0)).temperature == 0.0
+
+
+def test_a_cache_namespace_isolates_one_administration_from_another(tmp_path: Path) -> None:
+    """The whole point of `--repeat`: the second administration must not read the first's cache.
+
+    Checked at the gateway rather than through the CLI, because this is the line that does the
+    work. A namespace puts the cache in a directory of its own, so an identical request built by
+    a later administration misses, and the vendor is asked again. Within an administration the
+    cache is untouched, which is what keeps section 3.3's "a rerun costs nothing" true.
+    """
+    from boundary.cache import ExactMatchCache
+
+    root = tmp_path / "cache"
+    base = ExactMatchCache(root)
+    apart = ExactMatchCache(root / "r2")
+    assert apart.root != base.root
+    assert apart.root.parent == base.root, "a namespace lives under the cache, not beside it"

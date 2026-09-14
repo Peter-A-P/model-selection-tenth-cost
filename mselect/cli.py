@@ -610,6 +610,9 @@ def run(
     alias: str = typer.Option("", "--alias", help="Comma-separated. Default: the whole panel."),
     template: str = typer.Option("plain", help="plain, letter_only or brief_reasoning."),
     rotation: int = typer.Option(0, help="Option rotation, for the position-bias experiment."),
+    repeat: int = typer.Option(
+        1, help="Administration number, for test-retest. 2 re-asks rather than reading the cache."
+    ),
     limit: int = typer.Option(0, help="Stop after this many items per alias. 0 means all."),
     chunk: int = typer.Option(250, help="Items per write. Smaller loses less to a crash."),
     batch: bool = typer.Option(True, "--batch/--no-batch", help="Use vendor batches."),
@@ -643,12 +646,26 @@ def run(
     if unknown:
         raise typer.BadParameter(f"no route for {', '.join(unknown)}")
 
-    path = paths.ensure(paths.OUT / version) / f"own-run-{template}-{rotation}.jsonl"
+    if repeat < 1:
+        raise typer.BadParameter("repeat starts at 1")
+    # A repeat is a separate administration in both places it has to be. Its own record file, so
+    # the two are comparable rather than merged; its own cache namespace, so the vendor is
+    # actually asked. Moving only the first would write a fabricated agreement into a fresh file
+    # and look like it had worked. Repeat 1 keeps the original names, so nothing already recorded
+    # is orphaned by this flag existing.
+    stem = f"own-run-{template}-{rotation}" + ("" if repeat == 1 else f"-r{repeat}")
+    namespace = None if repeat == 1 else f"r{repeat}"
+    path = paths.ensure(paths.OUT / version) / f"{stem}.jsonl"
     already = records.done(path)
 
     _say(f"suite {chosen.size:,} items, seed {chosen.seed}, drawn {chosen.chosen}")
     _say(f"template {template!r}, rotation {rotation}, {len(ordered):,} items per alias")
     _say(f"records {path}")
+    if repeat != 1:
+        _say(
+            f"administration {repeat}: its own cache namespace {namespace!r}, so every call is "
+            f"made again rather than answered from administration 1"
+        )
 
     plan: list[tuple[str, int]] = []
     for name in wanted:
@@ -681,9 +698,12 @@ def run(
 
     spent = records.spend_usd(path)
     totals = {"scored": 0, "correct": 0, "unparsed": 0, "failed": 0, "uncosted": 0}
-    with gateway.open_gateway() as gw:
+    with gateway.open_gateway(cache_namespace=namespace) as gw:
         caller = gateway.BoundaryCaller(
-            gw, purpose="own-run", run_id=f"{version}-{template}-{rotation}", use_batches=batch
+            gw,
+            purpose="own-run",
+            run_id=f"{version}-{template}-{rotation}" + ("" if repeat == 1 else f"-r{repeat}"),
+            use_batches=batch,
         )
         for name in wanted:
             budget = budgets.get(name, 0)

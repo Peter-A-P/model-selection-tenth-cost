@@ -38,6 +38,7 @@ from boundary import (
     ProviderError,
     SpendCapExceeded,
 )
+from boundary.cache import ExactMatchCache
 
 from mselect.runner.administer import Prompt, Reply
 
@@ -56,9 +57,26 @@ def open_gateway(
     config: Path | str = CONFIG,
     project: str = PROJECT,
     ledger_path: Path | None = None,
+    cache_namespace: str | None = None,
 ) -> Gateway:
-    """A gateway configured for this project's panel. The caller closes it."""
-    return Gateway.from_config(config, project=project, ledger_path=ledger_path)
+    """A gateway configured for this project's panel. The caller closes it.
+
+    `cache_namespace` gives this administration a cache of its own, and exists for exactly one
+    reason: test-retest. That experiment asks the same model the same items at the same settings
+    twice, so the request bytes are identical by design, so the content-hash cache answers the
+    second administration out of the first one's replies. The agreement it then measures is the
+    cache's, not the model's.
+
+    Section 3.3's rule is not weakened by this and is the reason it is a namespace rather than a
+    switch. Inside one administration a rerun still costs nothing, which is what that rule is
+    for. Across administrations nothing is shared, which is what a repeated measurement needs.
+    A flag that simply turned the cache off would make resuming a half-finished repeat cost full
+    price, and resuming is not re-measuring.
+    """
+    gateway = Gateway.from_config(config, project=project, ledger_path=ledger_path)
+    if cache_namespace and gateway.cache is not None:
+        gateway.cache = ExactMatchCache(gateway.cache.root / cache_namespace)
+    return gateway
 
 
 def load_config(path: Path = CONFIG) -> dict[str, Any]:
