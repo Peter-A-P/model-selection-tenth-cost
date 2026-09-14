@@ -537,3 +537,44 @@ def test_a_scoring_fix_is_recoverable_from_the_stored_reply() -> None:
     )
     parsed, correct = score(item, Reply(text=stored))
     assert parsed == "B" and correct == 1, "scored from the reply alone, with no vendor call"
+
+
+def test_a_transport_failure_is_re_asked_whatever_the_record_says(tmp_path: Path) -> None:
+    """Regression, 2026-09-14. 374 of these were sitting in the live file marked settled.
+
+    The classifier that wrote those verdicts was matching the wrong names, so `retryable: False`
+    on a transport failure means "written before the fix" rather than "decided against". There is
+    no way to tell a correct False apart from an incorrect one, and no response arriving is never
+    a statement about the item, so this one case overrides the stored verdict.
+
+    Narrow on purpose. A model that overran its budget still stays settled with a False beside
+    it, because that verdict was never in doubt.
+    """
+    path = tmp_path / "run.jsonl"
+    records.append(
+        path,
+        [
+            _record(
+                "dns",
+                error="ProviderError: openai returned ConnectError after 3 retries: getaddrinfo",
+                retryable=False,
+                correct=None,
+            ),
+            _record(
+                "read",
+                error="ProviderError: openai returned ReadError after 3 retries",
+                retryable=False,
+                correct=None,
+            ),
+            _record(
+                "truncated",
+                error="the model returned no text (max_tokens), 1024 output tokens spent",
+                retryable=False,
+                correct=None,
+            ),
+        ],
+    )
+    settled = records.done(path)
+    assert "hash-of-dns" not in settled
+    assert "hash-of-read" not in settled
+    assert "hash-of-truncated" in settled, "a deterministic failure keeps its verdict"

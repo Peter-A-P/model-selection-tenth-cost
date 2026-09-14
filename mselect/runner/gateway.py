@@ -24,6 +24,7 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+import re
 from collections.abc import Iterator, Mapping, Sequence
 from pathlib import Path
 from typing import Any, Final
@@ -251,16 +252,36 @@ def _why(response: ChatResponse) -> str:
 _TRANSIENT_STATUS: Final = frozenset({408, 409, 429, 500, 502, 503, 504, 529})
 
 
+# A status that is not an integer means no HTTP response arrived, and the gateway puts the
+# exception's class name there: ConnectError, ReadError, ReadTimeout, PoolTimeout. Matched on the
+# shape of the name rather than on a list, because httpx has a dozen and the first version of
+# this guessed two of them wrongly ("connect_error" for "ConnectError") and so matched none.
+#
+# Batch outcome words are deliberately outside it. "errored", "expired" and "canceled" do not
+# end in "error" or "timeout", and section 15.9's reason for settling those still holds: the
+# gateway drops the vendor's reason, so asking again loses it again at the same price.
+_TRANSPORT_STATUS: Final = re.compile(r"(error|timeout)$", re.IGNORECASE)
+
+
+def _transient(status: object) -> bool:
+    """Whether this status could answer differently next time, for both failure paths.
+
+    The two paths asking different questions is the bug behind the bug this fixes: `_retryable`
+    handled a string status and `except ProviderError` tested membership of a set of integers,
+    so a transport failure reaching the second path could never be transient however it was
+    spelled.
+    """
+    if isinstance(status, bool) or status is None:
+        return False
+    if isinstance(status, int):
+        return status in _TRANSIENT_STATUS
+    return bool(_TRANSPORT_STATUS.search(str(status)))
+
+
 def _retryable(response: ChatResponse) -> bool:
     if response.ok:
         return False
-    status = response.status
-    if isinstance(status, int):
-        return status in _TRANSIENT_STATUS
-    # A non-numeric status is a transport failure or a batch outcome word. A timeout deserves
-    # another go; a batch item that errored does not, because the gateway drops the vendor's
-    # reason (section 15.9) and asking again would only lose it again at the same price.
-    return str(status).lower() in {"timeout", "connect_error", "read_error"}
+    return _transient(response.status)
 
 
 def _reply(response: ChatResponse) -> Reply:
@@ -384,7 +405,7 @@ class BoundaryCaller:
                     Reply(
                         text=None,
                         error=f"{type(e).__name__}: {e}",
-                        retryable=getattr(e, "status", None) in _TRANSIENT_STATUS,
+                        retryable=_transient(getattr(e, "status", None)),
                     )
                 )
             except BoundaryError as e:

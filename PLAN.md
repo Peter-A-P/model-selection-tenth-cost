@@ -975,6 +975,69 @@ exists to check.
 It is worth noting that `anthropic-haiku` is the one Anthropic route carrying a dated
 identifier, and the one that works.
 
+### 15.28 Five models answer the same questions twice, and 5% of the answers move
+
+The first vendor numbers from the test-retest arm, 2026-09-14. The same model, the same 500
+items, the same settings, temperature 0, administered a day apart through a cache namespace of
+its own so that every call was really made:
+
+| alias | n | agreement | 95% Wilson | first | second | drift |
+|---|---:|---:|---|---:|---:|---:|
+| `local-small-b` | 494 | 1.000 | 0.992 to 1.000 | 0.514 | 0.514 | +0.000 |
+| `local-small-a` | 497 | 0.998 | 0.989 to 1.000 | 0.503 | 0.501 | -0.002 |
+| `google-mid` | 497 | **0.950** | 0.927 to 0.966 | 0.849 | 0.859 | +0.010 |
+| `together-open-a` | 496 | **0.950** | 0.927 to 0.966 | 0.794 | 0.780 | -0.014 |
+| `together-open-b` | 490 | **0.939** | 0.914 to 0.957 | 0.841 | 0.849 | +0.008 |
+
+**Five to six percent of answers flip on a hosted model with nothing changed.** The two laptop
+models are effectively deterministic at 0.998 and 1.000, which is what rules out the harness: the
+prompts, the parser and the scoring are identical for all five rows, so the difference between
+1.000 and 0.939 is the service rather than this code.
+
+The drift column is what a platform team would act on. `together-open-a` fell 1.4 points and
+`together-open-b` rose 0.8 points **because they were asked twice**. Any claim of the form "the
+new version dropped two points" about these models is inside the noise unless it is measured
+against this floor, and this is the floor. Section 4.3 called this "how much of the score is
+noise"; it is about a point and a half either way at 500 items.
+
+Compare the free partial from HELM recorded in section 13.4: repeated administrations of the
+same model and item agreed 95.3% of the time (n = 8,431). Three hosted models here agree 93.9%
+to 95.0%. Two independent harnesses, the same answer, which is the strongest form this result
+could have taken.
+
+**What is missing and why.** OpenAI is out of credits (`429 insufficient_quota: You have no
+credits remaining`), so `openai-mid` and `openai-frontier` have no second administration. The
+Anthropic three are still unrun after the batch crash of section 15.27, and `google-frontier`
+waits for its quota window.
+
+#### The allowlist that never matched anything
+
+`openai-frontier` also lost 370 calls to `getaddrinfo failed`, a DNS lookup failing on this
+laptop mid-run, and **every one was recorded as settled**. `records.done` confirmed 374 transport
+failures across the run would never be asked again: holes caused by the network being briefly
+unavailable, filed as permanent facts about the items.
+
+Section 15.19 named transport failures as the clearest example of a failure worth repeating, and
+then matched them against `{"timeout", "connect_error", "read_error"}`. The gateway puts the
+exception's class name in the status, so what actually arrives is `ConnectError` and `ReadError`,
+and `"ConnectError".lower()` is `"connecterror"`. **The allowlist never matched anything, on any
+run, since it was written.** Nothing noticed, because until this arm nothing had failed that way.
+
+Underneath it was a second bug that guaranteed the first could not be caught: the two failure
+paths asked different questions. `_retryable` handled a string status and `except ProviderError`
+tested membership of a set of integers, so a transport failure arriving by the second path could
+never be transient however it was spelled.
+
+Both paths now use one rule, matched on the shape of the name rather than a list of them, because
+httpx has a dozen and the first version guessed two of them wrongly. Batch outcome words stay
+outside it deliberately: `errored`, `expired` and `canceled` do not end in `error` or `timeout`,
+and section 15.9's reason for settling those is unchanged.
+
+The 374 records already written say `retryable: false`, and a stored False of that vintage cannot
+be told apart from a correct one. So `records.done` overrides the recorded verdict for this one
+case, which nothing else there does. It is narrow on purpose: it applies only where no response
+arrived, and no response arriving is never a statement about the item.
+
 ### 15.27 A batch that had not finished ended the run, and left a bill behind
 
 The test-retest arm was run properly on 2026-09-14, from a shell with the keys in it, and died

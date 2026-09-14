@@ -74,6 +74,29 @@ _LEGACY_STATUS: Final = re.compile(r"\breturned (?:408|409|429|500|502|503|504|5
 _LEGACY_TRANSPORT: Final = re.compile(r"timeout|connect_?error|read_?error|not ready", re.I)
 
 
+# The same shape the gateway now matches on, for records whose verdict was written before it
+# did. Kept here rather than imported so that reading a record file never imports the gateway.
+_TRANSPORT_ERROR: Final = re.compile(r"returned \w*(?:Error|Timeout)\b", re.IGNORECASE)
+
+
+def _transport_failure(record: Mapping[str, object]) -> bool:
+    """Whether this record is a failure where no HTTP response arrived.
+
+    **Amended 2026-09-14.** Until that day the gateway matched transport failures against
+    `{"timeout", "connect_error", "read_error"}` and the names it actually produces are
+    `ConnectError` and `ReadError`, so every one of them was written with `retryable: False`.
+    The second administration lost 370 calls to a DNS failure and recorded all of them as
+    settled.
+
+    A stored False of that vintage cannot be told apart from a correct one, so a transport
+    failure is asked again whatever the record says. This overrides a recorded verdict, which
+    nothing else here does, and it is narrow on purpose: it applies only where no response
+    arrived, which is never a statement about the item.
+    """
+    error = record.get("error")
+    return isinstance(error, str) and bool(_TRANSPORT_ERROR.search(error))
+
+
 def _legacy_retryable(record: Mapping[str, object]) -> bool:
     """Whether a failure recorded before `retryable` existed is worth asking again.
 
@@ -134,7 +157,8 @@ def done(path: Path, *, include_errors: bool = False) -> frozenset[str]:
         failed = record.get("error") is not None
         if failed and not include_errors:
             verdict = record.get("retryable")
-            if _legacy_retryable(record) if verdict is None else bool(verdict):
+            settled = _legacy_retryable(record) if verdict is None else bool(verdict)
+            if settled or _transport_failure(record):
                 continue
         out.add(request)
     return frozenset(out)

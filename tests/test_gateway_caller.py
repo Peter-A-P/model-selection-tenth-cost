@@ -400,3 +400,45 @@ def test_an_unfinished_batch_does_not_end_the_run(monkeypatch: pytest.MonkeyPatc
     assert all(r.error is not None and r.retryable for r in replies)
     assert all("msgbatch_test" in str(r.error) for r in replies), "the bill has a name"
     assert caller.unfinished == ["msgbatch_test"]
+
+
+@pytest.mark.parametrize(
+    ("status", "expected"),
+    [
+        # The names httpx gives its exceptions, which is what the gateway puts in `status`.
+        ("ConnectError", True),
+        ("ReadError", True),
+        ("ReadTimeout", True),
+        ("PoolTimeout", True),
+        ("RemoteProtocolError", True),
+        # Busy, slow or briefly broken, and worth another go.
+        (429, True),
+        (503, True),
+        (529, True),
+        # The vendor describing the request. Asking again gets the same answer and the same bill.
+        (400, False),
+        (401, False),
+        (404, False),
+        # Batch outcome words. Section 15.9: the gateway drops the vendor's reason, so asking
+        # again loses it again at the same price. These must survive a rule aimed at httpx names.
+        ("errored", False),
+        ("expired", False),
+        ("canceled", False),
+        (None, False),
+    ],
+)
+def test_what_counts_as_worth_asking_again(status: object, expected: bool) -> None:
+    """Found on 2026-09-14, when a DNS failure was filed as a permanent fact about an item.
+
+    Section 15.19 named transport failures as the clearest thing worth repeating, then matched
+    them against {"timeout", "connect_error", "read_error"}. The gateway puts the exception's
+    class name in `status`, so what arrives is "ConnectError", and "ConnectError".lower() is
+    "connecterror". The allowlist never matched anything, and `openai-frontier` lost 370 calls
+    to getaddrinfo failing with every one recorded as settled.
+
+    Matched on the shape of the name now rather than on a list, because httpx has a dozen and
+    the first version guessed two of them wrongly.
+    """
+    from mselect.runner.gateway import _transient
+
+    assert _transient(status) is expected
