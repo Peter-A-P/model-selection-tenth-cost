@@ -37,8 +37,10 @@ transfer" into a number. [Both are below.](#does-it-replicate-a-second-bank-from
 | Dimensionality: correlation between per-benchmark abilities | 0.42 to 0.96 across benchmark pairs |
 | Reliability: the same model answering the same item twice | 95.3% agreement (n = 8,431 repeated cells) |
 | Differential item functioning, open weights vs API only | 128 items flagged (0.9%) |
-| Position bias and prompt-framing effects | _pending the own-run panel (needs the gateway's batch support; see PLAN.md section 3.3)_ |
-| Cost per ranking decision, in dollars | _pending the own-run panel (needs the gateway's batch support; see PLAN.md section 3.3)_ |
+| Position bias and prompt-framing effects | _pending their own arms (PLAN.md section 4.3)_ |
+| Does this bank rank models it was never fitted on? 11 current models, 2,830 items each, parameters read and not refitted | Kendall's tau **0.855** (0.617 to 1.000) |
+| Adaptive items needed to rank those 11 models as well as all 2,830 do | **100 items** (3.5% of the suite), tau 0.855 (0.617 to 1.000) |
+| Cost per ranking decision, in dollars | **US$0.72** against US$16.05 to ask every item, 4.5% |
 
 Bank `v1` (`4a9871d69f3360d8`): 150 models x 20,365 items, 1,648,626 recorded responses from the public HELM per-item releases. Fitted with marginal maximum a posteriori by Bock-Aitkin EM, 61-point normal quadrature. Regenerate with `mselect report --version v1`.
 <!-- mselect:results:end -->
@@ -75,6 +77,15 @@ suite average, and those two rankings agree only at tau 0.92 even with every ite
 you want the benchmark's own average, sample randomly and score it directly. If you want to know
 which model is better, ask ten well-chosen questions.
 
+**The own-run panel reproduces that ceiling on models the bank never saw, which is the version
+of the result that counts.** Eleven current models from four vendors, 2,830 items each, asked
+through this repository's own prompts and parser; the item parameters were read from the bank
+and nothing was refitted. They rank at Kendall's tau 0.855, and 100 adaptively chosen items
+reach that same 0.855 for US$0.72 against US$16.05 to ask everything. The ceiling is lower here
+than on the public bank and the reason is the same construct gap, now measured twice: ability
+and suite average are different quantities, and no number of items closes the distance between
+them. Above 300 items a plain random sample overtakes adaptive selection again, at 0.945.
+
 Three more limits worth stating before the method is used for anything:
 
 - Every item is binary-scored, so this measures capability, knowledge and instruction
@@ -83,7 +94,10 @@ Three more limits worth stating before the method is used for anything:
   are on that panel's scale, and the second bank measures what that costs: over the 998 questions
   the two banks share, difficulty correlates 0.71 for the items that discriminate in both and
   not at all for the rest. Filter on discrimination before importing difficulty.
-- The own-run validation on current models has not happened yet (see Status).
+- The own-run validation is eleven models, not a hundred. It is the right eleven, spanning
+  0.54 to 0.94 accuracy across four vendors and a laptop, but a bootstrap over eleven models
+  is wide: every interval in that part of the table overlaps every other. What it settles is
+  that the parameters transfer at all. What it cannot settle is a ranking of methods.
 - `items_needed` is optimistic for large effects. Against the simulation it is well calibrated
   for small gaps and over-promises for big ones (88 percent predicted against 42 percent
   observed for models 5 to 10 points apart at ten items), because it assumes items are locally
@@ -225,8 +239,8 @@ highest-likelihood option.
 | Differential item functioning, open weights vs API only | not measurable on this panel |
 | Do these item parameters mean anything on bank `v1`? All 998 shared items | difficulty correlates -0.04 (-0.10 to 0.02) |
 | The same, over the 532 shared items that discriminate above 0.3 in both banks | difficulty correlates **0.71** (0.67 to 0.75) |
-| Position bias and prompt-framing effects | _pending the own-run panel (needs the gateway's batch support; see PLAN.md section 3.3)_ |
-| Cost per ranking decision, in dollars | _pending the own-run panel (needs the gateway's batch support; see PLAN.md section 3.3)_ |
+| Position bias and prompt-framing effects | _pending their own arms (PLAN.md section 4.3)_ |
+| Cost per ranking decision, in dollars | _pending the own-run panel (run `mselect run` then `mselect validate`)_ |
 
 Bank `v2` (`b66652e06b8acf5d`): 400 models x 20,323 items, 8,114,706 recorded responses from the Open LLM Leaderboard v2 per-item details. Fitted with marginal maximum a posteriori by Bock-Aitkin EM, 61-point normal quadrature. Regenerate with `mselect report --version v2`.
 <!-- mselect:results:v2:end -->
@@ -345,16 +359,25 @@ the size of the file it was taken from.
 
 ## Status
 
-Built out of its November slot, ahead of schedule, and not finished. What is measured:
-everything in both tables above, from public per-item data, on two independent banks. What is
-not: the own-run panel of current models (test-retest, position bias, prompt framing, and the
-dollar cost per ranking decision), which needs vendor calls through the portfolio gateway's
-batch support. The plan for
-that half is [PLAN.md](PLAN.md) section 3.3, and the schedule change is recorded in
-[PLAN.md](PLAN.md) section 13. Everything about that half that can be settled without spending
-anything is settled: the prompts, the option rotations, the panel, the answer parsers and the
-three experiment analyses are written and tested against fixtures, so when the runner is wired
-up there is nothing left to decide. Nothing in this repository can make a vendor call.
+Built out of its November slot, ahead of schedule, and nearly finished.
+
+**Measured from public per-item data**: everything in both tables above, on two independent
+banks, at no cost to anyone.
+
+**Measured by running current models here**: the transfer result and the dollar cost per
+ranking decision. The panel is eleven models across Anthropic, OpenAI, Google, an open-weights
+host and two small models on a laptop, administered the committed 3,000-item suite on 2026-09-12
+and 2026-09-13 for US$18.25 through the portfolio gateway, which enforces the spend caps and
+records every call. `mselect validate` reads the records back and costs nothing to repeat.
+
+**Not measured yet**: the three measurement experiments of [PLAN.md](PLAN.md) section 4.3,
+test-retest, position bias and prompt framing. Their analyses are written and tested against
+fixtures; what they need is four more arms of roughly US$10, not more design.
+
+A vendor call is possible from this repository now, and it is gated. `mselect run` and
+`mselect smoke` are the only commands that can spend, both refuse to send anything without an
+explicit `--yes`, and both print what they would ask first. Every other command reads what is
+already recorded.
 
 ## How it is built
 

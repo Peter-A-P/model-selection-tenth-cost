@@ -30,7 +30,10 @@ END = "<!-- mselect:results:end -->"
 BENCH_START = "<!-- mselect:benchmarks:start -->"
 BENCH_END = "<!-- mselect:benchmarks:end -->"
 HEADLINE_VERSION = "v1"
-PENDING = "_pending the own-run panel (needs the gateway's batch support; see PLAN.md section 3.3)_"
+PENDING = "_pending the own-run panel (run `mselect run` then `mselect validate`)_"
+# The three measurement experiments of PLAN.md section 4.3 are separate arms and separate money;
+# the full-suite arm being done says nothing about them.
+EXPERIMENTS_PENDING = "_pending their own arms (PLAN.md section 4.3)_"
 
 
 def _load_json(path: Path) -> dict[str, Any]:
@@ -47,6 +50,10 @@ def write_all(
     item_diagnostics = pl.read_parquet(paths.out_for(version) / f"item-diagnostics-{kind}.parquet")
     simulation_path = paths.out_for(version) / f"simulation-{kind}.json"
     simulation = _load_json(simulation_path) if simulation_path.exists() else None
+    # The own-run panel: models the calibration never saw. Absent until `mselect validate` has
+    # been run, and the table says so rather than leaving the row out.
+    own_run_path = paths.out_for(version) / "own-run-validation-plain-0.json"
+    own_run = _load_json(own_run_path) if own_run_path.exists() else None
 
     # Figures live under docs/, not out/: the README links them, so they are a committed
     # deliverable rather than a run artefact.
@@ -71,7 +78,7 @@ def write_all(
         )
     progress(f"{len(written)} figures written to {figure_dir}")
 
-    table = results_table(bank, diagnostics, simulation, fit_meta)
+    table = results_table(bank, diagnostics, simulation, fit_meta, own_run)
     readme = paths.ROOT / "README.md"
     _replace_between(readme, table, _markers(version))
     progress(f"README results table for {version} regenerated")
@@ -152,11 +159,28 @@ def _tau_row(curve: list[dict[str, Any]], items: int, method: str) -> dict[str, 
     return None
 
 
+def _cheapest_at_ceiling(own_run: dict[str, Any]) -> dict[str, Any] | None:
+    """The fewest adaptive items that rank the panel as well as every item does.
+
+    "As well as" and not "best": the transfer correlation over every item is the ceiling, and a
+    checkpoint above it is sampling noise rather than knowledge. With eleven models Kendall's
+    tau moves in steps of about 0.036 and a subset can outrank the whole by accident, so the
+    row reports the first checkpoint to reach the ceiling and the plan explains the wobble.
+    """
+    ceiling = float(own_run["transfer_tau"]["point"])
+    for row in own_run["checkpoints"]:
+        entry: dict[str, Any] = row
+        if float(entry["tau_adaptive"]["point"]) >= ceiling:
+            return entry
+    return None
+
+
 def results_table(
     bank: bank_io.Bank,
     diagnostics: dict[str, Any],
     simulation: dict[str, Any] | None,
     fit_meta: dict[str, Any],
+    own_run: dict[str, Any] | None = None,
 ) -> str:
     """The README's results table. Every row is a measured number or an honest 'not yet'."""
     manifest: dict[str, Any] = dict(bank.manifest)
@@ -317,8 +341,32 @@ def results_table(
             f"| difficulty correlates **{inside['point']:.2f}** "
             f"({inside['lo']:.2f} to {inside['hi']:.2f}) |"
         )
-    lines.append(f"| Position bias and prompt-framing effects | {PENDING} |")
-    lines.append(f"| Cost per ranking decision, in dollars | {PENDING} |")
+    lines.append(f"| Position bias and prompt-framing effects | {EXPERIMENTS_PENDING} |")
+    if own_run is None:
+        lines.append(f"| Cost per ranking decision, in dollars | {PENDING} |")
+    else:
+        models = len(own_run["aliases"])
+        items = int(own_run["n_items"])
+        transfer = own_run["transfer_tau"]
+        lines.append(
+            f"| Does this bank rank models it was never fitted on? {models} current models, "
+            f"{items:,} items each, parameters read and not refitted "
+            f"| Kendall's tau **{transfer['point']:.3f}** "
+            f"({transfer['lo']:.3f} to {transfer['hi']:.3f}) |"
+        )
+        best = _cheapest_at_ceiling(own_run)
+        if best is not None:
+            tau = best["tau_adaptive"]
+            lines.append(
+                f"| Adaptive items needed to rank those {models} models as well as all "
+                f"{items:,} do | **{best['n_items']} items** ({best['share']:.1%} of the suite), "
+                f"tau {tau['point']:.3f} ({tau['lo']:.3f} to {tau['hi']:.3f}) |"
+            )
+            lines.append(
+                f"| Cost per ranking decision, in dollars "
+                f"| **US${best['usd_adaptive']:.2f}** against US${own_run['full_suite_usd']:.2f} "
+                f"to ask every item, {best['usd_adaptive'] / own_run['full_suite_usd']:.1%} |"
+            )
     lines.append("")
     lines.append(
         f"Bank `{bank.version}` (`{bank.bank_hash}`): {bank.n_models} models x {bank.n_items:,} items, "
