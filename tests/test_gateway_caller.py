@@ -20,6 +20,7 @@ from boundary import SpendCapExceeded
 from boundary.config import CacheConfig, CapsConfig, ProjectCap, load_config
 from boundary.gateway import Gateway
 
+from mselect.runner import gateway
 from mselect.runner.administer import Item, Prompt, administer, build_prompts
 from mselect.runner.gateway import CONFIG, PROJECT, BoundaryCaller, describe
 
@@ -333,3 +334,35 @@ def test_a_cache_namespace_isolates_one_administration_from_another(tmp_path: Pa
     apart = ExactMatchCache(root / "r2")
     assert apart.root != base.root
     assert apart.root.parent == base.root, "a namespace lives under the cache, not beside it"
+
+
+def test_missing_keys_names_the_variable_and_who_needs_it(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Naming the variable without naming what it costs you is half an error message."""
+    config = {
+        "providers": {
+            "anthropic": {"api_key_env": "TEST_ANTHROPIC_KEY"},
+            "local": {"price_zero": True},
+        }
+    }
+    routes = {
+        "paid-one": {"provider": "anthropic", "model": "m"},
+        "paid-two": {"provider": "anthropic", "model": "m"},
+        "free-one": {"provider": "local", "model": "llama"},
+    }
+    monkeypatch.delenv("TEST_ANTHROPIC_KEY", raising=False)
+    absent = gateway.missing_keys(config, ["paid-one", "paid-two", "free-one"], routes)
+    assert absent == {"TEST_ANTHROPIC_KEY": ["paid-one", "paid-two"]}
+
+    monkeypatch.setenv("TEST_ANTHROPIC_KEY", "present")
+    assert gateway.missing_keys(config, ["paid-one", "free-one"], routes) == {}
+
+
+def test_a_provider_with_no_key_to_need_never_blocks_a_run(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """The local server is the reason the panel reaches the bottom of the ability range."""
+    config = {"providers": {"local": {"price_zero": True}}}
+    routes = {"free-one": {"provider": "local", "model": "llama"}}
+    assert gateway.missing_keys(config, ["free-one"], routes) == {}

@@ -23,6 +23,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 from collections.abc import Iterator, Mapping, Sequence
 from pathlib import Path
 from typing import Any, Final
@@ -77,6 +78,34 @@ def open_gateway(
     if cache_namespace and gateway.cache is not None:
         gateway.cache = ExactMatchCache(gateway.cache.root / cache_namespace)
     return gateway
+
+
+def missing_keys(
+    config: Mapping[str, Any], aliases: Sequence[str], routes: Mapping[str, Mapping[str, str]]
+) -> dict[str, list[str]]:
+    """Environment variables these aliases need and the environment does not have.
+
+    Keyed by variable name, valued by the aliases that would fail without it, because naming the
+    variable without naming what it costs you is half an error message.
+
+    A provider with no `api_key_env` needs nothing: that is the local server, which is the whole
+    reason the panel has two models on the laptop. Vendor keys come from the environment only
+    (CLAUDE.md), so this reads `os.environ` and never a file.
+    """
+    providers: dict[str, Any] = dict(config.get("providers") or {})
+    wanted: dict[str, list[str]] = {}
+    for alias in aliases:
+        route = routes.get(alias)
+        if route is None:
+            continue
+        provider = providers.get(str(route.get("provider")))
+        variable = (provider or {}).get("api_key_env")
+        if not variable:
+            continue
+        if os.environ.get(str(variable)):
+            continue
+        wanted.setdefault(str(variable), []).append(alias)
+    return wanted
 
 
 def load_config(path: Path = CONFIG) -> dict[str, Any]:

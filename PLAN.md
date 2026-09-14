@@ -975,6 +975,60 @@ exists to check.
 It is worth noting that `anthropic-haiku` is the one Anthropic route carrying a dated
 identifier, and the one that works.
 
+### 15.26 The first test-retest numbers, and ninety minutes of a run that could not work
+
+The test-retest arm was started on 2026-09-14 from a shell that had no vendor keys in it. Every
+paid call failed instantly:
+
+    1,500  ConfigError: provider 'anthropic' needs ANTHROPIC_API_KEY in the environment
+    1,000  ConfigError: provider 'openai' needs OPENAI_API_KEY
+    1,000  ConfigError: provider 'openweights' needs OPENWEIGHTS_API_KEY
+      500  ConfigError: provider 'google' needs GOOGLE_API_KEY
+
+Nothing was spent and nothing was lost. A `ConfigError` is a `BoundaryError`, section 15.19
+classifies it as worth repeating, and `records.done` confirmed all 4,000 would be asked again on
+a resume. The project's own `.env` holds only `HF_TOKEN`; the vendor keys live in project 04's
+`.env` and in Peter's interactive session, which is where every paid run has been launched from.
+
+**The defect is the ninety minutes, not the missing key.** The run printed its plan, said 5,500
+calls outstanding, and then wrote 4,000 identical records while looking exactly like a run that
+was working. Per-call error handling is right and stays: the loop should survive one vendor
+refusing one call. A missing API key is not that. It cannot be true for one call and false for
+the next, so discovering it 4,000 times is discovering it 3,999 times too many.
+
+`gateway.missing_keys` now reports the environment variables the chosen routes need and the
+environment does not have, keyed by variable and valued by the aliases that would fail without
+it, because naming the variable without naming what it costs you is half an error message. The
+run refuses before the first call:
+
+      ANTHROPIC_API_KEY is not set, and anthropic-haiku cannot run without it
+      OPENAI_API_KEY is not set, and openai-mid cannot run without it
+
+    nothing was sent. Vendor keys come from the environment; set them and run again.
+
+It refuses even with `--yes`, because `--yes` is permission to spend rather than an instruction
+to proceed regardless. A provider with no `api_key_env` never blocks anything, which is the local
+server, and the check is in the command rather than in the gateway: the gateway's job is to be
+the one thing that talks to vendors, and this is the command's job to ask before it starts.
+
+**What did run, because it needs no key.** The two laptop models answered the same 500 items a
+second time, through the cache namespace of section 15.25, and they are the first test-retest
+numbers this project has:
+
+| alias | items | agreement | 95% Wilson |
+|---|---:|---:|---|
+| `local-small-a` | 497 | 0.998 | 0.989 to 1.000 |
+| `local-small-b` | 494 | 1.000 | 0.992 to 1.000 |
+
+These are the least interesting rows in the arm and they were always going to be. A local server
+at temperature 0 is close to deterministic, so near-perfect agreement is a check that the
+machinery works rather than a finding about models. It does establish one thing worth having:
+the namespace change of section 15.25 works, because without it these would have been answered
+from the first administration's cache and would have read 1.000 by construction. 0.998 is not
+1.000, and the item that moved is evidence that the calls were really made.
+
+The number the arm exists for is the vendors', and it is still missing.
+
 ### 15.25 The cache would have answered the test-retest arm out of its own records
 
 Found on 2026-09-14, while costing the four remaining arms and before any of them were run.

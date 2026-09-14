@@ -692,6 +692,18 @@ def run(
     if not outstanding:
         _say("\nnothing to do.")
         return
+
+    # A missing API key cannot be true for one call and false for the next, so finding it out
+    # per call is finding it out thousands of times. On 2026-09-14 this loop wrote 4,000
+    # identical ConfigError records over ninety minutes and looked busy the whole way.
+    absent = gateway.missing_keys(config, wanted, all_routes)
+    if absent:
+        _say("")
+        for variable, blocked in sorted(absent.items()):
+            _say(f"  {variable} is not set, and {', '.join(blocked)} cannot run without it")
+        _say("\nnothing was sent. Vendor keys come from the environment; set them and run again.")
+        raise typer.Exit(code=1)
+
     if not yes:
         _say("\nnothing was sent. Add --yes to run it.")
         raise typer.Exit(code=1)

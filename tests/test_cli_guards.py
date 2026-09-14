@@ -134,3 +134,33 @@ def test_repeat_zero_is_refused(elsewhere: Path) -> None:
     )
     assert result.exit_code != 0
     assert "repeat starts at 1" in result.output
+
+
+def test_a_run_without_the_keys_refuses_before_it_calls_anything(
+    elsewhere: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Found the expensive way on 2026-09-14, in a shell that had no vendor keys.
+
+    The run printed its plan, said 5,500 calls outstanding, and then spent ninety minutes
+    writing 4,000 records that were all the same ConfigError. Nothing was spent and nothing was
+    lost, because that error is transient by classification and a resume re-asks all of it, but
+    for ninety minutes it looked exactly like a run that was working.
+
+    A missing key cannot be true for one call and false for the next, so discovering it per call
+    is discovering it thousands of times. It is checked once, before the first call, and it is
+    checked even with --yes, because --yes is permission to spend rather than an instruction to
+    proceed regardless.
+    """
+    for variable in ("ANTHROPIC_API_KEY", "OPENAI_API_KEY"):
+        monkeypatch.delenv(variable, raising=False)
+    result = runner.invoke(
+        app,
+        ["run", "--alias", "anthropic-haiku,local-small-a", "--limit", "2", "--yes"],
+    )
+    assert result.exit_code == 1
+    assert "ANTHROPIC_API_KEY is not set" in result.output
+    assert "anthropic-haiku cannot run without it" in result.output
+    assert "nothing was sent" in result.output
+    assert "local-small-a" not in result.output.split("is not set")[-1], (
+        "the laptop needs no key and must not be named as blocked by one"
+    )
