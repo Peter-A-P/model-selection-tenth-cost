@@ -342,8 +342,9 @@ Whichever produces the clearest evidence gets `docs/rejected.md`:
 
 ## 11. Definition of done
 
-Mirrors the portfolio's definition for this project. Ticked 2026-09-11 against what is
-measured and committed; everything unticked is blocked on vendor calls or on a decision.
+Mirrors the portfolio's definition for this project. Ticked against what is measured and
+committed, last reviewed 2026-09-13 after the full-suite arm finished; everything unticked is
+work not yet run rather than work that is blocked.
 
 - [x] IRT parameters fitted and published for a real item bank. **150 models by 20,365 items**,
       2PL and 3PL, standard errors on every parameter, bank content-hashed at `1d4c357935c70875`
@@ -351,16 +352,18 @@ measured and committed; everything unticked is blocked on vendor calls or on a d
       intervals. **Reproduced at a far smaller share than 10%, and with a crossover the plan did
       not anticipate**: 10 adaptive items match 127 random ones (tau 0.778), and above about 200
       items the baselines win. Section 13.6 and `docs/rejected.md`
-- [ ] Validation on the own-run panel of models the calibration never saw. **Blocked on one
-      thing as of 2026-09-11**: project 04's `v0.2.0` tag, which its own plan says waits on one
-      live batch call and one live local call. The spend caps this line used to wait on were
-      confirmed by Peter the same day (US$40 a month, US$30 a run, in 04's `config/caps.yaml`),
-      and the batch support was written rather than deferred to October. Held-out validation
-      within the public panel is done instead (leave-one-model-out, item parameters refitted
-      without the held-out model)
+- [x] Validation on the own-run panel of models the calibration never saw. **Measured
+      2026-09-13**, `mselect validate` and section 15.23: eleven models, 3,000 items each,
+      parameters read from the bank and nothing refitted. The bank ranks them at tau 0.917
+      (0.673 to 1.000), and adaptive selection reaches that same 0.917 from 100 items, 9.7% of
+      the comparable block. **Provisional in one respect**: `google-frontier` was refused after
+      1,088 items by a daily quota, and a ranking needs a frame every model shares, so the block
+      is 1,031 items rather than about 2,930. Rerun after the top-up before publishing
 - [ ] Position bias, framing effects and test-retest reliability each measured with intervals.
-      **Blocked on the same one thing.** A free partial arrived anyway: repeated HELM administrations
-      of the same model and item agree 95.3% of the time (n = 8,431)
+      **No longer blocked, just not run**: the gateway tag arrived, the full-suite arm is done,
+      and these are four smaller arms of about US$10 and 22,000 calls (section 4.3). A free
+      partial arrived earlier anyway: repeated HELM administrations of the same model and item
+      agree 95.3% of the time (n = 8,431)
 - [x] A list of items that measure nothing, with evidence per item. `docs/items-that-measure-nothing.md`
 - [x] Q3 and dimensionality diagnostics reported. `docs/diagnostics.md`
 - [x] `items_needed` power function validated against the simulation. Validation table in
@@ -368,7 +371,10 @@ measured and committed; everything unticked is blocked on vendor calls or on a d
 - [x] Handed to project 03. `mselect` v0.1.0 tagged 2026-09-11 with the interface 03's plan
       calls (`items_needed(delta, 0.8, ability)` works with no bank argument), plus
       `dependence()` for the local-dependence correction and `reliability()` for the noise floor
-- [ ] Cost per ranking decision reported in dollars. **Blocked**: needs the own-run panel
+- [x] Cost per ranking decision reported in dollars. **Measured 2026-09-13**: US$0.69 to rank
+      eleven models at the ceiling tau, against US$5.85 to ask them everything, priced from the
+      recorded cost of the exact cells the selector chose rather than from an average. Same
+      provisional note as the validation line above
 - [x] README opens with the one-liner and the results table
 - [x] Practitioner write-up published. `docs/writeup.md`
 - [x] One rejected approach documented with evidence. `docs/rejected.md`
@@ -967,6 +973,75 @@ obviously agree.
 
 It is worth noting that `anthropic-haiku` is the one Anthropic route carrying a dated
 identifier, and the one that works.
+
+### 15.23 The panel is in, and the bank ranks models it never saw
+
+The full-suite arm finished at 15:05 on 2026-09-13, twenty-one hours after it started. Eleven
+models, 3,000 items each, 30,936 scored cells, US$16.42. `mselect validate` reads it back and
+answers the question section 11 has carried unticked from the beginning.
+
+**The bank transfers.** Item parameters fitted on 150 public HELM models, none of them in this
+panel, rank these eleven at **tau 0.917 (0.673 to 1.000)** against their own observed accuracy.
+Nothing was refitted; the parameters were read as given. That is the difference between an item
+bank and a description of the panel it was fitted on.
+
+**A tenth of the items is enough, and so is a tenth of the money.**
+
+| items | share | adaptive tau | US$ | of full |
+|---:|---:|---|---:|---:|
+| 10 | 1.0% | 0.587 (0.111 to 0.918) | 0.06 | 1.1% |
+| 50 | 4.8% | 0.881 (0.612 to 1.000) | 0.33 | 5.7% |
+| **100** | **9.7%** | **0.917 (0.674 to 1.000)** | **0.69** | **11.8%** |
+| 500 | 48.5% | 0.917 (0.674 to 1.000) | 3.29 | 56.2% |
+
+At 100 items adaptive selection reaches 0.917, which is the same tau the whole 1,031-item block
+gives. Nothing above 100 items buys anything, because 0.917 is the ceiling: it is what perfect
+knowledge of every response is worth against this truth. Random selection needs 500 items to
+match it and stratified selection does not reach it. The cost line is not an item count times an
+average price, it is the recorded price of the exact cells the selector chose, which matters
+when the panel spans a factor of ten in price per item.
+
+**The honest complication, and it is the same one section 13.6 found.** A raw score over enough
+random items beats every IRT method at the top end: 0.991 at 750 items against the IRT ceiling
+of 0.917. That is not a defect, it is what the target is. The truth being reproduced is observed
+accuracy, and a raw score estimates observed accuracy directly while ability estimates a latent
+trait that ranks it only nearly. IRT wins where items are scarce and loses where they are not,
+and the crossover here is around 500 items, or 48% of the block.
+
+**Every interval overlaps every other.** Eleven models is eleven models, and a bootstrap over
+them is wide. Nothing in the table above is separated from anything else with confidence, and it
+is reported that way rather than reported as a win.
+
+#### Two silent defects, found by not believing the first answer
+
+Neither raised anything. Both produced output that looked like a result.
+
+**An item the bank could not place erased the model that answered it.** 68 of the 3,000 suite
+items have a non-finite fitted difficulty, which is the bank behaving correctly: every model in
+its fit answered them the same way, the likelihood has no maximum in `b`, and NaN is the honest
+record of that. Scoring one makes `log p` NaN, and the posterior sums over every answered item,
+so one such item makes a model's whole ability NaN. The first run printed a transfer correlation
+computed on **zero models** and exited 0. The fix is a `usable` mask on the panel and a
+`measurable` frame that everything reading parameters goes through, because "answered" and
+"can be measured" are different facts and the count of the difference belongs in the output.
+
+**A model with a short row was ranked against models with long ones.** This one inverted the
+conclusion rather than erasing it. `google-frontier` was refused after 1,088 items, so its
+accuracy was computed over a third of the suite while every other model's was computed over all
+of it, and comparing those ranks the item sets as much as the models. The run reported that
+adaptive selection was beaten by random selection at every size and never improved: a flat tau
+of 0.745 from 10 items to 1,000, which is the shape of an answer that is not listening to its
+input. On the 1,031 items every model answered, adaptive goes 0.587, 0.881, 0.917 and the
+conclusion reverses.
+
+That second one is worth stating as a rule rather than a bug. A ranking is a comparison, and a
+comparison needs a common frame. `simulate.dense_block` already enforced it for the public bank
+and this module had to find it again from the other direction.
+
+**What this costs, and it is not nothing.** One model refused after a third of the suite costs
+every model the other two thirds: the comparable block is 1,031 items rather than about 2,930.
+The numbers above are the numbers on a third of the panel, which is why the `google-frontier`
+top-up after the quota resets is worth doing before any of them are published.
 
 ### 15.22 A missing verdict is not a verdict, and 1,910 calls nearly went quiet
 

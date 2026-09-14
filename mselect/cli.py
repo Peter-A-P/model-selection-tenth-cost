@@ -800,6 +800,63 @@ def rescore(
     _say(f"previous version kept at {backup}")
 
 
+@app.command("validate")
+def validate(
+    version: str = typer.Option("v1", help="Which bank the parameters and suite come from."),
+    template: str = typer.Option("plain", help="Which record file: plain, letter_only, ..."),
+    rotation: int = typer.Option(0, help="Which option rotation."),
+    kind: str = typer.Option("2pl", help="2pl or 3pl parameters."),
+    resamples: int = typer.Option(2000, help="Bootstrap resamples for every interval."),
+    seed: int = typer.Option(0, help="Recorded, so the numbers can be reproduced."),
+    every_item: bool = typer.Option(
+        False,
+        "--every-item",
+        help="Rank on each model's own items instead of the items all of them answered.",
+    ),
+    write: bool = typer.Option(True, "--write/--no-write", help="Save the result under out/."),
+) -> None:
+    """Does a bank fitted on other people's models rank ours, from how few items, for how much?
+
+    Calls nothing and costs nothing: the replies were paid for once and are read from the record
+    file. Nothing is refitted either, which is the point. The item parameters were estimated
+    without seeing any model in this panel, so what comes out is a transfer result rather than a
+    description of the panel it was fitted on.
+
+    --every-item drops the common frame and ranks each model on whatever it answered. That is
+    almost always the wrong comparison and it is offered because seeing the difference is the
+    fastest way to understand why: a model refused partway through is otherwise ranked on a
+    different item set from the models it is being ranked against.
+    """
+    import json
+
+    from mselect.experiments import ownrun
+
+    path = ownrun.default_path(version, template, rotation)
+    if not path.is_file():
+        raise typer.BadParameter(f"no record file at {path}; run `mselect run` first")
+
+    panel = ownrun.load(path, version=version, kind=kind)
+    result = ownrun.validate(panel, seed=seed, resamples=resamples, common_frame=not every_item)
+    _say(f"records {path}")
+    _say(f"bank {version}, {kind} parameters, fitted without any model in this panel")
+    if every_item:
+        _say("ranking each model on its own items: not a like-for-like comparison")
+    _say("")
+    _say(result.describe())
+
+    if not write:
+        return
+    out = paths.ensure(paths.out_for(version)) / f"own-run-validation-{template}-{rotation}.json"
+    payload = result.to_json()
+    payload["bank_version"] = version
+    payload["kind"] = kind
+    payload["seed"] = seed
+    payload["resamples"] = resamples
+    payload["common_frame"] = not every_item
+    out.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+    _say(f"\nwrote {out}")
+
+
 @app.command("report")
 def report(version: str = typer.Option("v1")) -> None:
     """Regenerate the README results table and the figures from the saved outputs."""
