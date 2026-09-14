@@ -125,6 +125,23 @@ called the `ask-access` endpoint for every model in the panel. Deleted once the 
 measured properly: the same range request answers 401 without a token and 206 with one, for a
 repository the account has never touched. The loader now contains no POST at all.
 
+**Diagrams delivered as source code as a fourth broken-item category.** MATH carries 44 items
+whose figure arrives as Asymptote drawing code rather than as a picture, under questions that
+say "the graph of $y = f(x)$ is shown below". The expectation was that these are unanswerable in
+the same way as the incomplete items in
+[items-that-measure-nothing.md](items-that-measure-nothing.md), and that models would score at
+or below chance on them.
+
+They do not. Over the own-run panel of eleven models, accuracy on those items is 0.733 (0.631 to
+0.815) against 0.808 (0.776 to 0.837) on the other MATH items in the suite: intervals that
+overlap across most of their width, on 86 scored replies. Whatever penalty exists is smaller
+than this panel can resolve, and the honest reading is that the models simply read the drawing
+code.
+
+It is kept here rather than dropped because the rule that replaced it was found the same way and
+could have gone the same way. An item that looks broken to a person reading it is a hypothesis,
+not a finding, and the difference between the two is a measurement with an interval on it.
+
 ## What a reader should not conclude
 
 None of this says item response theory is the wrong tool for benchmarks. It says the thing a

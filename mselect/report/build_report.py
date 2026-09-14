@@ -9,6 +9,7 @@ that produced it.
 from __future__ import annotations
 
 import json
+import math
 from collections.abc import Callable
 from pathlib import Path
 from typing import Any
@@ -426,6 +427,110 @@ def benchmark_table(bank: bank_io.Bank, item_diagnostics: pl.DataFrame) -> str:
     return "\n".join(lines)
 
 
+def _incomplete_evidence(version: str, flagged: set[str]) -> list[str]:
+    """What the own-run panel scored on these items, if it has been run.
+
+    The rule is structural and holds without asking any model anything, which is what makes it
+    a property of the bank. That is also why it is worth checking against models that did try:
+    a rule about item text could be describing a quirk of the text rather than a defect, and the
+    answer to that is eleven models and a chance floor to compare against.
+    """
+    path = paths.OUT / version / "own-run-plain-0.jsonl"
+    if not path.is_file() or not flagged:
+        return []
+    here = [0, 0]
+    rest = [0, 0]
+    for line in path.read_text(encoding="utf-8").splitlines():
+        if not line.strip():
+            continue
+        try:
+            record = json.loads(line)
+        except json.JSONDecodeError:
+            continue
+        correct = record.get("correct")
+        if correct is None:
+            continue
+        bucket = here if record.get("item_id") in flagged else rest
+        bucket[0] += 1
+        bucket[1] += int(correct)
+    if not here[0] or not rest[0]:
+        return []
+
+    def interval(hits: int, n: int) -> str:
+        share = hits / n
+        z = 1.96
+        denominator = 1 + z * z / n
+        centre = (share + z * z / (2 * n)) / denominator
+        half = z * math.sqrt(share * (1 - share) / n + z * z / (4 * n * n)) / denominator
+        return f"{share:.3f} ({centre - half:.3f} to {centre + half:.3f})"
+
+    return [
+        "**The panel answers these below chance.** Eleven current models were asked the own-run "
+        f"suite on 2026-09-12 and 2026-09-13. On the items flagged here they scored "
+        f"**{interval(here[1], here[0])}** over {here[0]} scored replies, against "
+        f"{interval(rest[1], rest[0])} on every other item, and against 0.250 for guessing "
+        "among four options. Below the guessing floor is the part worth reading twice: these are "
+        "not hard items, they are items where the reading that makes the key correct is not "
+        "available, so a model that reasons carefully is led away from it.",
+        "",
+    ]
+
+
+def _incomplete_section(version: str) -> list[str]:
+    """The third kind of broken item: the question is not all there.
+
+    Unlike the two kinds above it, this one is found without fitting anything. An item whose
+    options are "1,2,3" and "1,3,4" is asking which of several numbered statements hold, and
+    some of those items carry no numbered statements anywhere. Nobody can answer them.
+
+    Returns nothing at all when the pool cannot be rebuilt, because this section is about items
+    rather than about parameters and it should be absent rather than empty if the source of the
+    item text is not there.
+    """
+    from mselect.experiments import incomplete
+    from mselect.runner import items as item_pool
+
+    try:
+        pool = item_pool.administrable(version)
+    except (FileNotFoundError, OSError):  # pragma: no cover - only without the fetched cache
+        return []
+    found = incomplete.find(pool.items)
+    if not found:
+        return []
+
+    by_benchmark: dict[str, int] = {}
+    for entry in found:
+        by_benchmark[entry.benchmark] = by_benchmark.get(entry.benchmark, 0) + 1
+    counts = ", ".join(f"{name} {n}" for name, n in sorted(by_benchmark.items()))
+
+    lines = [
+        "",
+        "## A third kind: the question is not all there",
+        "",
+        *_incomplete_evidence(version, {entry.item_id for entry in found}),
+        f"**{len(found)} items of {len(pool.items):,}** ask which of several numbered statements "
+        "are correct, and carry no numbered statements at all. The options are `1,2,3` and "
+        "`1,3,4` and `2,3,4`, and there is nothing anywhere in the question numbered 1. Nobody "
+        "can answer these, and a model that says so is describing the item rather than failing "
+        "it.",
+        "",
+        f"By benchmark: {counts}.",
+        "",
+        "This kind is different from the two above in how it is found. Low discrimination needs "
+        "a fitted bank; a wrong answer key needs many models disagreeing with it consistently. "
+        "This needs neither, and is a property of the item text alone. It was noticed by reading "
+        "what a model said when it refused to answer, which is output this project had been "
+        "discarding as unparsed.",
+        "",
+        "| Item | The whole question | Options |",
+        "|---|---|---|",
+    ]
+    for entry in found:
+        options = ", ".join(f"`{option}`" for option in entry.options)
+        lines.append(f"| `{entry.item_id[:12]}` | {entry.quote(96)} | {options} |")
+    return lines
+
+
 def broken_items_doc(
     bank: bank_io.Bank, item_diagnostics: pl.DataFrame, diagnostics: dict[str, Any]
 ) -> str:
@@ -504,6 +609,7 @@ def broken_items_doc(
         "below, without this repository carrying a line of anyone else's benchmark. "
         "`docs/data-sources.md` names the sources and their licences.",
         "",
+        *_incomplete_section(bank.version),
         "## What this does not claim",
         "",
         "A negative slope is evidence that something is wrong with an item, not proof that the answer "

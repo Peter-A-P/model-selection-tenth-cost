@@ -419,9 +419,8 @@ sources, what was taken and the terms.
 
 ## Part of a portfolio
 
-One of fifteen projects built over twelve months. This one supplies the statistical core of the
-AI Release Gate, which uses its item bank and its power function to say how many eval items a
-regression test actually needs.
+This project supplies the statistical core of the AI Release Gate, which uses its item bank and
+its power function to say how many eval items a regression test actually needs.
 
 ## How this was built
 
