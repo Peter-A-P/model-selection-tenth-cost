@@ -324,13 +324,27 @@ def suite(
         suite_mod.latest_price_file(gateway.CONFIG.parent / str(config.get("prices", "prices")))
     )
     routes = gateway.routes_of(config)
-    # What the models actually generated, where a smoke run has measured it. Without this the
-    # output figure is the token cap, which since the cap became big enough for reasoning is a
-    # worst case rather than an expectation.
-    observed = suite_mod.observed_output(paths.OUT / version / "smoke.jsonl")
+    # What the models actually generated. Without this the output figure is the token cap,
+    # which since the cap became big enough for reasoning is a worst case rather than an
+    # expectation.
+    #
+    # The full-suite run is preferred over the smoke run wherever it exists, and the difference
+    # is not academic: the arm that ran on 2026-09-12 came in 22% over an estimate built from
+    # three items per model, because three items cannot see how far a reasoning model wanders
+    # before it answers. About 3,000 scored replies per model can.
+    run_records = paths.OUT / version / "own-run-plain-0.jsonl"
+    smoke_records = paths.OUT / version / "smoke.jsonl"
+    observed = suite_mod.observed_output(run_records)
+    source = "the full-suite run"
+    if not observed:
+        observed = suite_mod.observed_output(smoke_records)
+        source = "the smoke run, three items per model"
+    else:
+        for alias, tokens in suite_mod.observed_output(smoke_records).items():
+            observed.setdefault(alias, tokens)  # a model the run never reached
     lines = suite_mod.programme(chosen, pool, routes, prices, observed=observed)
     if observed:
-        _say(f"\noutput tokens measured for {len(observed)} alias(es) from the smoke records")
+        _say(f"\noutput tokens measured for {len(observed)} alias(es) from {source}")
     _say("\nestimated at the batch rate, before any call:")
     total = 0.0
     unpriced: set[str] = set()

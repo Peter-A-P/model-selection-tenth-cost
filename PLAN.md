@@ -965,13 +965,70 @@ time and none of them had moved, which is only a fact once somebody has looked.
 
 The programme goes from US$12.17 to **US$13.26**, US$16.58 with margin. Both caps still clear.
 
-**Still open: `google-frontier` is `gemini-3.8-flash`**, and a Flash model is not the counterpart
-of Opus 5 or of gpt-5.6-sol whatever else it is. Left alone because the panel is Peter's and he
-has not been asked about it; it is the one remaining place where a tier label and a model do not
-obviously agree.
+**Closed 2026-09-14: `google-frontier` is `gemini-3.8-flash` and that is correct.** This entry
+used to say a Flash model could not be the counterpart of Opus 5 or gpt-5.6-sol. Peter confirmed
+that `gemini-3.8-flash` is Google's current frontier model, so the objection was to the name and
+not to the model. Section 15.24 has the reasoning; the short version is that a vendor's product
+naming is not a tier ranking, and treating it as one is the sort of assumption this project
+exists to check.
 
 It is worth noting that `anthropic-haiku` is the one Anthropic route carrying a dated
 identifier, and the one that works.
+
+### 15.24 A discount that was never earned, and a tier label that was right all along
+
+**`google-frontier` is settled.** Section 15.4 has carried "a Flash model is not the counterpart
+of Opus 5 or of gpt-5.6-sol whatever else it is" as an open question since 2026-09-12. Peter
+closed it on 2026-09-14: `gemini-3.8-flash` **is** Google's current frontier model. The objection
+was about the word rather than about the model, and reading a vendor's product naming as a tier
+ranking is exactly the kind of assumption this project is supposed to check rather than carry.
+The panel result agrees: it tops the panel at 0.936.
+
+**The cost estimate was wrong twice, and the second was the larger.** Section 15.22 blamed the
+22% overrun on the sample the output tokens came from, three items per model, and that was a
+real cause. Re-estimating against the 33,000 replies the arm produced closes some of the gap and
+leaves a residual with a shape:
+
+| alias | estimated, measured tokens | billed | after the fix |
+|---|---:|---:|---:|
+| `anthropic-haiku` | 0.68 | 0.69 | 0.68 |
+| `openai-frontier` | 2.49 | 4.97 | **4.99** |
+| `google-mid` | 0.68 | 1.35 | **1.35** |
+| `google-frontier` | 1.47 | 2.60 | **2.93** |
+| `together-open-a` | 1.00 | 1.04 | 1.00 |
+| whole arm | 12.44 | 18.25 | **17.36** |
+
+Anthropic and Together landed within a few percent; OpenAI and Google came in at about half of
+what they cost. The ledger says why: of the 30,000 calls in the arm, the 9,045 Anthropic ones
+carried a batch id and every other one carried none. The gateway can only send a batch to
+Anthropic today. It tries, and falls back to standard calls where the provider has no batch
+endpoint, so nothing about the run was wrong.
+
+What was wrong was the estimate. The vendors do publish batch rates and the price file records
+them correctly, and `estimate` applied `batch_multiplier` to everything on the strength of one
+`batch=True` flag. It was pricing a discount the run had no way to earn. A price list that is
+right can still be read wrongly.
+
+The rule now matches the runner: a batch rate applies where a batch can actually be sent, which
+is `suite.BATCHING_PROVIDERS`, today just Anthropic, and the day boundary grows another batch
+adapter that is the line that changes. With both fixes the arm estimates at US$17.36 against a
+billed US$18.25, within 5%, and the residual is Anthropic's truncated replies: 25 calls that
+each spent a full 1,024-token budget producing no scorable answer, so they are billed output
+that no measurement of output tokens can see.
+
+**What the four remaining arms actually cost**, on that basis:
+
+| arm | calls | US$ |
+|---|---:|---:|
+| test-retest, 500 items | 4,500 | 2.83 |
+| position bias, 300 items x 3 rotations | 8,100 | 5.19 |
+| framing, letter-only | 2,700 | 1.74 |
+| framing, brief reasoning | 2,700 | 1.77 |
+| **total** | **18,000** | **11.53** |
+
+US$14.41 with the 1.25x margin, against US$18.25 already spent and a US$100 monthly cap. The
+largest single arm is US$5.19, well inside the US$30 per-run cap. The old figure for the same
+four arms was US$8.91.
 
 ### 15.23 The panel is in, and the bank ranks models it never saw
 

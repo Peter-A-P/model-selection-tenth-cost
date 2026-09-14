@@ -317,7 +317,8 @@ def estimate(
         elif rate is None:
             usd = None
         else:
-            multiplier = float(rate.get("batch_multiplier", 1.0)) if batch else 1.0
+            batched = batch and provider in BATCHING_PROVIDERS
+            multiplier = float(rate.get("batch_multiplier", 1.0)) if batched else 1.0
             usd = multiplier * (
                 input_tokens * float(rate["input"]) / 1e6
                 + output_tokens * float(rate["output"]) / 1e6
@@ -351,6 +352,16 @@ def default_path(version: str = "v1") -> Path:
 #   test-retest      500 items asked a second time
 #   position bias    300 multiple-choice items, three further rotations
 #   framing          300 items, two further templates, one of them the reasoning one
+# Providers the gateway can actually send a batch to. A vendor publishing a batch rate is not
+# the same as this project being able to claim it: `BoundaryCaller` tries a batch, and falls
+# back to standard calls where the provider has no batch endpoint, which on 2026-09-13 was
+# every provider except Anthropic. The ledger for the full-suite arm is the evidence: 9,045
+# Anthropic calls carried a batch id and the other 21,000 carried none.
+#
+# Pricing the discount anyway understated OpenAI and Google by about half. When boundary grows
+# another batch adapter, this is the line that changes.
+BATCHING_PROVIDERS: Final[frozenset[str]] = frozenset({"anthropic"})
+
 EXPERIMENTS: Final[tuple[tuple[str, int, int, str], ...]] = (
     ("test-retest", 500, 1, "plain"),
     ("position-bias", 300, 3, "plain"),

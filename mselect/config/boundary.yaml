@@ -94,6 +94,11 @@ routes:
   google-mid:
     provider: google
     model: gemini-3.5-flash-lite
+  # Confirmed by Peter on 2026-09-14: gemini-3.8-flash is Google's current frontier model, so
+  # the tier label is right and the "Flash means mid-tier" reading was a guess about naming.
+  # It topped the panel on 2026-09-13 at 0.936. Its daily free-tier quota is the constraint
+  # worth knowing about, not its price: 3,000 items is close to a day's allowance, and running
+  # out refuses every remaining call for about 21 hours. PLAN.md sections 15.22 and 15.24.
   google-frontier:
     provider: google
     model: gemini-3.8-flash

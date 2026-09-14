@@ -130,6 +130,50 @@ def test_the_frontier_tier_is_asked_the_subset_and_the_rest_the_suite() -> None:
     }
 
 
+def test_a_batch_rate_is_only_claimed_where_a_batch_can_be_sent() -> None:
+    """Found 2026-09-13, against the bill for the full-suite arm.
+
+    The vendors publish batch rates and the price file records them, so the estimate halved
+    everything whenever `batch=True`. The gateway can only send a batch to Anthropic: it tries,
+    and falls back to standard calls where the provider has no batch endpoint. The ledger for
+    the arm shows 9,045 Anthropic calls carrying a batch id and 21,000 others carrying none, and
+    the estimate had priced all of them at half. OpenAI and Google came in at twice their line.
+
+    A price list that is right can still be read wrongly, and this is where it was read.
+    """
+    prices = {
+        "per_million_tokens": {
+            "anthropic": {"cheap": {"input": 1.0, "output": 5.0, "batch_multiplier": 0.5}},
+            # Publishes a batch rate that this project has no way to use.
+            "google": {"flash": {"input": 1.0, "output": 5.0, "batch_multiplier": 0.5}},
+        }
+    }
+    routes = {
+        "anthropic-haiku": {"provider": "anthropic", "model": "cheap"},
+        "google-mid": {"provider": "google", "model": "flash"},
+    }
+    panel = (
+        prompts.PanelEntry("anthropic-haiku", "mid", "full suite", ""),
+        prompts.PanelEntry("google-mid", "mid", "full suite", ""),
+    )
+    pool = _pool({"mmlu": 100})
+    drawn = suite.choose(pool, 20, seed=1, today="2026-09-11")
+
+    batched = suite.estimate(drawn, pool, routes, prices, panel=panel, batch=True)
+    single = suite.estimate(drawn, pool, routes, prices, panel=panel, batch=False)
+    # Both aliases have a listed rate, so neither is uncosted and both figures are real.
+    by_alias = {line.alias: line.usd for line in batched.lines if line.usd is not None}
+    alone = {line.alias: line.usd for line in single.lines if line.usd is not None}
+    assert set(by_alias) == set(alone) == {"anthropic-haiku", "google-mid"}
+
+    assert by_alias["anthropic-haiku"] == pytest.approx(alone["anthropic-haiku"] / 2)
+    assert by_alias["google-mid"] == pytest.approx(alone["google-mid"]), (
+        "a provider the gateway cannot batch to pays the standard rate, whatever the price "
+        "file says the vendor would charge for a batch"
+    )
+    assert "google" not in suite.BATCHING_PROVIDERS
+
+
 def test_batching_halves_the_rate_that_says_it_does() -> None:
     pool = _pool({"mmlu": 100})
     drawn = suite.choose(pool, 20, seed=1, today="2026-09-11")
