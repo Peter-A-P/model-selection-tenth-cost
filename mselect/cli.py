@@ -616,6 +616,9 @@ def run(
     limit: int = typer.Option(0, help="Stop after this many items per alias. 0 means all."),
     chunk: int = typer.Option(250, help="Items per write. Smaller loses less to a crash."),
     batch: bool = typer.Option(True, "--batch/--no-batch", help="Use vendor batches."),
+    batch_wait: float = typer.Option(
+        3600.0, help="Seconds to wait for a batch. Anthropic's own ceiling is 24 hours."
+    ),
     yes: bool = typer.Option(False, "--yes", help="Required. Without it, prints the plan only."),
 ) -> None:
     """Administer the committed suite to the panel. This is the run that spends the budget.
@@ -716,6 +719,7 @@ def run(
             purpose="own-run",
             run_id=f"{version}-{template}-{rotation}" + ("" if repeat == 1 else f"-r{repeat}"),
             use_batches=batch,
+            wait_s=batch_wait,
         )
         for name in wanted:
             budget = budgets.get(name, 0)
@@ -754,6 +758,18 @@ def run(
     _say(f"US${spent:,.4f} recorded in {path}")
     if totals["failed"]:
         _say("failed calls are not done: running this again picks them up and costs only those.")
+    if caller.unfinished:
+        _say("")
+        _say(
+            f"{len(caller.unfinished)} batch(es) were still running when this run stopped waiting:"
+        )
+        for batch_id in caller.unfinished:
+            _say(f"  {batch_id}")
+        _say(
+            "The vendor will finish and charge for those whether or not anyone collected them, "
+            "so re-asking those items buys the same answers twice. Either raise --batch-wait "
+            "and run again, or collect them from the ledger once they end."
+        )
 
 
 @app.command("rescore")

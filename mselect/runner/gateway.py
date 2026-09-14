@@ -311,6 +311,9 @@ class BoundaryCaller:
         # Providers that turned out to have no batch endpoint. Asked once, not once per
         # chunk, so a panel of thousands of items does not repeat a known answer.
         self._no_batches: set[str] = set()
+        # Batches submitted and charged for that this run did not wait out. Named at the end,
+        # because the vendor will finish and bill them whether or not anyone collected them.
+        self.unfinished: list[str] = []
 
     def ask(self, prompts: Sequence[Prompt]) -> list[Reply]:
         if not prompts:
@@ -340,7 +343,21 @@ class BoundaryCaller:
                 # back rather than half of it, so one alias is measured one way.
                 self._no_batches.add(alias)
                 return None
-            responses = self.gateway.batch_results(handle, wait_s=self.wait_s, poll_s=self.poll_s)
+            try:
+                responses = self.gateway.batch_results(
+                    handle, wait_s=self.wait_s, poll_s=self.poll_s
+                )
+            except BatchNotReady as e:
+                # Still running at the vendor. Not an answer, and not a reason to abandon the
+                # rest of the panel: these become retryable failures and the resume re-asks
+                # them. The batch id travels with the error because that batch is still going
+                # to be charged for, and a resume that submits a second one for the same items
+                # pays twice. Section 15.27.
+                self.unfinished.append(str(handle.batch_id))
+                out.extend(
+                    Reply(text=None, error=f"BatchNotReady: {e}", retryable=True) for _ in chunk
+                )
+                continue
             out.extend(_reply(r) for r in responses)
         return out
 

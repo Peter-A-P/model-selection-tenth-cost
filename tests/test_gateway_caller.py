@@ -11,12 +11,13 @@ from __future__ import annotations
 from collections.abc import Iterator
 from dataclasses import replace
 from pathlib import Path
+from types import SimpleNamespace
 from typing import Any
 
 import httpx
 import pytest
 import respx
-from boundary import SpendCapExceeded
+from boundary import BatchNotReady, SpendCapExceeded
 from boundary.config import CacheConfig, CapsConfig, ProjectCap, load_config
 from boundary.gateway import Gateway
 
@@ -366,3 +367,36 @@ def test_a_provider_with_no_key_to_need_never_blocks_a_run(
     config = {"providers": {"local": {"price_zero": True}}}
     routes = {"free-one": {"provider": "local", "model": "llama"}}
     assert gateway.missing_keys(config, ["free-one"], routes) == {}
+
+
+def test_an_unfinished_batch_does_not_end_the_run(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Found on 2026-09-14, an hour into the test-retest arm and with seven models still to go.
+
+    `anthropic-haiku`'s first batch of 250 was still in_progress when the poll limit expired,
+    `batch_results` raised `BatchNotReady`, and nothing caught it: the handler in this module
+    guarded the one-at-a-time path and not the batch path. The traceback reached the command and
+    the run ended having measured nothing.
+
+    A batch still running says nothing about the other aliases, which is the same reasoning that
+    already applied to every other failure here. It becomes retryable failures and the run goes
+    on. The batch id is kept, because the vendor will finish and charge for that batch whether
+    or not anyone waited, and a resume that submits a second one pays for the same answers twice.
+    """
+
+    class Stuck:
+        """A gateway whose batches are accepted and never finish."""
+
+        def batch_submit(self, requests: object, **kw: object) -> object:
+            return SimpleNamespace(batch_id="msgbatch_test", provider="anthropic")
+
+        def batch_results(self, handle: object, **kw: object) -> object:
+            raise BatchNotReady("msgbatch_test", "in_progress", {"processing": 3})
+
+    prompts = build_prompts([MC, MC, MC], "anthropic-haiku")
+    caller = BoundaryCaller(Stuck(), use_batches=True)  # type: ignore[arg-type]
+    replies = caller.ask(prompts)
+
+    assert len(replies) == len(prompts), "every prompt still gets a reply, even a failed one"
+    assert all(r.error is not None and r.retryable for r in replies)
+    assert all("msgbatch_test" in str(r.error) for r in replies), "the bill has a name"
+    assert caller.unfinished == ["msgbatch_test"]

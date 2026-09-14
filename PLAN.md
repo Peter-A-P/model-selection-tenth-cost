@@ -975,6 +975,53 @@ exists to check.
 It is worth noting that `anthropic-haiku` is the one Anthropic route carrying a dated
 identifier, and the one that works.
 
+### 15.27 A batch that had not finished ended the run, and left a bill behind
+
+The test-retest arm was run properly on 2026-09-14, from a shell with the keys in it, and died
+an hour later with seven of eight models untouched:
+
+    BatchNotReady: batch msgbatch_01WpF9fbZCHheD3bHG8bz8W7 is in_progress, not ended
+    (canceled 0, errored 0, expired 0, processing 250, succeeded 0)
+
+`anthropic-haiku`'s first batch of 250 was still running when the poll limit expired.
+`batch_results` raised, and nothing caught it: `_ask_one_at_a_time` has an `except BatchNotReady`
+and `_ask_batched` did not, so the exception went through `administer`, through the command, and
+onto the terminal. Everything after `anthropic-haiku` was lost, including five models that do not
+use batches at all and could not have been affected.
+
+**Two things were wrong and the crash is the smaller one.**
+
+A batch still running says nothing about the other aliases in the panel. That is the same
+reasoning section 15.19 applied to every other failure in this module, and it simply had not been
+applied here. Those items are now retryable failures and the run continues.
+
+The other is the bill. A submitted batch belongs to Anthropic: it will finish and it will be
+charged for, whether or not this process was still waiting. Recording the items as failures and
+walking away leaves a paid batch in flight, and a resume submits a second one for the same items
+and pays twice. So the batch id is carried in the error text and listed at the end of the run:
+
+    1 batch(es) were still running when this run stopped waiting:
+      msgbatch_01WpF9fbZCHheD3bHG8bz8W7
+    The vendor will finish and charge for those whether or not anyone collected them, so
+    re-asking those items buys the same answers twice.
+
+About US$0.06 in this case. The point is not the money, it is that a run should not quietly
+abandon something it has already bought.
+
+**The hour was never Anthropic's promise.** Their documented ceiling is 24 hours and most batches
+are far quicker. 3,600 seconds was this project's patience, chosen when a 3,000-item run cleared
+in 25 minutes, and it is now `--batch-wait` because the right value depends on whether anyone is
+waiting for the answer.
+
+**What this says about the panel's dependency on one vendor's queue.** Boundary has one batch
+adapter, for Anthropic, against six provider kinds it knows about (section 15.24). So three of
+the eleven models in the panel are subject to a queue with a 24-hour ceiling and the other eight
+are not, and an arm that finishes in an hour or in a day depending on that queue is not a
+schedule anyone can plan around. `--no-batch` for the Anthropic three costs about US$1 more on a
+500-item arm and removes the dependency entirely. That is the trade worth taking while the
+remaining arms are small; it is the wrong trade for a 3,000-item arm, where the discount is
+US$3 and nobody is waiting.
+
 ### 15.26 The first test-retest numbers, and ninety minutes of a run that could not work
 
 The test-retest arm was started on 2026-09-14 from a shell that had no vendor keys in it. Every
