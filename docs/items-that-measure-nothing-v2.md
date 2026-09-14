@@ -57,6 +57,11 @@ Sorted by fitted discrimination, lowest first, among items at least 60 models an
 
 No benchmark text appears here or anywhere else in this repository. The bank stores a content hash, the source instance id and the scenario an item came from, which is enough to look any item up in the cached public release and enough to reproduce every number below, without this repository carrying a line of anyone else's benchmark. `docs/data-sources.md` names the sources and their licences.
 
+
+## A third kind: the question is not all there
+
+**Not checked on this bank.** This category is found by reading the question, and the source behind bank `v2` publishes which model answered which item correctly without publishing the items. Bank `v1` is built from HELM's per-instance releases, which do carry the question text, and is checked in [items-that-measure-nothing.md](items-that-measure-nothing.md).
+
 ## What this does not claim
 
 A negative slope is evidence that something is wrong with an item, not proof that the answer key is wrong. Three other things produce the same signature: an item where the stronger model reasons past a deliberately simple answer, an item whose correct answer is ambiguous, and a grader that marks a correct answer wrong. Separating those needs the item text and a human, and PLAN.md section 9 says a sample is hand-checked before any item is named as mis-keyed. That hand-check has not been done yet, so no item here is called mis-keyed.

@@ -490,13 +490,35 @@ def _incomplete_section(version: str) -> list[str]:
     from mselect.experiments import incomplete
     from mselect.runner import items as item_pool
 
+    heading = ["", "## A third kind: the question is not all there", ""]
     try:
         pool = item_pool.administrable(version)
     except (FileNotFoundError, OSError):  # pragma: no cover - only without the fetched cache
-        return []
+        pool = None
+
+    # Absent and empty are different claims, and the document has to distinguish them. A bank
+    # whose source ships no question text cannot be checked for a defect in the question text;
+    # saying nothing would let a reader take that for a clean bill of health.
+    if pool is None or not pool.items:
+        return [
+            *heading,
+            "**Not checked on this bank.** This category is found by reading the question, and "
+            f"the source behind bank `{version}` publishes which model answered which item "
+            "correctly without publishing the items. Bank `v1` is built from HELM's per-instance "
+            "releases, which do carry the question text, and is checked in "
+            "[items-that-measure-nothing.md](items-that-measure-nothing.md).",
+            "",
+        ]
+
     found = incomplete.find(pool.items)
     if not found:
-        return []
+        return [
+            *heading,
+            f"**None found.** All {len(pool.items):,} items whose options index a numbered list "
+            "carry that list. The rule and what it is for are in "
+            "`mselect/experiments/incomplete.py`.",
+            "",
+        ]
 
     by_benchmark: dict[str, int] = {}
     for entry in found:
@@ -504,9 +526,7 @@ def _incomplete_section(version: str) -> list[str]:
     counts = ", ".join(f"{name} {n}" for name, n in sorted(by_benchmark.items()))
 
     lines = [
-        "",
-        "## A third kind: the question is not all there",
-        "",
+        *heading,
         *_incomplete_evidence(version, {entry.item_id for entry in found}),
         f"**{len(found)} items of {len(pool.items):,}** ask which of several numbered statements "
         "are correct, and carry no numbered statements at all. The options are `1,2,3` and "
