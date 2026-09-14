@@ -354,11 +354,10 @@ work not yet run rather than work that is blocked.
       items the baselines win. Section 13.6 and `docs/rejected.md`
 - [x] Validation on the own-run panel of models the calibration never saw. **Measured
       2026-09-13**, `mselect validate` and section 15.23: eleven models, 3,000 items each,
-      parameters read from the bank and nothing refitted. The bank ranks them at tau 0.917
-      (0.673 to 1.000), and adaptive selection reaches that same 0.917 from 100 items, 9.7% of
-      the comparable block. **Provisional in one respect**: `google-frontier` was refused after
-      1,088 items by a daily quota, and a ranking needs a frame every model shares, so the block
-      is 1,031 items rather than about 2,930. Rerun after the top-up before publishing
+      parameters read from the bank and nothing refitted. The bank ranks them at tau 0.855
+      (0.617 to 1.000), and adaptive selection reaches that same 0.855 from 100 items, 3.5% of
+      the 2,830-item block every model answered. Complete: `google-frontier` was topped up the
+      same evening after its daily quota reset
 - [ ] Position bias, framing effects and test-retest reliability each measured with intervals.
       **No longer blocked, just not run**: the gateway tag arrived, the full-suite arm is done,
       and these are four smaller arms of about US$10 and 22,000 calls (section 4.3). A free
@@ -371,10 +370,10 @@ work not yet run rather than work that is blocked.
 - [x] Handed to project 03. `mselect` v0.1.0 tagged 2026-09-11 with the interface 03's plan
       calls (`items_needed(delta, 0.8, ability)` works with no bank argument), plus
       `dependence()` for the local-dependence correction and `reliability()` for the noise floor
-- [x] Cost per ranking decision reported in dollars. **Measured 2026-09-13**: US$0.69 to rank
-      eleven models at the ceiling tau, against US$5.85 to ask them everything, priced from the
-      recorded cost of the exact cells the selector chose rather than from an average. Same
-      provisional note as the validation line above
+- [x] Cost per ranking decision reported in dollars. **Measured 2026-09-13**: **US$0.72 to rank
+      eleven models as well as every response can**, against US$16.05 to ask them everything.
+      Priced from the recorded cost of the exact cells the selector chose rather than from an
+      average, which matters on a panel spanning a factor of ten in price per item
 - [x] README opens with the one-liner and the results table
 - [x] Practitioner write-up published. `docs/writeup.md`
 - [x] One rejected approach documented with evidence. `docs/rejected.md`
@@ -980,33 +979,50 @@ The full-suite arm finished at 15:05 on 2026-09-13, twenty-one hours after it st
 models, 3,000 items each, 30,936 scored cells, US$16.42. `mselect validate` reads it back and
 answers the question section 11 has carried unticked from the beginning.
 
+**Amended 2026-09-13, 23:00.** The quota reset at 21:30, `google-frontier` was topped up for
+US$1.83, and the comparable block went from 1,031 items to **2,830**. The numbers below are the
+complete-panel ones. The provisional set is kept in the git history rather than here, with one
+exception noted at the end, because it moved in an instructive direction.
+
 **The bank transfers.** Item parameters fitted on 150 public HELM models, none of them in this
-panel, rank these eleven at **tau 0.917 (0.673 to 1.000)** against their own observed accuracy.
+panel, rank these eleven at **tau 0.855 (0.617 to 1.000)** against their own observed accuracy.
 Nothing was refitted; the parameters were read as given. That is the difference between an item
 bank and a description of the panel it was fitted on.
 
-**A tenth of the items is enough, and so is a tenth of the money.**
+**A twentieth of the money, not a tenth.**
 
 | items | share | adaptive tau | US$ | of full |
 |---:|---:|---|---:|---:|
-| 10 | 1.0% | 0.587 (0.111 to 0.918) | 0.06 | 1.1% |
-| 50 | 4.8% | 0.881 (0.612 to 1.000) | 0.33 | 5.7% |
-| **100** | **9.7%** | **0.917 (0.674 to 1.000)** | **0.69** | **11.8%** |
-| 500 | 48.5% | 0.917 (0.674 to 1.000) | 3.29 | 56.2% |
+| 10 | 0.4% | 0.527 (0.020 to 0.880) | 0.07 | 0.4% |
+| 50 | 1.8% | 0.745 (0.489 to 1.000) | 0.36 | 2.2% |
+| **100** | **3.5%** | **0.855 (0.617 to 1.000)** | **0.72** | **4.5%** |
+| 300 | 10.6% | 0.891 (0.667 to 1.000) | 2.17 | 13.5% |
+| 750 | 26.5% | 0.927 (0.750 to 1.000) | 5.29 | 33.0% |
 
-At 100 items adaptive selection reaches 0.917, which is the same tau the whole 1,031-item block
-gives. Nothing above 100 items buys anything, because 0.917 is the ceiling: it is what perfect
-knowledge of every response is worth against this truth. Random selection needs 500 items to
-match it and stratified selection does not reach it. The cost line is not an item count times an
-average price, it is the recorded price of the exact cells the selector chose, which matters
-when the panel spans a factor of ten in price per item.
+At 100 items adaptive selection reaches 0.855, which is the same tau the whole 2,830-item block
+gives. That is the claim in its strongest form: **3.5% of the items and 4.5% of the money buy
+everything knowing every response is worth**, US$0.72 against US$16.05. Random selection does
+not reach 0.855 until 300 items and stratified not until 150, both erratically. The cost line is
+not an item count times an average price, it is the recorded price of the exact cells the
+selector chose, which matters when the panel spans a factor of ten in price per item.
+
+Above 100 items adaptive drifts to 0.891 and 0.927, which is **above the full-information
+value**. That is not more knowledge, it is sampling noise: with eleven models tau moves in steps
+of about 0.036 and a subset can outrank the whole by accident. It is reported rather than
+smoothed because pretending the curve is monotone would be the more misleading choice.
 
 **The honest complication, and it is the same one section 13.6 found.** A raw score over enough
-random items beats every IRT method at the top end: 0.991 at 750 items against the IRT ceiling
-of 0.917. That is not a defect, it is what the target is. The truth being reproduced is observed
+random items beats every IRT method at the top end: 0.945 at 500 items against the IRT ceiling
+of 0.855. That is not a defect, it is what the target is. The truth being reproduced is observed
 accuracy, and a raw score estimates observed accuracy directly while ability estimates a latent
 trait that ranks it only nearly. IRT wins where items are scarce and loses where they are not,
-and the crossover here is around 500 items, or 48% of the block.
+and the crossover here is around 300 items, or 11% of the block.
+
+**The instructive move.** On the 1,031-item block the transfer was tau 0.917; on the full 2,830
+it is 0.855. Tripling the evidence made the agreement worse, which sounds wrong and is not. The
+truth got sharper, not the estimate: with three times the items, each model's observed accuracy
+is measured precisely enough that the places where ability and accuracy genuinely disagree stop
+being hidden by noise. A ceiling that falls when you look harder was a real ceiling all along.
 
 **Every interval overlaps every other.** Eleven models is eleven models, and a bootstrap over
 them is wide. Nothing in the table above is separated from anything else with confidence, and it
@@ -1038,10 +1054,10 @@ That second one is worth stating as a rule rather than a bug. A ranking is a com
 comparison needs a common frame. `simulate.dense_block` already enforced it for the public bank
 and this module had to find it again from the other direction.
 
-**What this costs, and it is not nothing.** One model refused after a third of the suite costs
-every model the other two thirds: the comparable block is 1,031 items rather than about 2,930.
-The numbers above are the numbers on a third of the panel, which is why the `google-frontier`
-top-up after the quota resets is worth doing before any of them are published.
+**What that cost, and it was not nothing.** One model refused after a third of the suite cost
+every model the other two thirds: until the top-up the comparable block was 1,031 items rather
+than 2,830. An arm is not finished when the last model stops answering, it is finished when
+every model has answered the same items.
 
 ### 15.22 A missing verdict is not a verdict, and 1,910 calls nearly went quiet
 
