@@ -132,15 +132,30 @@ class PositionBias:
     bias_index: float
     share_order_dependent: Interval
     n_items: int
+    # The positions the index was computed over. A suite that mixes option counts reaches the
+    # later letters with only a handful of items, and a spread anchored on two observations is
+    # not a measurement of anything. Everything is still reported; only these set the index.
+    positions_counted: tuple[str, ...] = ()
 
     def describe(self) -> str:
         spread = ", ".join(
             f"{k} {v.point:.1%}" for k, v in sorted(self.accuracy_by_position.items())
         )
+        thin = [k for k in sorted(self.accuracy_by_position) if k not in self.positions_counted]
+        note = f", {len(thin)} position(s) too thin to count" if thin else ""
         return (
-            f"{self.model}: bias index {self.bias_index:.3f} ({spread}); "
+            f"{self.model}: bias index {self.bias_index:.3f} over "
+            f"{'/'.join(self.positions_counted)}{note} ({spread}); "
             f"{self.share_order_dependent.fmt()} of items change outcome with the order"
         )
+
+
+# How many observations a position needs before its accuracy is allowed to set the bias index.
+# On a suite that mixes option counts the later letters are reachable by very few items: the
+# first real run had 160 observations at A and 2 at I, and the index was the spread between a
+# position with 6 and a position with 2. Everything is still reported, and the thin positions
+# are simply not allowed to be the headline.
+MIN_PER_POSITION = 30
 
 
 def position_bias(
@@ -149,6 +164,7 @@ def position_bias(
     answer_position: NDArray[np.str_],
     *,
     seed: int = 0,
+    min_per_position: int = MIN_PER_POSITION,
 ) -> PositionBias:
     """Accuracy by the letter the correct answer wore, over cyclic permutations of one item set.
 
@@ -156,13 +172,24 @@ def position_bias(
     in a different position each time. The bias index is the spread of accuracy across positions
     (max minus min), and "order dependent" counts items that are not answered the same way under
     every rotation.
+
+    **Amended 2026-09-14, on the first real run.** The index used to span every position that
+    appeared at all, which is right when every item has the same number of options and wrong on
+    a suite that mixes them. `anthropic-haiku` came out at 0.667 because one position held two
+    items and another held six. Positions below `min_per_position` are still reported, with
+    their intervals, and no longer set the index.
     """
     positions = sorted(set(answer_position.ravel().tolist()))
     by_position = {
         letter: bootstrap(correct[answer_position == letter].tolist(), seed=seed)
         for letter in positions
     }
-    points = [interval.point for interval in by_position.values() if np.isfinite(interval.point)]
+    counted = tuple(
+        letter
+        for letter in positions
+        if by_position[letter].n >= min_per_position and np.isfinite(by_position[letter].point)
+    )
+    points = [by_position[letter].point for letter in counted]
     index = float(max(points) - min(points)) if points else float("nan")
     per_item = np.array(
         [1.0 if len(set(row[np.isfinite(row)].tolist())) > 1 else 0.0 for row in correct]
@@ -171,6 +198,7 @@ def position_bias(
         model=model,
         accuracy_by_position=by_position,
         bias_index=index,
+        positions_counted=counted,
         share_order_dependent=bootstrap(per_item.tolist(), seed=seed),
         n_items=int(correct.shape[0]),
     )

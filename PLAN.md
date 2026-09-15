@@ -977,6 +977,61 @@ exists to check.
 It is worth noting that `anthropic-haiku` is the one Anthropic route carrying a dated
 identifier, and the one that works.
 
+### 15.30 Two analyses nothing could reach, and a fixture that made one of them look right
+
+`experiments/analysis.py` has held `position_bias` and `framing` since before the runner
+existed, written and tested against fixtures on the reasoning that the analysis does not depend
+on how the responses were obtained. That reasoning is sound and it hid a gap: **nothing turned a
+record file into the matrices they take.** The arms could have been paid for, about US$8.70, and
+left as five JSONL files with no way to make a number out of them.
+
+`mselect position-bias` and `mselect framing` are that missing half. Each calls nothing, reads
+the record files, prints with intervals and writes JSON, the same shape as `mselect retest`.
+
+#### A bias index of 0.667 that was two items
+
+The first real run of the new command, against `anthropic-haiku` on rotations 0 and 1:
+
+    anthropic-haiku  bias index 0.667
+      A 0.800/160  B 0.816/152  C 0.857/126  D 0.843/134
+      E 0.429/7  F 0.375/8  G 0.333/6  H 1.000/3  I 1.000/2
+
+The index is the spread of accuracy across positions, maximum minus minimum. The maximum was
+1.000 from the **two** items whose answer sat at I, and the minimum 0.333 from the six at G. An
+enormous effect, made of eight observations.
+
+The cause is the fixture the function was tested against, where every item had four options.
+That is exactly the condition under which every position is equally observed, and it is not true
+of this suite: 253 items with four options, 23 with two, 13 with ten, 7 with seven. The later
+letters are reachable by a handful of items and unreachable by most.
+
+So `position_bias` takes `min_per_position`, default 30. Every position is still reported with
+its interval and its count, and the command brackets the ones too thin to count. They no longer
+set the headline. The real figure for `anthropic-haiku` is **0.057**, and that is a finding
+rather than an artefact.
+
+This is the second time a fixture has made an analysis look finished when it was not, and the
+first was in the same file. Both were found the same way, by running the thing against real data
+at the first opportunity rather than at the last.
+
+#### What the arm is already saying
+
+Two models in, on 300 items across two rotations:
+
+| alias | bias index | items that change outcome on order alone |
+|---|---:|---|
+| `anthropic-haiku` | 0.057 | 8.7% (5.7% to 12.0%) |
+| `anthropic-sonnet` | 0.084 | 3.7% (1.7% to 6.0%) |
+
+The two disagree about which is worse, and they are measuring different things: the index is
+about the score, and the share is about individual items. A model can have a small net bias and
+still answer one item in twelve differently depending on where the answer sits.
+
+Worth watching as the rest land: both go **up** from A to D. Haiku runs 0.800, 0.816, 0.857,
+0.843 and Sonnet 0.828, 0.839, 0.907, 0.912. If that holds across the panel it is a finding
+about where these models look first, and it is the opposite of the first-position preference
+that is usually assumed.
+
 ### 15.29 A re-administration is not a fresh draw, and a gate can be twice as sensitive
 
 Section 15.28 counted how many answers changed. This asks where they fell, and the answer is a

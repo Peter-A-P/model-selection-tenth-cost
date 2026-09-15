@@ -1120,6 +1120,219 @@ def retest(
     _say(f"wrote {beside}  (committed, so the handover can read it)")
 
 
+@app.command("position-bias")
+def position_bias(
+    version: str = typer.Option("v1", help="Which bank the suite and items come from."),
+    rotations: str = typer.Option("0,1,2,3", help="Comma-separated rotations to compare."),
+    seed: int = typer.Option(0, help="Recorded, so the intervals can be reproduced."),
+    write: bool = typer.Option(True, "--write/--no-write", help="Save the result under out/."),
+) -> None:
+    """How much of a multiple-choice score is the position of the right answer.
+
+    Calls nothing: the rotations were paid for once. Every item is asked with the correct answer
+    in a different letter each time, so any difference in accuracy between those runs is the
+    option order and nothing else.
+    """
+    import json
+
+    import numpy as np
+
+    from mselect.experiments import analysis, ownrun
+    from mselect.runner import items as item_pool
+    from mselect.runner.administer import expected_key
+
+    wanted = [int(r) for r in rotations.split(",") if r.strip()]
+    if len(wanted) < 2:
+        raise typer.BadParameter("comparing option order needs at least two rotations")
+    panels: dict[int, ownrun.Panel] = {}
+    for rotation in wanted:
+        path = ownrun.default_path(version, "plain", rotation)
+        if not path.is_file():
+            raise typer.BadParameter(f"no record file at {path}; run with --rotation {rotation}")
+        panels[rotation] = ownrun.load(path, version=version)
+
+    index = item_pool.administrable(version).index()
+    base = panels[wanted[0]]
+    # Only items every rotation reached, and only ones with options to reorder. A free-response
+    # item cannot be rotated at all, and an item missing from one rotation would compare a
+    # position against nothing.
+    usable = np.ones(base.n_items, dtype=bool)
+    for panel in panels.values():
+        usable &= panel.answered().any(axis=0)
+    for j, item_id in enumerate(base.item_ids):
+        item = index.get(item_id)
+        if item is None or item.free_response:
+            usable[j] = False
+    columns = np.flatnonzero(usable)
+    if columns.size == 0:
+        raise typer.BadParameter("no multiple-choice item was answered under every rotation")
+
+    _say(f"{columns.size:,} multiple-choice items asked under rotations {wanted}")
+    _say("")
+    _say(f"{'alias':<18}{'items':>7}{'bias index':>12}  accuracy by the letter the answer wore")
+    results = []
+    for alias in base.aliases:
+        if not all(alias in panel.aliases for panel in panels.values()):
+            continue
+        correct = np.column_stack(
+            [panels[r].responses[panels[r].aliases.index(alias)][columns] for r in wanted]
+        )
+        where = np.array(
+            [
+                [expected_key(index[base.item_ids[j]], rotation=r) or "?" for r in wanted]
+                for j in columns
+            ]
+        )
+        result = analysis.position_bias(alias, correct, where, seed=seed)
+        results.append(result)
+    for result in sorted(results, key=lambda r: -r.bias_index):
+        # Every position with the number of observations behind it, because a thin one is worth
+        # seeing even though it no longer sets the index. Brackets mark the ones too thin to count.
+        spread = "  ".join(
+            f"{k if k in result.positions_counted else '(' + k + ')'} {v.point:.3f}/{v.n}"
+            for k, v in sorted(result.accuracy_by_position.items())
+        )
+        _say(f"{result.model:<18}{result.n_items:>7,}{result.bias_index:>12.3f}  {spread}")
+    _say("")
+    for result in sorted(results, key=lambda r: -r.share_order_dependent.point)[:3]:
+        _say(
+            f"{result.model}: {result.share_order_dependent.fmt()} of items change outcome "
+            f"when only the option order moves"
+        )
+
+    if not write:
+        return
+    out = paths.ensure(paths.out_for(version)) / "position-bias.json"
+    out.write_text(
+        json.dumps(
+            {
+                "rotations": wanted,
+                "n_items": int(columns.size),
+                "seed": seed,
+                "models": [
+                    {
+                        "model": r.model,
+                        "bias_index": r.bias_index,
+                        "n_items": r.n_items,
+                        "accuracy_by_position": {
+                            k: {"point": v.point, "lo": v.lo, "hi": v.hi, "n": v.n}
+                            for k, v in r.accuracy_by_position.items()
+                        },
+                        "positions_counted": list(r.positions_counted),
+                        "share_order_dependent": {
+                            "point": r.share_order_dependent.point,
+                            "lo": r.share_order_dependent.lo,
+                            "hi": r.share_order_dependent.hi,
+                        },
+                    }
+                    for r in results
+                ],
+            },
+            indent=2,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    _say(f"\nwrote {out}")
+
+
+@app.command("framing")
+def framing(
+    version: str = typer.Option("v1", help="Which bank the suite and items come from."),
+    templates: str = typer.Option(
+        "plain,letter_only,brief_reasoning", help="Comma-separated templates to compare."
+    ),
+    seed: int = typer.Option(0, help="Recorded, so the intervals can be reproduced."),
+    write: bool = typer.Option(True, "--write/--no-write", help="Save the result under out/."),
+) -> None:
+    """How much of a score is the prompt template rather than the model.
+
+    Calls nothing. Splits correctness into the item, the template, and the two together, and
+    reports what this project's own answer-only format costs against letting a model reason
+    briefly first, which is the honest way to report a design decision made for cost reasons.
+    """
+    import json
+
+    import numpy as np
+
+    from mselect.experiments import analysis, ownrun
+
+    wanted = [name.strip() for name in templates.split(",") if name.strip()]
+    if len(wanted) < 2:
+        raise typer.BadParameter("comparing templates needs at least two of them")
+    panels: dict[str, ownrun.Panel] = {}
+    for name in wanted:
+        path = ownrun.default_path(version, name, 0)
+        if not path.is_file():
+            raise typer.BadParameter(f"no record file at {path}; run with --template {name}")
+        panels[name] = ownrun.load(path, version=version)
+
+    base = panels[wanted[0]]
+    usable = np.ones(base.n_items, dtype=bool)
+    for panel in panels.values():
+        usable &= panel.answered().any(axis=0)
+    columns = np.flatnonzero(usable)
+    if columns.size == 0:
+        raise typer.BadParameter("no item was answered under every template")
+
+    _say(f"{columns.size:,} items asked under {', '.join(wanted)}")
+    _say("")
+    header = "".join(f"{name:>18}" for name in wanted)
+    _say(f"{'alias':<18}{header}{'item':>8}{'template':>10}{'both':>8}")
+    results = []
+    for alias in base.aliases:
+        if not all(alias in panel.aliases for panel in panels.values()):
+            continue
+        correct = np.column_stack(
+            [panels[n].responses[panels[n].aliases.index(alias)][columns] for n in wanted]
+        )
+        results.append(analysis.framing(alias, correct, wanted, seed=seed))
+    for result in results:
+        cells = "".join(f"{result.accuracy_by_template[name].point:>18.3f}" for name in wanted)
+        _say(
+            f"{result.model:<18}{cells}{result.variance_item:>8.1%}"
+            f"{result.variance_template:>10.1%}{result.variance_interaction:>8.1%}"
+        )
+    _say("")
+    for result in results:
+        _say(f"{result.model}: answer-only costs {result.cost_of_answer_only.fmt()}")
+
+    if not write:
+        return
+    out = paths.ensure(paths.out_for(version)) / "framing.json"
+    out.write_text(
+        json.dumps(
+            {
+                "templates": wanted,
+                "n_items": int(columns.size),
+                "seed": seed,
+                "models": [
+                    {
+                        "model": r.model,
+                        "accuracy_by_template": {
+                            k: {"point": v.point, "lo": v.lo, "hi": v.hi}
+                            for k, v in r.accuracy_by_template.items()
+                        },
+                        "variance_item": r.variance_item,
+                        "variance_template": r.variance_template,
+                        "variance_interaction": r.variance_interaction,
+                        "cost_of_answer_only": {
+                            "point": r.cost_of_answer_only.point,
+                            "lo": r.cost_of_answer_only.lo,
+                            "hi": r.cost_of_answer_only.hi,
+                        },
+                    }
+                    for r in results
+                ],
+            },
+            indent=2,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    _say(f"\nwrote {out}")
+
+
 @app.command("report")
 def report(version: str = typer.Option("v1")) -> None:
     """Regenerate the README results table and the figures from the saved outputs."""

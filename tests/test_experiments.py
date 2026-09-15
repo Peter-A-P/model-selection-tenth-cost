@@ -254,3 +254,40 @@ def test_resampling_says_nothing_when_there_is_nothing_to_compare() -> None:
     result = analysis.resampling(nothing, nothing, np.full(5, 0.5))
     assert result.n_pairs == 0
     assert np.isnan(result.observed_flip_rate)
+
+
+def test_a_thin_position_is_reported_but_does_not_set_the_bias_index() -> None:
+    """Found on the first real run of the position-bias arm, 2026-09-14.
+
+    `anthropic-haiku` came out at a bias index of 0.667, which would be an enormous effect. The
+    suite mixes option counts, 253 four-option items against 13 with ten, so the later letters
+    are reachable by a handful of items: 160 observations sat at A and 2 at I. The index was the
+    spread between a position holding six items and one holding two.
+
+    The function was tested against fixtures where every item had the same number of options,
+    which is exactly the condition that makes every position equally observed. A real suite is
+    not like that, and CLAUDE.md's rule that a bare number is a defect applies here.
+    """
+    # Forty items with the answer at A or B, and two lonely ones at Z that happen to be perfect.
+    positions = np.array([["A", "B"]] * 40 + [["Z", "Z"]])
+    correct = np.vstack([np.tile([1.0, 0.0], (40, 1)), np.array([[1.0, 1.0]])])
+
+    result = analysis.position_bias("m", correct, positions, min_per_position=30)
+    assert set(result.accuracy_by_position) == {"A", "B", "Z"}, "every position is still reported"
+    assert result.accuracy_by_position["Z"].point == pytest.approx(1.0)
+    assert result.positions_counted == ("A", "B"), "Z has two observations and cannot count"
+    assert result.bias_index == pytest.approx(1.0), "A is always right and B always wrong"
+
+    # With the floor lowered, Z joins in and the index changes. That is the knob doing its job.
+    lenient = analysis.position_bias("m", correct, positions, min_per_position=1)
+    assert lenient.positions_counted == ("A", "B", "Z")
+
+
+def test_a_bias_index_with_nothing_thick_enough_is_not_invented() -> None:
+    """Better no number than a number from three items."""
+    positions = np.array([["A", "B"]] * 3)
+    correct = np.tile([1.0, 0.0], (3, 1))
+    result = analysis.position_bias("m", correct, positions, min_per_position=30)
+    assert result.positions_counted == ()
+    assert np.isnan(result.bias_index)
+    assert result.accuracy_by_position["A"].point == pytest.approx(1.0)

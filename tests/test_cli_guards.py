@@ -198,3 +198,31 @@ def test_an_unrotated_run_keeps_every_item(elsewhere: Path) -> None:
     result = runner.invoke(app, ["run", "--alias", "local-small-a"])
     assert "set aside" not in result.output
     assert "3,000 items per alias" in result.output
+
+
+def test_the_experiment_readers_refuse_a_missing_arm(elsewhere: Path) -> None:
+    """Both commands name the run that would produce what they are missing.
+
+    They exist because the analyses did and nothing read a record file into them: the arms could
+    have been paid for and left as two JSONL files with no way to turn them into a number.
+    """
+    bias = runner.invoke(app, ["position-bias", "--rotations", "0,1"])
+    assert bias.exit_code != 0
+    assert "no record file" in bias.output and "--rotation" in bias.output
+
+    frame = runner.invoke(app, ["framing", "--templates", "plain,letter_only"])
+    assert frame.exit_code != 0
+    assert "no record file" in frame.output and "--template" in frame.output
+
+
+def test_comparing_needs_something_to_compare_against(elsewhere: Path) -> None:
+    for command, flag in (("position-bias", "--rotations"), ("framing", "--templates")):
+        result = runner.invoke(app, [command, flag, "0" if "rot" in flag else "plain"])
+        assert result.exit_code != 0
+        assert "at least two" in result.output
+
+
+def test_neither_reader_can_spend_anything() -> None:
+    """The arms are paid for once; the arithmetic is free forever."""
+    for command in ("position-bias", "framing"):
+        assert "--yes" not in runner.invoke(app, [command, "--help"]).output
