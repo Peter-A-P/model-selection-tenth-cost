@@ -977,6 +977,68 @@ exists to check.
 It is worth noting that `anthropic-haiku` is the one Anthropic route carrying a dated
 identifier, and the one that works.
 
+### 15.29 A re-administration is not a fresh draw, and a gate can be twice as sensitive
+
+Section 15.28 counted how many answers changed. This asks where they fell, and the answer is a
+result rather than a description.
+
+Item response theory treats a response as Bernoulli(p), so the same model asked the same item
+twice should disagree with probability 2p(1-p). That is the assumption the information function
+rests on, and through it `items_needed`, and through that project 03's sizing. Measured against
+the panel it is wrong by a factor of five, in the same direction, for every model:
+
+| alias | pairs | observed flip rate | 2p(1-p) | ratio |
+|---|---:|---:|---:|---:|
+| `local-small-a` | 483 | 0.002 | 0.299 | 144x |
+| `anthropic-haiku` | 482 | 0.015 | 0.153 | 10.5x |
+| `google-frontier` | 485 | 0.014 | 0.106 | 7.4x |
+| `openai-frontier` | 485 | 0.025 | 0.131 | 5.3x |
+| `anthropic-opus` | 483 | 0.023 | 0.106 | 4.7x |
+| `anthropic-sonnet` | 481 | 0.029 | 0.118 | 4.1x |
+| `together-open-a` | 483 | 0.052 | 0.151 | 2.9x |
+| `openai-mid` | 486 | 0.066 | 0.179 | 2.7x |
+| `google-mid` | 483 | 0.050 | 0.119 | 2.4x |
+| `together-open-b` | 479 | 0.058 | 0.140 | 2.4x |
+| **pooled** | **5,311** | **0.030** | **0.164** | **5.4x** |
+
+It holds across the whole range of p, not just at the ends: in the band where the model is most
+uncertain, 0.4 to 0.6, the response model predicts 0.494 and the observed rate is 0.037.
+
+**Why, and it is not a defect in the fit.** `p` describes how models *at the same ability* differ
+from each other. It was never a claim about how *one model* differs from itself between
+administrations. A given model's answer to a given item is close to fixed, and what the model
+calls chance is largely a persistent model-by-item effect: a quirk of that model on that item,
+not a coin it re-tosses. At temperature 0 there is very little coin left.
+
+**What it buys.** A drift test compares a model against its own earlier self on the same items,
+so it sits in the small within-model variance rather than the large across-model one:
+
+| | 100 items | 500 items |
+|---|---:|---:|
+| noise the response model predicts | 4.04 points | 1.81 points |
+| noise actually observed | 1.74 points | 0.78 points |
+
+A paired re-run is about twice as sensitive as the information function implies. That is the
+opposite direction to section 13.6's warning that `items_needed` is optimistic at large effects,
+and the two are about different comparisons: 13.6 is about telling two different models apart,
+this is about telling one model from its own past. A release gate does the second.
+
+**Handed over rather than described.** `handover.reliability()` is what project 03 imports, and
+it read the bank manifest, which meant it returned HELM's overlapping administrations as a
+stand-in and said in its own docstring that the real experiment was blocked. It now returns the
+measurement where one exists, with `from_own_run` to say which a caller is holding, and
+`points_sd(n)` giving the row above so a gate sizes itself from evidence rather than theory.
+
+That needed the result to be committed rather than left in `out/`, which is gitignored: a result
+only in a run directory is a result the consumer can never see. `mselect/config/own-run-retest-v1.json`
+holds agreement, flip counts and the derived floor. No item text and no replies, so section 13.5
+is untouched, and it sits beside `own-run-suite-v1.json`, already a committed artefact of a run.
+
+**One existing test failed on this change and was right to.** `test_reliability_reports_its_own_caveat`
+asserted the caveat said "not the temperature-0 test-retest", which was true of the stand-in and
+false the moment the real thing arrived. It now asserts the caveat matches whichever source was
+returned, which is what it should have asserted all along.
+
 ### 15.28 Five models answer the same questions twice, and 5% of the answers move
 
 The first vendor numbers from the test-retest arm, 2026-09-14. The same model, the same 500

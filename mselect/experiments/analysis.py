@@ -242,3 +242,65 @@ def framing(
         variance_interaction=ss_interaction / scale,
         cost_of_answer_only=cost,
     )
+
+
+@dataclass(frozen=True, slots=True)
+class Resampling:
+    """Whether a re-administration behaves like a fresh draw from the response model.
+
+    Item response theory treats a response as Bernoulli(p), so asking the same model the same
+    item twice should disagree with probability 2p(1-p). That is the number the information
+    function is built on, and through it `items_needed`.
+
+    It is not what happens. Measured on the own-run panel, every model disagrees with itself far
+    less than that, because p describes variation **across models at the same ability** and not
+    variation **within one model across administrations**. A model's answer to a given item is
+    close to fixed; what IRT calls chance is largely a persistent model-by-item effect.
+
+    The consequence is the useful part and it points the friendly way. A drift test compares a
+    model against its own earlier self on the same items, so it lives in the small within-model
+    variance rather than the large across-model one, and needs fewer items than the information
+    function implies to see a change of a given size.
+    """
+
+    n_pairs: int
+    observed_flip_rate: float
+    predicted_flip_rate: float
+
+    # Standard deviation of the change in score, in percentage points, for a test of `n_items`.
+    # Reported both ways because the gap between them is the finding.
+    def points_sd(self, n_items: int, *, predicted: bool = False) -> float:
+        rate = self.predicted_flip_rate if predicted else self.observed_flip_rate
+        return 100.0 * float(np.sqrt(rate / n_items)) if n_items else float("nan")
+
+    @property
+    def ratio(self) -> float:
+        if not self.observed_flip_rate:
+            return float("inf")
+        return self.predicted_flip_rate / self.observed_flip_rate
+
+    def describe(self, n_items: int = 500) -> str:
+        return (
+            f"{self.n_pairs:,} pairs: {self.observed_flip_rate:.4f} of answers change against "
+            f"{self.predicted_flip_rate:.4f} predicted by 2p(1-p), {self.ratio:.1f} times fewer. "
+            f"On {n_items} items a score wanders {self.points_sd(n_items):.2f} points where the "
+            f"response model says {self.points_sd(n_items, predicted=True):.2f}."
+        )
+
+
+def resampling(first: Floats, second: Floats, predicted_correct: Floats) -> Resampling:
+    """Compare how often answers really change against how often the response model says they do.
+
+    `predicted_correct` is P(correct) for each cell under the fitted parameters and the model's
+    estimated ability. Cells missing from either administration are dropped, because a flip needs
+    two answers to be a flip.
+    """
+    both = np.isfinite(first) & np.isfinite(second) & np.isfinite(predicted_correct)
+    if not both.any():
+        return Resampling(0, float("nan"), float("nan"))
+    a, b, p = first[both], second[both], predicted_correct[both]
+    return Resampling(
+        n_pairs=int(both.sum()),
+        observed_flip_rate=float((a != b).mean()),
+        predicted_flip_rate=float(np.mean(2.0 * p * (1.0 - p))),
+    )

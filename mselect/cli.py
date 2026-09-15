@@ -634,6 +634,19 @@ def run(
     index = pool.index()
     chosen = suite_mod.Suite.load(suite_mod.default_path(version))
     ordered = [index[i] for i in chosen.item_ids if i in index]
+    if rotation:
+        # Rotation moves the correct answer between option positions, which only means anything
+        # where there are options. PLAN.md section 4.3 specifies multiple choice for the
+        # position-bias arm; without this the run raises on the first free-response item it
+        # meets, which on this suite is 217 of 3,000.
+        with_options = [item for item in ordered if not item.free_response]
+        dropped = len(ordered) - len(with_options)
+        ordered = with_options
+        if dropped:
+            _say(
+                f"rotation {rotation}: {dropped:,} free-response items set aside, "
+                f"{len(ordered):,} multiple-choice items remain"
+            )
     if limit:
         ordered = ordered[:limit]
 
@@ -939,7 +952,9 @@ def retest(
     import numpy as np
     from scipy import stats
 
+    from mselect.cat.estimate import score
     from mselect.experiments import analysis, ownrun
+    from mselect.irt.model import prob
 
     one = ownrun.default_path(version, template, rotation)
     two = ownrun.default_path(version, template, rotation, repeat=repeat)
@@ -961,11 +976,19 @@ def retest(
         f"{'phi':>7}{'right':>7}{'wrong':>7}{'points':>8}{'symmetry p':>12}"
     )
     rows = []
+    resamplings: dict[str, analysis.Resampling] = {}
     for alias in shared:
         first = before.responses[before.aliases.index(alias)]
         second = after.responses[after.aliases.index(alias)]
-        result = analysis.retest(alias, first, second, seed=seed)
-        rows.append(result)
+        rows.append(analysis.retest(alias, first, second, seed=seed))
+        # What the response model expects this model to disagree with itself about, so the
+        # measured rate has something to be measured against rather than merely being small.
+        answered = np.flatnonzero(np.isfinite(first) & before.usable)
+        theta = score(first, before.items, answered).theta
+        expected = prob(np.array([theta]), before.items)[0]
+        resamplings[alias] = analysis.resampling(
+            first, second, np.where(before.usable, expected, np.nan)
+        )
     for result in sorted(rows, key=lambda r: -r.agreement.point):
         interval = f"[{result.agreement.lo:.3f}, {result.agreement.hi:.3f}]"
         _say(
@@ -1001,6 +1024,30 @@ def retest(
             )
             _say(f"pooled {up} to right against {down} to wrong, p = {pooled:.3f}: {verdict}.")
 
+    pairs = [r.n_pairs for r in resamplings.values()]
+    pooled_resampling = analysis.Resampling(
+        n_pairs=sum(pairs),
+        observed_flip_rate=(
+            float(np.average([r.observed_flip_rate for r in resamplings.values()], weights=pairs))
+            if sum(pairs)
+            else float("nan")
+        ),
+        predicted_flip_rate=(
+            float(np.average([r.predicted_flip_rate for r in resamplings.values()], weights=pairs))
+            if sum(pairs)
+            else float("nan")
+        ),
+    )
+    if pooled_resampling.n_pairs:
+        _say("")
+        _say(pooled_resampling.describe())
+        _say(
+            "A re-administration is not a fresh draw from the response model: p describes how "
+            "models at one ability differ from each other, not how one model differs from "
+            "itself. A drift test compares a model with its own earlier self, so it lives in "
+            "the smaller variance and needs fewer items than the information function implies."
+        )
+
     if not write:
         return
     out = paths.ensure(paths.out_for(version)) / f"retest-{template}-{rotation}-r{repeat}.json"
@@ -1026,6 +1073,8 @@ def retest(
                         "flips_to_incorrect": r.flips_to_incorrect,
                         "net_points": r.net_points,
                         "symmetry_p": r.symmetry_p,
+                        "observed_flip_rate": resamplings[r.model].observed_flip_rate,
+                        "predicted_flip_rate": resamplings[r.model].predicted_flip_rate,
                     }
                     for r in rows
                 ],
@@ -1036,6 +1085,39 @@ def retest(
         encoding="utf-8",
     )
     _say(f"\nwrote {out}")
+
+    # `out/` is gitignored and `handover.reliability()` is what project 03 imports, so a result
+    # left only in `out/` is a result 03 can never see. This summary is aggregate: agreement,
+    # flip counts and the derived floor, with no item text and no replies, so section 13.5 is
+    # untouched. It sits beside own-run-suite-v1.json, already a committed artefact of a run.
+    beside = paths.ROOT / "mselect" / "config" / f"own-run-retest-{version}.json"
+    hosted = [r for r in rows if not r.model.startswith("local-")]
+    beside.write_text(
+        json.dumps(
+            {
+                "measured": "2026-09-14",
+                "bank_version": version,
+                "template": template,
+                "design": "the same items asked twice at temperature 0, a day apart",
+                "n_models": len(rows),
+                "n_items": max((r.n_items for r in rows), default=0),
+                "agreement": {r.model: r.agreement.point for r in rows},
+                "worst_hosted_agreement": min(
+                    (r.agreement.point for r in hosted), default=float("nan")
+                ),
+                "largest_score_move_points": max(
+                    (abs(r.net_points) for r in rows if r.n_items), default=float("nan")
+                ),
+                "symmetry_p_pooled": pooled if up + down else float("nan"),
+                "observed_flip_rate": pooled_resampling.observed_flip_rate,
+                "predicted_flip_rate": pooled_resampling.predicted_flip_rate,
+            },
+            indent=2,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    _say(f"wrote {beside}  (committed, so the handover can read it)")
 
 
 @app.command("report")

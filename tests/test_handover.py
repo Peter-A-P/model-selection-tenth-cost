@@ -50,10 +50,21 @@ def test_the_bank_and_its_parameters_ship_inside_the_package() -> None:
 
 
 def test_reliability_reports_its_own_caveat() -> None:
+    """Whichever figure a consumer gets, it has to say what it is.
+
+    Amended 2026-09-14. This used to assert the caveat said "not the temperature-0 test-retest",
+    which was right while the figure was HELM's overlapping administrations standing in for one.
+    The own-run test-retest is measured now and is returned in preference, so the assertion is
+    about the caveat matching the source rather than about one particular source.
+    """
     figure = mselect.reliability()
     assert 0.5 < figure.agreement < 1.0
     assert figure.n_repeated_cells > 0
-    assert "not the temperature-0 test-retest" in figure.caveat.lower()
+    if figure.from_own_run:
+        assert "temperature 0" in figure.source
+        assert "worst hosted model" in figure.caveat.lower()
+    else:
+        assert "not the temperature-0 test-retest" in figure.caveat.lower()
 
 
 def test_dependence_tells_a_consumer_how_much_to_widen_its_interval() -> None:
@@ -158,3 +169,40 @@ def test_the_second_bank_is_dense_where_the_first_is_not() -> None:
     assert density["v1"] < 0.7
     if "v2" in density:
         assert density["v2"] > 0.95
+
+
+def test_reliability_prefers_the_measurement_over_the_stand_in() -> None:
+    """Project 03 imports this to size its release gate, so it must get the real figure.
+
+    Until 2026-09-14 it returned HELM's overlapping administrations, which differ in run date
+    and release as well as in sampling and so bound benchmark noise from below rather than
+    measuring it. The own-run test-retest measures it directly, and `from_own_run` is how a
+    caller tells which of the two it is holding.
+    """
+    result = mselect.reliability()
+    assert result.from_own_run, "the measured test-retest is committed and should be preferred"
+    assert 0.9 < result.agreement < 1.0
+    assert result.score_move_points is not None and result.score_move_points > 0
+
+    # The sizing numbers a gate needs, and they must shrink as the test gets longer.
+    assert result.points_sd(100) > result.points_sd(500) > 0
+    assert "times fewer" in result.resampling_note()
+
+
+def test_the_reliability_figure_is_the_worst_hosted_model_not_the_average() -> None:
+    """A gate has to hold for the model it is watching. The two on a laptop are near-perfect
+    and would flatter any average they were included in."""
+    import json
+
+    from mselect import paths
+
+    payload = json.loads(
+        (paths.ROOT / "mselect" / "config" / "own-run-retest-v1.json").read_text(encoding="utf-8")
+    )
+    hosted = {
+        name: value for name, value in payload["agreement"].items() if not name.startswith("local-")
+    }
+    assert mselect.reliability().agreement == pytest.approx(min(hosted.values()))
+    assert min(hosted.values()) < min(
+        payload["agreement"][n] for n in payload["agreement"] if n.startswith("local-")
+    )

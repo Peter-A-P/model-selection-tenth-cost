@@ -218,3 +218,39 @@ def test_a_model_that_never_changes_its_mind_has_no_symmetry_to_test() -> None:
     result = analysis.retest("steady", same, same)
     assert result.flips_to_correct == result.flips_to_incorrect == 0
     assert np.isnan(result.symmetry_p)
+
+
+def test_a_re_administration_is_not_a_fresh_draw_from_the_response_model() -> None:
+    """The finding of 2026-09-14, in miniature.
+
+    Item response theory treats a response as Bernoulli(p), so the same model asked the same
+    item twice should disagree with probability 2p(1-p). On the own-run panel it disagrees five
+    times less often than that, on every model, because p describes how models at one ability
+    differ from each other rather than how one model differs from itself.
+
+    The consequence points the friendly way: a drift test compares a model with its own earlier
+    self, so it sits in the small within-model variance and needs fewer items than the
+    information function implies.
+    """
+    n = 1000
+    # Every item a coin flip under the model, and the model in fact almost never changes.
+    predicted = np.full(n, 0.5)
+    first = np.zeros(n)
+    second = np.zeros(n)
+    second[:30] = 1.0
+
+    result = analysis.resampling(first, second, predicted)
+    assert result.n_pairs == n
+    assert result.observed_flip_rate == pytest.approx(0.03)
+    assert result.predicted_flip_rate == pytest.approx(0.5)
+    assert result.ratio == pytest.approx(0.5 / 0.03)
+    # The number a release gate sizes itself with, and the one it would have used instead.
+    assert result.points_sd(500) < result.points_sd(500, predicted=True)
+    assert result.points_sd(500) == pytest.approx(100 * (0.03 / 500) ** 0.5)
+
+
+def test_resampling_says_nothing_when_there_is_nothing_to_compare() -> None:
+    nothing = np.full(5, np.nan)
+    result = analysis.resampling(nothing, nothing, np.full(5, 0.5))
+    assert result.n_pairs == 0
+    assert np.isnan(result.observed_flip_rate)

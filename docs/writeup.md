@@ -102,27 +102,85 @@ dead items and the backwards items exactly as heavily as the good ones. A random
 unbiased estimator of that average and converges to it; an ability estimate converges to
 something else. [rejected.md](rejected.md) has the full argument and the numbers behind it.
 
+## Finding 6: your model disagrees with itself, and by more than you would gate on
+
+Everything above is measured on other people's published results. This one needed our own money:
+eleven current models from four vendors, plus two small ones on a laptop, asked the same 500
+questions twice at temperature 0, a day apart.
+
+| model tier | agreement with itself | score moved |
+|---|---:|---:|
+| two small models on a laptop | 0.998 and 1.000 | 0.0 and -0.2 points |
+| nine hosted models | 0.936 to 0.984 | -2.0 to +1.0 points |
+
+Temperature 0 is not determinism. Between 1.6 and 6.4 percent of answers changed on hosted
+models with nothing changed at all: same prompt, same settings, same questions, a day apart. The
+laptop models are effectively deterministic under the identical harness, so this is the service
+rather than the measurement.
+
+**The number to take away is the second column.** One model came back 2.0 points lower on the
+same 500 questions it had already answered. If your release gate fires on a two-point drop, it
+would have fired here, on nothing.
+
+And it really is nothing rather than a trend: the flips are symmetric, 83 answers moving to right
+against 85 moving to wrong across the whole panel, p = 0.94 on McNemar's exact test. That is a
+random walk. Drift would have been the easier problem, because a systematic shift can be
+corrected for and a random walk can only be measured and allowed for.
+
+### The part that was a surprise
+
+Item response theory treats an answer as a coin weighted by p, so a model re-asked an item it has
+a 50-50 chance on should change its answer half the time. **It changes 3 percent of the time.**
+Across the panel, answers move five times less often than the response model says they should,
+and that holds for every model separately.
+
+The reason is that p is not what it looks like. It describes how models *at the same ability*
+differ from each other, not how *one model* differs from itself between administrations. A given
+model's answer to a given question is close to fixed; what the model calls chance is largely a
+persistent model-by-question quirk.
+
+That points the friendly way for anyone building a gate. A drift test compares a model against
+its own earlier self on the same questions, so it sits in the small within-model variance rather
+than the large across-model one:
+
+| | on 100 items | on 500 items |
+|---|---:|---:|
+| noise the response model predicts | 4.0 points | 1.8 points |
+| noise actually observed | 1.7 points | 0.8 points |
+
+So a paired re-run of the same questions is about twice as sensitive as the information function
+suggests. `mselect.reliability()` returns the measured figure, and `points_sd(n)` gives the
+column on the right, so a gate can size itself from the measurement rather than from the theory.
+
 ## What to do on Monday
 
 1. **If you are choosing between models**, ask ten to fifty well-chosen questions per model
    rather than running everything. The ranking you get is as good as a hundred-plus random
    items, and the interval tells you when to stop.
-2. **If you are watching for regressions**, ask how many items you actually need. On this bank,
-   detecting a three-point drop at 80 percent power takes 118 items per model at mid-panel
-   ability; detecting a one-point drop takes 3,559. If your release gate runs 200 items and
-   claims to catch one-point regressions, it does not.
-3. **If you own a benchmark**, fit a 2PL to whatever per-item results you already have and read
+2. **If you are watching for regressions**, measure your own noise floor before you set a
+   threshold. Run the same 500 questions twice a day apart and see how far the score moves with
+   nothing changed. On this panel that was up to two points. A threshold below your own floor is
+   an alarm that fires on the weather.
+3. **Then ask how many items you actually need.** On this bank, detecting a three-point drop at
+   80 percent power takes 118 items per model at mid-panel ability; detecting a one-point drop
+   takes 3,559. If your release gate runs 200 items and claims to catch one-point regressions,
+   it does not. Those figures come from the information function, which is conservative for a
+   paired re-run of the same questions by about a factor of two: see finding 6.
+4. **If you own a benchmark**, fit a 2PL to whatever per-item results you already have and read
    the bottom of the discrimination list. The dead items and the backwards items are free to
    find and cost you money every run.
-4. **If you publish a number**, publish Q3 and a dimensionality check beside it. Both are cheap,
+5. **If you publish a number**, publish Q3 and a dimensionality check beside it. Both are cheap,
    and both change how the interval should be read.
 
 ## What this write-up does not cover
 
-The own-run half of the project: test-retest reliability at temperature 0, position bias across
-cyclic option permutations, prompt-framing effects, and the cost per ranking decision in
-dollars. Those need vendor calls, which wait on the portfolio gateway's batch support and on
-spend caps. Until they exist the README says so rather than estimating them.
+**Position bias** across cyclic option permutations, and **prompt-framing effects**. Both need
+vendor calls that have not been made. The analyses are written and tested; what is missing is
+the money, about eight dollars, and the README says so rather than estimating them.
+
+Everything else in the own-run half is now measured and is above: test-retest at temperature 0
+(finding 6), and the cost per ranking decision, which is **US$0.72 to rank eleven models as well
+as asking them all 2,830 questions does, against US$16.05 to ask everything.**
 
 
 ## Postscript: it replicates, and the transfer number is the one to take away

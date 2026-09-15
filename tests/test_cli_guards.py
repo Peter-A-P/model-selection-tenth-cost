@@ -176,3 +176,25 @@ def test_retest_refuses_when_there_is_no_second_administration(elsewhere: Path) 
 def test_retest_never_takes_a_yes_flag() -> None:
     """Both administrations were paid for once; the arithmetic is free forever."""
     assert "--yes" not in runner.invoke(app, ["retest", "--help"]).output
+
+
+def test_a_rotated_run_sets_aside_the_items_a_rotation_cannot_touch(elsewhere: Path) -> None:
+    """Found 2026-09-14, dry-running the position-bias arm before paying for it.
+
+    `mselect run --rotation 1` raised on the first free-response item it met, because there is
+    no option order to rotate in one. The guard is right and stays: accepting a rotation there
+    would make the position-bias result cover items whose options never moved. What was missing
+    is that the command never applied the experiment's own design, which PLAN.md section 4.3
+    states as multiple choice. On this suite that is 2,783 items of 3,000.
+    """
+    result = runner.invoke(app, ["run", "--alias", "local-small-a", "--rotation", "1"])
+    assert "free-response items set aside" in result.output
+    assert "multiple-choice items remain" in result.output
+    assert "cannot be rotated" not in result.output, "it must not reach the guard at all"
+
+
+def test_an_unrotated_run_keeps_every_item(elsewhere: Path) -> None:
+    """The filter belongs to the position-bias arm and must not quietly shrink the others."""
+    result = runner.invoke(app, ["run", "--alias", "local-small-a"])
+    assert "set aside" not in result.output
+    assert "3,000 items per alias" in result.output

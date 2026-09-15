@@ -35,7 +35,7 @@ transfer" into a number. [Both are below.](#does-it-replicate-a-second-bank-from
 | Items carrying no measurable information at mid-panel ability | 4,221 (20.7%) |
 | Local dependence: item pairs with Q3 above 0.2 | 8% to 31% of pairs, depending on the benchmark |
 | Dimensionality: correlation between per-benchmark abilities | 0.42 to 0.96 across benchmark pairs |
-| Reliability: the same model answering the same item twice | 95.3% agreement (n = 8,431 repeated cells) |
+| Reliability: the same model answering the same item twice | 93.6% agreement (n = 5,500 repeated cells) |
 | Differential item functioning, open weights vs API only | 128 items flagged (0.9%) |
 | Test-retest: the same 500 items asked twice at temperature 0, a day apart | hosted models agree **0.936** (0.912 to 0.956) to 0.984 (0.972 to 0.994); the two on a laptop agree 0.998 and 1.000 |
 | How much a benchmark score moves with nothing changed | **up to 2.0 points**, median 0.4, and symmetric (83 flips to right against 85 to wrong, p = 0.94), so it is a random walk rather than drift. A drop smaller than that is noise |
