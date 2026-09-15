@@ -18,6 +18,7 @@ from dataclasses import dataclass
 
 import numpy as np
 from numpy.typing import NDArray
+from scipy import stats
 
 from mselect.irt.model import Floats
 
@@ -66,11 +67,23 @@ class Retest:
     flips_to_correct: int
     flips_to_incorrect: int
     n_items: int
+    # McNemar's exact test on the discordant pairs: could a coin have produced this split?
+    # A small value means the second administration is systematically better or worse rather
+    # than differently wrong, which is drift rather than noise and a different thing to report.
+    symmetry_p: float
+
+    @property
+    def net_points(self) -> float:
+        """Change in percentage points of score, which is what anyone claims dropped."""
+        if not self.n_items:
+            return float("nan")
+        return 100.0 * (self.flips_to_correct - self.flips_to_incorrect) / self.n_items
 
     def describe(self) -> str:
         return (
             f"{self.model}: {self.agreement.fmt()} agreement, phi {self.phi:.3f}, "
-            f"{self.flips_to_correct + self.flips_to_incorrect} of {self.n_items} items changed"
+            f"{self.flips_to_correct + self.flips_to_incorrect} of {self.n_items} items changed, "
+            f"{self.net_points:+.1f} points, symmetry p {self.symmetry_p:.3f}"
         )
 
 
@@ -87,16 +100,26 @@ def retest(model: str, first: Floats, second: Floats, *, seed: int = 0) -> Retes
     both = np.isfinite(first) & np.isfinite(second)
     a, b = first[both], second[both]
     if a.size == 0:
-        return Retest(model, bootstrap([]), float("nan"), 0, 0, 0)
+        return Retest(model, bootstrap([]), float("nan"), 0, 0, 0, float("nan"))
     agreement = bootstrap((a == b).astype(float), seed=seed)
     phi = float(np.corrcoef(a, b)[0, 1]) if a.std() > 0 and b.std() > 0 else float("nan")
+    up = int(((a == 0) & (b == 1)).sum())
+    down = int(((a == 1) & (b == 0)).sum())
+    # McNemar's exact test, which on two administrations of the same items is a binomial test
+    # on the discordant pairs. Added 2026-09-14 after this module's own output was read as
+    # showing systematic movement: `google-frontier` flipped 7 items right and 2 wrong, which
+    # looks like drift and is p = 0.18. Pooled across the panel it was 83 against 85, p = 0.94.
+    # An eyeball is not a test, and a claim about symmetry that nobody can regenerate is the
+    # kind of assertion this repository treats as a defect.
+    symmetry = float(stats.binomtest(up, up + down, 0.5).pvalue) if up + down else float("nan")
     return Retest(
         model=model,
         agreement=agreement,
         phi=phi,
-        flips_to_correct=int(((a == 0) & (b == 1)).sum()),
-        flips_to_incorrect=int(((a == 1) & (b == 0)).sum()),
+        flips_to_correct=up,
+        flips_to_incorrect=down,
         n_items=int(a.size),
+        symmetry_p=symmetry,
     )
 
 

@@ -1018,11 +1018,39 @@ That sentence is the whole deliverable of this arm, and it is what project 03's 
 to be built on. A gate that fires on a two-point drop in `gpt-5.4-mini` would have fired here, on
 nothing at all.
 
-Two details worth keeping. Agreement and phi disagree about who is worst: `together-open-b` has
-the lowest phi (0.767) while `openai-mid` has the lowest agreement, because phi is sensitive to
-where in the item range the flips fall. And the flips are not symmetric, which they would be if
-this were only sampling noise: `google-frontier` went 7 right and 2 wrong, `together-open-a` went
-9 right and 16 wrong. Something other than a coin is moving.
+Agreement and phi disagree about who is worst: `together-open-b` has the lowest phi (0.767)
+while `openai-mid` has the lowest agreement, because phi is sensitive to where in the item range
+the flips fall.
+
+**Corrected the same evening.** This section first said the flips were not symmetric and that
+"something other than a coin is moving", on the strength of `google-frontier` flipping 7 right
+and 2 wrong and `together-open-a` flipping 9 right and 16 wrong. McNemar's exact test says
+otherwise:
+
+| alias | to right | to wrong | points | symmetry p |
+|---|---:|---:|---:|---:|
+| `openai-mid` | 11 | 21 | -2.0 | 0.110 |
+| `together-open-a` | 9 | 16 | -1.4 | 0.230 |
+| `google-frontier` | 7 | 2 | +1.0 | 0.180 |
+| `google-mid` | 15 | 10 | +1.0 | 0.424 |
+| the other seven | | | -0.2 to +0.8 | 0.585 to 1.000 |
+
+Not one model reaches significance, the smallest p is 0.110, and pooled across the panel it is
+**83 flips to right against 85 to wrong, p = 0.94**. The flips are as symmetric as a coin. Seven
+against two looks like a pattern and is nine discordant pairs; reading it as one is precisely the
+error this project exists to catch, committed in this file, about this project's own output.
+
+**The corrected finding is the stronger one.** Symmetric flips mean the movement is a random walk
+rather than drift, and that sharpens the headline instead of softening it: `openai-mid` lost 2.0
+points to nothing at all. A release gate cannot distinguish a two-point drop from noise, because
+**the noise itself produces two-point drops**. Drift would have been a different and easier
+problem, because a systematic shift can be corrected for and a random walk can only be measured
+and allowed for.
+
+The test now lives in `analysis.retest` and `mselect retest` prints it, pooled as well as per
+model, because no single model here has enough discordant pairs to say much alone. A claim about
+symmetry that nobody can regenerate is the kind of assertion this repository treats as a defect,
+and it should not have taken a second look to notice that.
 
 The drift column is what a platform team would act on. `together-open-a` fell 1.4 points and
 `together-open-b` rose 0.8 points **because they were asked twice**. Any claim of the form "the

@@ -937,6 +937,7 @@ def retest(
     import json
 
     import numpy as np
+    from scipy import stats
 
     from mselect.experiments import analysis, ownrun
 
@@ -957,7 +958,7 @@ def retest(
     _say("")
     _say(
         f"{'alias':<18}{'items':>7}{'agreement':>11}  {'95% bootstrap':<20}"
-        f"{'phi':>7}{'to right':>10}{'to wrong':>10}"
+        f"{'phi':>7}{'right':>7}{'wrong':>7}{'points':>8}{'symmetry p':>12}"
     )
     rows = []
     for alias in shared:
@@ -970,7 +971,8 @@ def retest(
         _say(
             f"{result.model:<18}{result.n_items:>7,}{result.agreement.point:>11.3f}  "
             f"{interval:<20}{result.phi:>7.3f}"
-            f"{result.flips_to_correct:>10,}{result.flips_to_incorrect:>10,}"
+            f"{result.flips_to_correct:>7,}{result.flips_to_incorrect:>7,}"
+            f"{result.net_points:>+8.1f}{result.symmetry_p:>12.3f}"
         )
 
     # The floor a release gate needs, in the unit a release gate reports in. Agreement is about
@@ -986,6 +988,18 @@ def retest(
             f"score moved by up to {max(moves) * 100:.1f} points with nothing changed "
             f"(median {float(np.median(moves)) * 100:.1f}). A drop smaller than that is noise."
         )
+        # Whether that movement is drift or a random walk. Pooled across the panel, because
+        # no single model has enough discordant pairs to say much on its own.
+        up = sum(r.flips_to_correct for r in rows)
+        down = sum(r.flips_to_incorrect for r in rows)
+        if up + down:
+            pooled = float(stats.binomtest(up, up + down, 0.5).pvalue)
+            verdict = (
+                "symmetric, so it is noise rather than drift"
+                if pooled >= 0.05
+                else "NOT symmetric: the second administration is systematically different"
+            )
+            _say(f"pooled {up} to right against {down} to wrong, p = {pooled:.3f}: {verdict}.")
 
     if not write:
         return
@@ -1010,6 +1024,8 @@ def retest(
                         "phi": r.phi,
                         "flips_to_correct": r.flips_to_correct,
                         "flips_to_incorrect": r.flips_to_incorrect,
+                        "net_points": r.net_points,
+                        "symmetry_p": r.symmetry_p,
                     }
                     for r in rows
                 ],

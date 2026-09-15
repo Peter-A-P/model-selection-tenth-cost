@@ -16,6 +16,7 @@ from typing import Any
 
 import numpy as np
 import polars as pl
+from scipy import stats
 
 from mselect import handover, paths
 from mselect.data import bank as bank_io
@@ -365,10 +366,22 @@ def results_table(
             f"({best['agreement']['lo']:.3f} to {best['agreement']['hi']:.3f}); "
             f"the two on a laptop agree 0.998 and 1.000 |"
         )
+        up = sum(m["flips_to_correct"] for m in measured)
+        down = sum(m["flips_to_incorrect"] for m in measured)
+        # Whether that movement is drift or a random walk, which are different problems: a
+        # systematic shift can be corrected for and a random walk can only be allowed for.
+        pooled = float(stats.binomtest(up, up + down, 0.5).pvalue) if up + down else float("nan")
+        walk = (
+            f"and symmetric ({up} flips to right against {down} to wrong, p = {pooled:.2f}), "
+            "so it is a random walk rather than drift"
+            if pooled >= 0.05
+            else f"and systematic ({up} right against {down} wrong, p = {pooled:.3f})"
+        )
         lines.append(
             f"| How much a benchmark score moves with nothing changed | "
             f"**up to {max(moves) * 100:.1f} points**, median "
-            f"{sorted(moves)[len(moves) // 2] * 100:.1f}. A drop smaller than that is noise |"
+            f"{sorted(moves)[len(moves) // 2] * 100:.1f}, {walk}. A drop smaller than that is "
+            f"noise |"
         )
     else:
         lines.append(f"| Test-retest reliability | {EXPERIMENTS_PENDING} |")

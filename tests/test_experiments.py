@@ -178,3 +178,43 @@ def test_an_unidentified_difficulty_destroys_a_correlation_that_the_filter_recov
     assert abs(mixed.point) < 0.3
     assert filtered.point > 0.8
     assert filtered.lo > mixed.hi, "the filter has to change the conclusion, not just the number"
+
+
+def test_symmetric_flips_are_reported_as_noise_and_lopsided_ones_are_not() -> None:
+    """Added 2026-09-14, after this project read its own noise as a signal.
+
+    Section 15.28 first claimed the retest flips were "not symmetric" and that "something other
+    than a coin is moving", on the strength of one model flipping 7 items right and 2 wrong.
+    That is nine discordant pairs and McNemar's exact test puts it at p = 0.18. Pooled over the
+    panel it was 83 against 85, p = 0.94: as symmetric as a coin.
+
+    The distinction matters beyond the embarrassment. A random walk can only be measured and
+    allowed for; a systematic shift can be corrected for. Reporting one as the other sends a
+    release gate after the wrong problem.
+    """
+    n = 400
+    first = np.zeros(n)
+    second = np.zeros(n)
+    # Twenty items move each way: the same agreement as a lopsided split, and a different fact.
+    second[:20] = 1.0
+    first[20:40] = 1.0
+    even = analysis.retest("even", first, second)
+    assert even.flips_to_correct == even.flips_to_incorrect == 20
+    assert even.net_points == pytest.approx(0.0)
+    assert even.symmetry_p > 0.05, "balanced flips are noise"
+
+    # Everything moves one way, which is drift and must not read as noise.
+    lopsided_second = np.zeros(n)
+    lopsided_second[:30] = 1.0
+    drifted = analysis.retest("drifted", np.zeros(n), lopsided_second)
+    assert drifted.flips_to_correct == 30 and drifted.flips_to_incorrect == 0
+    assert drifted.net_points == pytest.approx(7.5)
+    assert drifted.symmetry_p < 0.01, "a one-way move is not a coin"
+
+
+def test_a_model_that_never_changes_its_mind_has_no_symmetry_to_test() -> None:
+    """No discordant pairs means the question does not arise, and nan says so."""
+    same = np.array([1.0, 0.0, 1.0, 1.0])
+    result = analysis.retest("steady", same, same)
+    assert result.flips_to_correct == result.flips_to_incorrect == 0
+    assert np.isnan(result.symmetry_p)
