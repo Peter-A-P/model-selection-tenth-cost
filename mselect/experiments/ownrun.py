@@ -466,6 +466,14 @@ def validate(
     )
 
 
-def default_path(version: str = "v1", template: str = "plain", rotation: int = 0) -> Path:
-    """Where `mselect run` leaves the records this reads."""
-    return paths.OUT / version / f"own-run-{template}-{rotation}.jsonl"
+def default_path(
+    version: str = "v1", template: str = "plain", rotation: int = 0, repeat: int = 1
+) -> Path:
+    """Where `mselect run` leaves the records this reads.
+
+    Repeat 1 keeps the original name so that nothing recorded before repeats existed is
+    orphaned; a later administration is a separate file, because comparing two of them is the
+    whole point of the test-retest arm and merging them would lose it.
+    """
+    stem = f"own-run-{template}-{rotation}" + ("" if repeat == 1 else f"-r{repeat}")
+    return paths.OUT / version / f"{stem}.jsonl"

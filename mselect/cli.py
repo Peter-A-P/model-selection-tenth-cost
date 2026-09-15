@@ -919,6 +919,109 @@ def validate(
     _say(f"\nwrote {out}")
 
 
+@app.command("retest")
+def retest(
+    version: str = typer.Option("v1", help="Which bank the suite and parameters come from."),
+    template: str = typer.Option("plain", help="Which record files to compare."),
+    rotation: int = typer.Option(0, help="Which option rotation."),
+    repeat: int = typer.Option(2, help="Which administration to compare against the first."),
+    seed: int = typer.Option(0, help="Recorded, so the intervals can be reproduced."),
+    write: bool = typer.Option(True, "--write/--no-write", help="Save the result under out/."),
+) -> None:
+    """How many answers change when the same model is asked the same questions again.
+
+    Calls nothing and costs nothing: both administrations were paid for once. Temperature 0 is
+    not determinism, and the number this produces is the floor below which a drift signal is
+    noise. A release gate built without it will report a two-point drop that never happened.
+    """
+    import json
+
+    import numpy as np
+
+    from mselect.experiments import analysis, ownrun
+
+    one = ownrun.default_path(version, template, rotation)
+    two = ownrun.default_path(version, template, rotation, repeat=repeat)
+    for path in (one, two):
+        if not path.is_file():
+            raise typer.BadParameter(f"no record file at {path}")
+
+    before = ownrun.load(one, version=version)
+    after = ownrun.load(two, version=version)
+    shared = [alias for alias in before.aliases if alias in after.aliases]
+    if not shared:
+        raise typer.BadParameter("the two administrations have no model in common")
+
+    _say(f"first  {one}")
+    _say(f"second {two}")
+    _say("")
+    _say(
+        f"{'alias':<18}{'items':>7}{'agreement':>11}  {'95% bootstrap':<20}"
+        f"{'phi':>7}{'to right':>10}{'to wrong':>10}"
+    )
+    rows = []
+    for alias in shared:
+        first = before.responses[before.aliases.index(alias)]
+        second = after.responses[after.aliases.index(alias)]
+        result = analysis.retest(alias, first, second, seed=seed)
+        rows.append(result)
+    for result in sorted(rows, key=lambda r: -r.agreement.point):
+        interval = f"[{result.agreement.lo:.3f}, {result.agreement.hi:.3f}]"
+        _say(
+            f"{result.model:<18}{result.n_items:>7,}{result.agreement.point:>11.3f}  "
+            f"{interval:<20}{result.phi:>7.3f}"
+            f"{result.flips_to_correct:>10,}{result.flips_to_incorrect:>10,}"
+        )
+
+    # The floor a release gate needs, in the unit a release gate reports in. Agreement is about
+    # items; this is about the score, which is what someone claims dropped two points.
+    moves = [
+        abs(result.flips_to_correct - result.flips_to_incorrect) / result.n_items
+        for result in rows
+        if result.n_items
+    ]
+    if moves:
+        _say("")
+        _say(
+            f"score moved by up to {max(moves) * 100:.1f} points with nothing changed "
+            f"(median {float(np.median(moves)) * 100:.1f}). A drop smaller than that is noise."
+        )
+
+    if not write:
+        return
+    out = paths.ensure(paths.out_for(version)) / f"retest-{template}-{rotation}-r{repeat}.json"
+    out.write_text(
+        json.dumps(
+            {
+                "version": version,
+                "template": template,
+                "rotation": rotation,
+                "repeat": repeat,
+                "seed": seed,
+                "models": [
+                    {
+                        "model": r.model,
+                        "n_items": r.n_items,
+                        "agreement": {
+                            "point": r.agreement.point,
+                            "lo": r.agreement.lo,
+                            "hi": r.agreement.hi,
+                        },
+                        "phi": r.phi,
+                        "flips_to_correct": r.flips_to_correct,
+                        "flips_to_incorrect": r.flips_to_incorrect,
+                    }
+                    for r in rows
+                ],
+            },
+            indent=2,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    _say(f"\nwrote {out}")
+
+
 @app.command("report")
 def report(version: str = typer.Option("v1")) -> None:
     """Regenerate the README results table and the figures from the saved outputs."""

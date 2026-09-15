@@ -37,6 +37,8 @@ transfer" into a number. [Both are below.](#does-it-replicate-a-second-bank-from
 | Dimensionality: correlation between per-benchmark abilities | 0.42 to 0.96 across benchmark pairs |
 | Reliability: the same model answering the same item twice | 95.3% agreement (n = 8,431 repeated cells) |
 | Differential item functioning, open weights vs API only | 128 items flagged (0.9%) |
+| Test-retest: the same 500 items asked twice at temperature 0, a day apart | hosted models agree **0.936** (0.912 to 0.956) to 0.984 (0.972 to 0.994); the two on a laptop agree 0.998 and 1.000 |
+| How much a benchmark score moves with nothing changed | **up to 2.0 points**, median 0.4. A drop smaller than that is noise |
 | Position bias and prompt-framing effects | _pending their own arms (PLAN.md section 4.3)_ |
 | Does this bank rank models it was never fitted on? 11 current models, 2,830 items each, parameters read and not refitted | Kendall's tau **0.855** (0.617 to 1.000) |
 | Adaptive items needed to rank those 11 models as well as all 2,830 do | **100 items** (3.5% of the suite), tau 0.855 (0.617 to 1.000) |
@@ -239,6 +241,7 @@ highest-likelihood option.
 | Differential item functioning, open weights vs API only | not measurable on this panel |
 | Do these item parameters mean anything on bank `v1`? All 998 shared items | difficulty correlates -0.04 (-0.10 to 0.02) |
 | The same, over the 532 shared items that discriminate above 0.3 in both banks | difficulty correlates **0.71** (0.67 to 0.75) |
+| Test-retest reliability | _pending their own arms (PLAN.md section 4.3)_ |
 | Position bias and prompt-framing effects | _pending their own arms (PLAN.md section 4.3)_ |
 | Cost per ranking decision, in dollars | _pending the own-run panel (run `mselect run` then `mselect validate`)_ |
 

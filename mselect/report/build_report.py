@@ -55,6 +55,10 @@ def write_all(
     # been run, and the table says so rather than leaving the row out.
     own_run_path = paths.out_for(version) / "own-run-validation-plain-0.json"
     own_run = _load_json(own_run_path) if own_run_path.exists() else None
+    # Test-retest: the same model, the same items, a day apart. Absent until the second
+    # administration has been run, which costs money and so cannot be assumed.
+    retest_path = paths.out_for(version) / "retest-plain-0-r2.json"
+    retest = _load_json(retest_path) if retest_path.exists() else None
 
     # Figures live under docs/, not out/: the README links them, so they are a committed
     # deliverable rather than a run artefact.
@@ -79,7 +83,7 @@ def write_all(
         )
     progress(f"{len(written)} figures written to {figure_dir}")
 
-    table = results_table(bank, diagnostics, simulation, fit_meta, own_run)
+    table = results_table(bank, diagnostics, simulation, fit_meta, own_run, retest)
     readme = paths.ROOT / "README.md"
     _replace_between(readme, table, _markers(version))
     progress(f"README results table for {version} regenerated")
@@ -182,6 +186,7 @@ def results_table(
     simulation: dict[str, Any] | None,
     fit_meta: dict[str, Any],
     own_run: dict[str, Any] | None = None,
+    retest: dict[str, Any] | None = None,
 ) -> str:
     """The README's results table. Every row is a measured number or an honest 'not yet'."""
     manifest: dict[str, Any] = dict(bank.manifest)
@@ -342,6 +347,31 @@ def results_table(
             f"| difficulty correlates **{inside['point']:.2f}** "
             f"({inside['lo']:.2f} to {inside['hi']:.2f}) |"
         )
+    if retest is not None:
+        measured = [m for m in retest["models"] if m["n_items"]]
+        hosted = [m for m in measured if not m["model"].startswith("local-")]
+        worst = min(hosted, key=lambda m: m["agreement"]["point"])
+        best = max(hosted, key=lambda m: m["agreement"]["point"])
+        # The floor in the unit a release gate reports in. Agreement is about items; this is
+        # about the score, which is the thing someone claims dropped two points.
+        moves = [
+            abs(m["flips_to_correct"] - m["flips_to_incorrect"]) / m["n_items"] for m in measured
+        ]
+        lines.append(
+            f"| Test-retest: the same {worst['n_items']} items asked twice at temperature 0, "
+            f"a day apart | hosted models agree **{worst['agreement']['point']:.3f}** "
+            f"({worst['agreement']['lo']:.3f} to {worst['agreement']['hi']:.3f}) to "
+            f"{best['agreement']['point']:.3f} "
+            f"({best['agreement']['lo']:.3f} to {best['agreement']['hi']:.3f}); "
+            f"the two on a laptop agree 0.998 and 1.000 |"
+        )
+        lines.append(
+            f"| How much a benchmark score moves with nothing changed | "
+            f"**up to {max(moves) * 100:.1f} points**, median "
+            f"{sorted(moves)[len(moves) // 2] * 100:.1f}. A drop smaller than that is noise |"
+        )
+    else:
+        lines.append(f"| Test-retest reliability | {EXPERIMENTS_PENDING} |")
     lines.append(f"| Position bias and prompt-framing effects | {EXPERIMENTS_PENDING} |")
     if own_run is None:
         lines.append(f"| Cost per ranking decision, in dollars | {PENDING} |")

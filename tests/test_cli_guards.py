@@ -164,3 +164,15 @@ def test_a_run_without_the_keys_refuses_before_it_calls_anything(
     assert "local-small-a" not in result.output.split("is not set")[-1], (
         "the laptop needs no key and must not be named as blocked by one"
     )
+
+
+def test_retest_refuses_when_there_is_no_second_administration(elsewhere: Path) -> None:
+    """Comparing one administration against itself would report perfect reliability."""
+    result = runner.invoke(app, ["retest"])
+    assert result.exit_code != 0
+    assert "no record file" in result.output
+
+
+def test_retest_never_takes_a_yes_flag() -> None:
+    """Both administrations were paid for once; the arithmetic is free forever."""
+    assert "--yes" not in runner.invoke(app, ["retest", "--help"]).output

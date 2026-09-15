@@ -359,10 +359,12 @@ work not yet run rather than work that is blocked.
       the 2,830-item block every model answered. Complete: `google-frontier` was topped up the
       same evening after its daily quota reset
 - [ ] Position bias, framing effects and test-retest reliability each measured with intervals.
-      **No longer blocked, just not run**: the gateway tag arrived, the full-suite arm is done,
-      and these are four smaller arms of about US$10 and 22,000 calls (section 4.3). A free
-      partial arrived earlier anyway: repeated HELM administrations of the same model and item
-      agree 95.3% of the time (n = 8,431)
+      **Test-retest is done, 2026-09-14** (section 15.28, `mselect retest`): eleven models, the
+      same 500 items twice at temperature 0 a day apart, agreement 0.936 to 1.000 with bootstrap
+      intervals, and the number that matters, **a score moves by up to 2.0 points with nothing
+      changed**. It agrees with the free partial from HELM, where repeated administrations of the
+      same model and item agreed 95.3% of the time (n = 8,431). Position bias and framing are
+      three arms of about US$8 that have not been run
 - [x] A list of items that measure nothing, with evidence per item. `docs/items-that-measure-nothing.md`
 - [x] Q3 and dimensionality diagnostics reported. `docs/diagnostics.md`
 - [x] `items_needed` power function validated against the simulation. Validation table in
@@ -981,18 +983,46 @@ The first vendor numbers from the test-retest arm, 2026-09-14. The same model, t
 items, the same settings, temperature 0, administered a day apart through a cache namespace of
 its own so that every call was really made:
 
-| alias | n | agreement | 95% Wilson | first | second | drift |
-|---|---:|---:|---|---:|---:|---:|
-| `local-small-b` | 494 | 1.000 | 0.992 to 1.000 | 0.514 | 0.514 | +0.000 |
-| `local-small-a` | 497 | 0.998 | 0.989 to 1.000 | 0.503 | 0.501 | -0.002 |
-| `google-mid` | 497 | **0.950** | 0.927 to 0.966 | 0.849 | 0.859 | +0.010 |
-| `together-open-a` | 496 | **0.950** | 0.927 to 0.966 | 0.794 | 0.780 | -0.014 |
-| `together-open-b` | 490 | **0.939** | 0.914 to 0.957 | 0.841 | 0.849 | +0.008 |
+**Completed the same evening with all eleven**, once OpenAI had credits and the Anthropic three
+were run with `--no-batch`. `mselect retest` reads both administrations back and calls the
+analysis that has been written and tested against fixtures since before the runner existed:
 
-**Five to six percent of answers flip on a hosted model with nothing changed.** The two laptop
-models are effectively deterministic at 0.998 and 1.000, which is what rules out the harness: the
-prompts, the parser and the scoring are identical for all five rows, so the difference between
-1.000 and 0.939 is the service rather than this code.
+| alias | items | agreement | 95% bootstrap | phi | to right | to wrong |
+|---|---:|---:|---|---:|---:|---:|
+| `local-small-b` | 494 | 1.000 | 1.000 to 1.000 | 1.000 | 0 | 0 |
+| `local-small-a` | 497 | 0.998 | 0.994 to 1.000 | 0.996 | 0 | 1 |
+| `anthropic-haiku` | 496 | 0.984 | 0.972 to 0.994 | 0.945 | 4 | 4 |
+| `google-frontier` | 499 | 0.982 | 0.970 to 0.992 | 0.881 | 7 | 2 |
+| `anthropic-opus` | 496 | 0.978 | 0.964 to 0.990 | 0.877 | 6 | 5 |
+| `openai-frontier` | 498 | 0.976 | 0.962 to 0.988 | 0.894 | 7 | 5 |
+| `anthropic-sonnet` | 493 | 0.970 | 0.953 to 0.984 | 0.871 | 7 | 8 |
+| `google-mid` | 497 | 0.950 | 0.930 to 0.968 | 0.799 | 15 | 10 |
+| `together-open-a` | 496 | 0.950 | 0.929 to 0.968 | 0.850 | 9 | 16 |
+| `together-open-b` | 490 | 0.939 | 0.916 to 0.959 | 0.767 | 17 | 13 |
+| `openai-mid` | 500 | **0.936** | 0.912 to 0.956 | 0.826 | 11 | 21 |
+
+**Every hosted model disagrees with itself.** Between 1.6% and 6.4% of answers flip with nothing
+changed, and the two laptop models are effectively deterministic at 0.998 and 1.000. The prompts,
+the parser and the scoring are identical for all eleven rows, so the gap between 1.000 and 0.939
+is the service rather than this code.
+
+**The number a release gate needs is the last two columns, not the agreement.** Flips that cancel
+do not move a score; flips that do not, do. `openai-mid` went 11 right and 21 wrong, a net loss of
+**2.0 points on the same 500 questions it had already answered**. The median model moved 0.4
+points. So:
+
+    score moved by up to 2.0 points with nothing changed (median 0.4).
+    A drop smaller than that is noise.
+
+That sentence is the whole deliverable of this arm, and it is what project 03's release gate has
+to be built on. A gate that fires on a two-point drop in `gpt-5.4-mini` would have fired here, on
+nothing at all.
+
+Two details worth keeping. Agreement and phi disagree about who is worst: `together-open-b` has
+the lowest phi (0.767) while `openai-mid` has the lowest agreement, because phi is sensitive to
+where in the item range the flips fall. And the flips are not symmetric, which they would be if
+this were only sampling noise: `google-frontier` went 7 right and 2 wrong, `together-open-a` went
+9 right and 16 wrong. Something other than a coin is moving.
 
 The drift column is what a platform team would act on. `together-open-a` fell 1.4 points and
 `together-open-b` rose 0.8 points **because they were asked twice**. Any claim of the form "the
@@ -1005,10 +1035,10 @@ same model and item agreed 95.3% of the time (n = 8,431). Three hosted models he
 to 95.0%. Two independent harnesses, the same answer, which is the strongest form this result
 could have taken.
 
-**What is missing and why.** OpenAI is out of credits (`429 insufficient_quota: You have no
-credits remaining`), so `openai-mid` and `openai-frontier` have no second administration. The
-Anthropic three are still unrun after the batch crash of section 15.27, and `google-frontier`
-waits for its quota window.
+**What it cost.** US$4.24 against an estimate of US$2.83, and the overrun is explained rather
+than mysterious: the Anthropic three were run with `--no-batch` after section 15.27, which is the
+US$1 the estimate did not know about, and OpenAI's 626 refusals and 374 dropped connections were
+re-asked. The arm finished with zero calls outstanding across all eleven models.
 
 #### The allowlist that never matched anything
 
