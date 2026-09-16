@@ -243,7 +243,8 @@ highest-likelihood option.
 | Do these item parameters mean anything on bank `v1`? All 998 shared items | difficulty correlates -0.04 (-0.10 to 0.02) |
 | The same, over the 532 shared items that discriminate above 0.3 in both banks | difficulty correlates **0.71** (0.67 to 0.75) |
 | Test-retest reliability | _pending their own arms (PLAN.md section 4.3)_ |
-| Position bias and prompt-framing effects | _pending their own arms (PLAN.md section 4.3)_ |
+| Position bias | _pending their own arms (PLAN.md section 4.3)_ |
+| Prompt-framing effects | _pending their own arms (PLAN.md section 4.3)_ |
 | Cost per ranking decision, in dollars | _pending the own-run panel (run `mselect run` then `mselect validate`)_ |
 
 Bank `v2` (`b66652e06b8acf5d`): 400 models x 20,323 items, 8,114,706 recorded responses from the Open LLM Leaderboard v2 per-item details. Fitted with marginal maximum a posteriori by Bock-Aitkin EM, 61-point normal quadrature. Regenerate with `mselect report --version v2`.

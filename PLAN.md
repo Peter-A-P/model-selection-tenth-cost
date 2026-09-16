@@ -363,13 +363,23 @@ work not yet run rather than work that is blocked.
       (0.617 to 1.000), and adaptive selection reaches that same 0.855 from 100 items, 3.5% of
       the 2,830-item block every model answered. Complete: `google-frontier` was topped up the
       same evening after its daily quota reset
-- [ ] Position bias, framing effects and test-retest reliability each measured with intervals.
-      **Test-retest is done, 2026-09-14** (section 15.28, `mselect retest`): eleven models, the
-      same 500 items twice at temperature 0 a day apart, agreement 0.936 to 1.000 with bootstrap
-      intervals, and the number that matters, **a score moves by up to 2.0 points with nothing
-      changed**. It agrees with the free partial from HELM, where repeated administrations of the
-      same model and item agreed 95.3% of the time (n = 8,431). Position bias and framing are
-      three arms of about US$8 that have not been run
+- [x] Position bias, framing effects and test-retest reliability each measured with intervals.
+      All three done, eleven models.
+      **Test-retest, 2026-09-14** (section 15.28, `mselect retest`): the same 500 items twice at
+      temperature 0 a day apart, agreement 0.936 to 1.000, and the number that matters, **a score
+      moves by up to 2.0 points with nothing changed**. It agrees with the free partial from
+      HELM, where repeated administrations of the same model and item agreed 95.3% of the time
+      (n = 8,431).
+      **Position bias, 2026-09-16** (section 15.32, `mselect position-bias`): 300 multiple-choice
+      items under four option rotations. **Every one of eleven models is worse when the answer is
+      at A than at C or D**, no exceptions across four vendors and the laptop, which is the
+      opposite of the first-position preference usually assumed. Items that flip on order alone,
+      net of each model's own instability, run from 0.9% (0.0 to 3.5) to 42.9% (37.6 to 48.6).
+      **Framing, 2026-09-16** (`mselect framing`): three templates over 300 items. The template
+      explains at most **0.3%** of the variance in correctness and this project's answer-only
+      format costs nothing measurable for ten of eleven models. It does move *which* items are
+      answered right, by 26.3% of all variance on a 3B model against 0.9 to 5.4% on the frontier
+      ones. Total spend for the three arms: US$8.79, against the US$8 estimate
 - [x] A list of items that measure nothing, with evidence per item. `docs/items-that-measure-nothing.md`
 - [x] Q3 and dimensionality diagnostics reported. `docs/diagnostics.md`
 - [x] `items_needed` power function validated against the simulation. Validation table in
