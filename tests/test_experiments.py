@@ -291,3 +291,115 @@ def test_a_bias_index_with_nothing_thick_enough_is_not_invented() -> None:
     assert result.positions_counted == ()
     assert np.isnan(result.bias_index)
     assert result.accuracy_by_position["A"].point == pytest.approx(1.0)
+
+
+def test_framing_charges_noise_against_the_residual_not_the_cells() -> None:
+    """On data whose only item-by-template variation is noise, the estimate should absorb it all.
+
+    Every item has one true answer that does not depend on the template, so there is no real
+    interaction here: the residual is the model disagreeing with itself and nothing else. The
+    measured flip rate should therefore account for the whole of it, and the ratio is the
+    assertion because it is what the degrees of freedom get wrong. Charging the per-cell variance
+    once per cell rather than once per residual degree of freedom overstates the noise by
+    items * templates / ((items - 1) * (templates - 1)), about 1.5 at this shape, which is enough
+    to drive a real interaction to a spurious zero.
+    """
+    rng = np.random.default_rng(11)
+    n_items, templates = 800, ["plain", "letter_only", "brief_reasoning"]
+    truth = (rng.random(n_items) < 0.55).astype(float)
+    q = 0.08
+    flips = rng.random((n_items, len(templates))) < q
+    correct = np.where(flips, 1.0 - truth[:, None], truth[:, None])
+
+    result = analysis.framing("fixture", correct, templates, flip_rate=2 * q * (1 - q))
+
+    assert 0.9 < result.variance_noise / result.variance_interaction < 1.1
+    assert result.variance_interaction_net < 0.02
+    assert result.interaction_is_noise or result.variance_interaction_net < 0.02
+
+
+def test_framing_keeps_an_interaction_that_is_larger_than_the_noise() -> None:
+    """A real template effect that differs item by item must survive the noise charge."""
+    rng = np.random.default_rng(12)
+    n_items, templates = 800, ["plain", "letter_only", "brief_reasoning"]
+    truth = (rng.random(n_items) < 0.55).astype(float)
+    # Each item fails under exactly one template and passes under the others: interaction with
+    # no main effect, which is the case the decomposition exists to separate from noise.
+    hostile = rng.integers(0, len(templates), size=n_items)
+    correct = np.repeat(truth[:, None], len(templates), axis=1)
+    correct[np.arange(n_items), hostile] = 0.0
+
+    result = analysis.framing("fixture", correct, templates, flip_rate=0.03)
+
+    assert result.variance_template < 0.02
+    assert result.variance_interaction_net > 0.5 * result.variance_interaction
+    assert not result.interaction_is_noise
+
+
+def test_framing_says_nothing_about_noise_when_it_was_not_measured() -> None:
+    """No flip rate means no split, rather than a split from an assumed rate."""
+    rng = np.random.default_rng(13)
+    correct = (rng.random((200, 3)) < 0.6).astype(float)
+
+    result = analysis.framing("fixture", correct, ["plain", "letter_only", "brief_reasoning"])
+
+    assert np.isnan(result.variance_noise)
+    assert np.isnan(result.variance_interaction_net)
+    assert "noise" not in result.describe()
+
+
+def test_position_bias_does_not_count_an_inconsistent_item_as_an_ordered_one() -> None:
+    """A model with no position preference, asked four times, still disagrees with itself.
+
+    Nothing here depends on the letter: the answer position is assigned at random and the truth
+    for each item is fixed. Every item that reads as order-dependent is the model flipping, and
+    the correction should take essentially all of it back. Without it this reads about 12% on a
+    flip rate the panel actually has, which was enough to move two models several places.
+    """
+    rng = np.random.default_rng(21)
+    n_items, administrations = 900, 4
+    truth = (rng.random(n_items) < 0.75).astype(float)
+    q = 0.033
+    flips = rng.random((n_items, administrations)) < q
+    correct = np.where(flips, 1.0 - truth[:, None], truth[:, None])
+    letters = np.array([rng.permutation(list("ABCD")) for _ in range(n_items)], dtype=np.str_)
+
+    result = analysis.position_bias(
+        "fixture", correct, letters, flip_rate=2 * q * (1 - q), min_per_position=30
+    )
+
+    assert result.share_order_dependent.point > 0.10
+    assert result.share_order_dependent_net is not None
+    assert result.share_order_dependent_net.point < 0.03
+    # No letter is doing anything, so the spread should not clear what noise alone produces.
+    assert not result.index_clears_its_floor
+
+
+def test_position_bias_keeps_a_real_preference_above_its_noise_floor() -> None:
+    """A model that is genuinely worse when the answer sits at A must survive the correction."""
+    rng = np.random.default_rng(22)
+    n_items, administrations = 900, 4
+    letters = np.array([rng.permutation(list("ABCD")) for _ in range(n_items)], dtype=np.str_)
+    base = 0.85
+    chance = np.where(letters == "A", base - 0.25, base)
+    correct = (rng.random((n_items, administrations)) < chance).astype(float)
+
+    result = analysis.position_bias("fixture", correct, letters, flip_rate=0.03)
+
+    assert result.accuracy_by_position["A"].hi < result.accuracy_by_position["D"].lo
+    assert result.index_clears_its_floor
+    assert result.bias_index > 5 * result.bias_index_noise_floor
+    assert result.share_order_dependent_net is not None
+    assert result.share_order_dependent_net.point > 0.15
+
+
+def test_position_bias_says_nothing_about_noise_when_it_was_not_measured() -> None:
+    rng = np.random.default_rng(23)
+    letters = np.array([rng.permutation(list("ABCD")) for _ in range(200)], dtype=np.str_)
+    correct = (rng.random((200, 4)) < 0.7).astype(float)
+
+    result = analysis.position_bias("fixture", correct, letters)
+
+    assert result.share_order_dependent_net is None
+    assert np.isnan(result.share_order_dependent_noise)
+    assert np.isnan(result.bias_index_noise_floor)

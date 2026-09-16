@@ -60,6 +60,12 @@ def write_all(
     # administration has been run, which costs money and so cannot be assumed.
     retest_path = paths.out_for(version) / "retest-plain-0-r2.json"
     retest = _load_json(retest_path) if retest_path.exists() else None
+    # Position bias and prompt framing, the other two arms of PLAN.md section 4.3. Same rule as
+    # above: absent until someone has paid for the rotations and the templates.
+    bias_path = paths.out_for(version) / "position-bias.json"
+    bias = _load_json(bias_path) if bias_path.exists() else None
+    framing_path = paths.out_for(version) / "framing.json"
+    framing = _load_json(framing_path) if framing_path.exists() else None
 
     # Figures live under docs/, not out/: the README links them, so they are a committed
     # deliverable rather than a run artefact.
@@ -84,7 +90,7 @@ def write_all(
         )
     progress(f"{len(written)} figures written to {figure_dir}")
 
-    table = results_table(bank, diagnostics, simulation, fit_meta, own_run, retest)
+    table = results_table(bank, diagnostics, simulation, fit_meta, own_run, retest, bias, framing)
     readme = paths.ROOT / "README.md"
     _replace_between(readme, table, _markers(version))
     progress(f"README results table for {version} regenerated")
@@ -181,6 +187,21 @@ def _cheapest_at_ceiling(own_run: dict[str, Any]) -> dict[str, Any] | None:
     return None
 
 
+def _framing_exception(settled: list[dict[str, Any]]) -> str:
+    """Name the models the answer-only format measurably costs, if any."""
+    if not settled:
+        return ", and no model pays a cost whose interval excludes zero"
+    worst = max(settled, key=lambda m: m["cost_of_answer_only"]["point"])
+    cost = worst["cost_of_answer_only"]
+    others = f" and {len(settled) - 1} other" if len(settled) == 2 else ""
+    if len(settled) > 2:
+        others = f" and {len(settled) - 1} others"
+    return (
+        f". The exception is `{worst['model']}`{others} at {cost['point']:.1%} "
+        f"({cost['lo']:.1%} to {cost['hi']:.1%})"
+    )
+
+
 def results_table(
     bank: bank_io.Bank,
     diagnostics: dict[str, Any],
@@ -188,6 +209,8 @@ def results_table(
     fit_meta: dict[str, Any],
     own_run: dict[str, Any] | None = None,
     retest: dict[str, Any] | None = None,
+    bias: dict[str, Any] | None = None,
+    framing: dict[str, Any] | None = None,
 ) -> str:
     """The README's results table. Every row is a measured number or an honest 'not yet'."""
     manifest: dict[str, Any] = dict(bank.manifest)
@@ -385,7 +408,52 @@ def results_table(
         )
     else:
         lines.append(f"| Test-retest reliability | {EXPERIMENTS_PENDING} |")
-    lines.append(f"| Position bias and prompt-framing effects | {EXPERIMENTS_PENDING} |")
+    if bias is None:
+        lines.append(f"| Position bias | {EXPERIMENTS_PENDING} |")
+    else:
+        # Net of each model's own test-retest flip rate. Across four administrations an unstable
+        # model reads as order-dependent without any letter being involved, and the raw column
+        # ranks two models above where they belong.
+        net = [
+            (m["model"], m["share_order_dependent_net"])
+            for m in bias["models"]
+            if m.get("share_order_dependent_net")
+        ]
+        worst = max(net, key=lambda pair: pair[1]["point"])
+        best = min(net, key=lambda pair: pair[1]["point"])
+        rises = sum(
+            1
+            for m in bias["models"]
+            if m["accuracy_by_position"]["D"]["point"] > m["accuracy_by_position"]["A"]["point"]
+            and m["accuracy_by_position"]["C"]["point"] > m["accuracy_by_position"]["A"]["point"]
+        )
+        lines.append(
+            f"| Option order: the same {bias['n_items']} questions asked "
+            f"{len(bias['rotations'])} times with the answer in a different position "
+            f"| every one of {len(bias['models'])} models is worse when the answer is at A "
+            f"than at C or D ({rises}/{len(bias['models'])}); items that flip on order alone, "
+            f"net of the model's own instability, run from "
+            f"**{best[1]['point']:.1%}** ({best[1]['lo']:.1%} to {best[1]['hi']:.1%}) "
+            f"on `{best[0]}` to **{worst[1]['point']:.1%}** "
+            f"({worst[1]['lo']:.1%} to {worst[1]['hi']:.1%}) on `{worst[0]}` |"
+        )
+    if framing is None:
+        lines.append(f"| Prompt-framing effects | {EXPERIMENTS_PENDING} |")
+    else:
+        costs = [m["cost_of_answer_only"] for m in framing["models"]]
+        free = sum(1 for c in costs if c["lo"] <= 0.0 <= c["hi"])
+        # The exception has to be a model whose interval excludes zero, not simply the largest
+        # point estimate: the largest here is a laptop model at 5.4% (-0.3% to 11.1%), which is
+        # one of the models the sentence has just counted as costing nothing.
+        settled = [m for m in framing["models"] if m["cost_of_answer_only"]["lo"] > 0.0]
+        biggest = max(framing["models"], key=lambda m: m["variance_template"])
+        lines.append(
+            f"| What this project's answer-only prompt costs against letting the model reason "
+            f"briefly, over {framing['n_items']} items and {len(framing['templates'])} templates "
+            f"| **nothing for {free} of {len(costs)} models** (interval spans zero); the "
+            f"template explains at most **{biggest['variance_template']:.1%}** of the variance "
+            f"in correctness{_framing_exception(settled)} |"
+        )
     if own_run is None:
         lines.append(f"| Cost per ranking decision, in dollars | {PENDING} |")
     else:

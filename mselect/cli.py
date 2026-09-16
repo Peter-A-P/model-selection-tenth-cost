@@ -1124,6 +1124,26 @@ def retest(
     _say(f"wrote {beside}  (committed, so the handover can read it)")
 
 
+def _measured_flip_rates(version: str) -> dict[str, float]:
+    """How often each model disagreed with itself, from the committed retest summary.
+
+    The share of answers that move when the same question is asked twice with nothing changed.
+    Both measurement arms need it for the same reason: with one observation per cell, an effect
+    and the model's own noise are the same number until something else measures the noise.
+
+    Missing file or missing model both mean "not measured", and the caller reports the
+    uncorrected figure rather than substituting a pooled rate. The rates span 0.000 to 0.064
+    across this panel, so a stand-in would be wrong by more than the quantity being estimated.
+    """
+    import json
+
+    path = paths.ROOT / "mselect" / "config" / f"own-run-retest-{version}.json"
+    if not path.is_file():
+        return {}
+    agreement = json.loads(path.read_text(encoding="utf-8")).get("agreement", {})
+    return {alias: 1.0 - float(value) for alias, value in agreement.items()}
+
+
 @app.command("position-bias")
 def position_bias(
     version: str = typer.Option("v1", help="Which bank the suite and items come from."),
@@ -1155,6 +1175,9 @@ def position_bias(
             raise typer.BadParameter(f"no record file at {path}; run with --rotation {rotation}")
         panels[rotation] = ownrun.load(path, version=version)
 
+    flips = _measured_flip_rates(version)
+    if not flips:
+        _say("no retest summary; an item the model simply answered twice is counted as ordered")
     index = item_pool.administrable(version).index()
     base = panels[wanted[0]]
     # Only items every rotation reached, and only ones with options to reorder. A free-response
@@ -1187,7 +1210,9 @@ def position_bias(
                 for j in columns
             ]
         )
-        result = analysis.position_bias(alias, correct, where, seed=seed)
+        result = analysis.position_bias(
+            alias, correct, where, seed=seed, flip_rate=flips.get(alias)
+        )
         results.append(result)
     for result in sorted(results, key=lambda r: -r.bias_index):
         # Every position with the number of observations behind it, because a thin one is worth
@@ -1198,11 +1223,25 @@ def position_bias(
         )
         _say(f"{result.model:<18}{result.n_items:>7,}{result.bias_index:>12.3f}  {spread}")
     _say("")
-    for result in sorted(results, key=lambda r: -r.share_order_dependent.point)[:3]:
-        _say(
-            f"{result.model}: {result.share_order_dependent.fmt()} of items change outcome "
-            f"when only the option order moves"
-        )
+    _say("items that change outcome on order alone, before and after the model's own instability")
+    ranked = sorted(
+        results,
+        key=lambda r: (
+            -(
+                r.share_order_dependent_net.point
+                if r.share_order_dependent_net is not None
+                else r.share_order_dependent.point
+            )
+        ),
+    )
+    for result in ranked:
+        net = result.share_order_dependent_net
+        tail = f"  net {net.fmt()}" if net is not None else "  net not measured"
+        _say(f"  {result.model:<18}{result.share_order_dependent.fmt():<34}{tail}")
+    unclear = [r.model for r in results if r.bias_index_noise_floor >= r.bias_index]
+    if unclear:
+        _say("")
+        _say(f"bias index within the spread noise alone would give: {', '.join(unclear)}")
 
     if not write:
         return
@@ -1228,6 +1267,18 @@ def position_bias(
                             "lo": r.share_order_dependent.lo,
                             "hi": r.share_order_dependent.hi,
                         },
+                        "share_order_dependent_noise": r.share_order_dependent_noise,
+                        "share_order_dependent_net": (
+                            None
+                            if r.share_order_dependent_net is None
+                            else {
+                                "point": r.share_order_dependent_net.point,
+                                "lo": r.share_order_dependent_net.lo,
+                                "hi": r.share_order_dependent_net.hi,
+                            }
+                        ),
+                        "bias_index_noise_floor": r.bias_index_noise_floor,
+                        "flip_rate": flips.get(r.model),
                     }
                     for r in results
                 ],
@@ -1271,6 +1322,15 @@ def framing(
             raise typer.BadParameter(f"no record file at {path}; run with --template {name}")
         panels[name] = ownrun.load(path, version=version)
 
+    # The measured test-retest flip rate per model, which is what makes the interaction term
+    # readable: with one observation per cell the interaction and the residual are one number,
+    # and this says how much of it is the model disagreeing with itself. Absent file, absent
+    # model or absent template arm all mean the same thing here: report the confounded term and
+    # do not guess at the split.
+    flips = _measured_flip_rates(version)
+    if not flips:
+        _say("no retest summary; the interaction term stays confounded with response noise")
+
     base = panels[wanted[0]]
     usable = np.ones(base.n_items, dtype=bool)
     for panel in panels.values():
@@ -1282,7 +1342,7 @@ def framing(
     _say(f"{columns.size:,} items asked under {', '.join(wanted)}")
     _say("")
     header = "".join(f"{name:>18}" for name in wanted)
-    _say(f"{'alias':<18}{header}{'item':>8}{'template':>10}{'both':>8}")
+    _say(f"{'alias':<18}{header}{'item':>8}{'template':>10}{'both':>8}{'noise':>8}{'net':>8}")
     results = []
     for alias in base.aliases:
         if not all(alias in panel.aliases for panel in panels.values()):
@@ -1290,16 +1350,28 @@ def framing(
         correct = np.column_stack(
             [panels[n].responses[panels[n].aliases.index(alias)][columns] for n in wanted]
         )
-        results.append(analysis.framing(alias, correct, wanted, seed=seed))
+        results.append(
+            analysis.framing(alias, correct, wanted, seed=seed, flip_rate=flips.get(alias))
+        )
     for result in results:
         cells = "".join(f"{result.accuracy_by_template[name].point:>18.3f}" for name in wanted)
+        split = f"{result.variance_noise:>8.1%}{result.variance_interaction_net:>8.1%}"
+        if result.variance_noise != result.variance_noise:  # NaN, no flip rate for this model
+            split = f"{'-':>8}{'-':>8}"
         _say(
             f"{result.model:<18}{cells}{result.variance_item:>8.1%}"
-            f"{result.variance_template:>10.1%}{result.variance_interaction:>8.1%}"
+            f"{result.variance_template:>10.1%}{result.variance_interaction:>8.1%}{split}"
         )
     _say("")
     for result in results:
         _say(f"{result.model}: answer-only costs {result.cost_of_answer_only.fmt()}")
+    drowned = [r.model for r in results if r.interaction_is_noise]
+    if drowned:
+        _say("")
+        _say(
+            f"interaction smaller than the model's own instability, so none of it is the "
+            f"template: {', '.join(drowned)}"
+        )
 
     if not write:
         return
@@ -1320,6 +1392,9 @@ def framing(
                         "variance_item": r.variance_item,
                         "variance_template": r.variance_template,
                         "variance_interaction": r.variance_interaction,
+                        "variance_noise": r.variance_noise,
+                        "variance_interaction_net": r.variance_interaction_net,
+                        "flip_rate": flips.get(r.model),
                         "cost_of_answer_only": {
                             "point": r.cost_of_answer_only.point,
                             "lo": r.cost_of_answer_only.lo,

@@ -977,6 +977,70 @@ exists to check.
 It is worth noting that `anthropic-haiku` is the one Anthropic route carrying a dated
 identifier, and the one that works.
 
+### 15.32 Two arms finished, and both were measuring their own noise
+
+The position-bias and framing arms of section 4.3 completed on 2026-09-16: 16,500 calls across
+eleven models, four option rotations and three prompt templates, US$35.50 lifetime against the
+CA$220 line. Findings 7 and 8 of the write-up are what they say. This records what had to be
+fixed before either was publishable, because it is one mistake made twice.
+
+#### The mistake
+
+Both arms count something by comparing a model against itself under a changed condition:
+
+- `share_order_dependent` counts questions not answered the same way under every rotation.
+- `variance_interaction` is what is left after the item and template main effects come out.
+
+Neither is a measurement of the condition until the model's own instability is taken out, and
+section 15.29 had already measured that instability and committed it to
+`mselect/config/own-run-retest-v1.json`. The file was written for project 03 to import. Its first
+consumer turned out to be this project.
+
+Two administrations of one cell disagree with probability 2q(1-q), so the measured flip rate `f`
+gives the per-cell noise variance `q(1-q) = f/2` with no approximation and no free parameter.
+From there:
+
+- Order dependence: an item reads as ordered under pure noise unless every administration lands
+  the same way, probability `q**k + (1-q)**k` for `k` rotations.
+- Interaction: the residual carries `df` times the per-cell variance.
+
+#### It reordered the table, which is the point
+
+The panel's flip rates span 0.000 to 0.064, a range wide enough that the correction is not a
+uniform shift. Three models move:
+
+| alias | raw share | net share | moves from | to |
+|---|---:|---:|---:|---:|
+| `openai-mid` | 20.3% | 7.7% | 3rd worst | 5th |
+| `together-open-b` | 14.0% | 1.9% | 6th | 9th |
+| `anthropic-haiku` | 17.3% | 14.1% | 5th | 3rd |
+
+A pooled flip rate would have been worse than none: it would have moved every model by the same
+amount and preserved exactly the ordering that is wrong. So an alias with no retest entry gets
+the uncorrected figure and a column saying so, rather than a stand-in.
+
+#### The degrees of freedom, which nearly went out the door
+
+The first version of the framing correction charged the per-cell noise variance once per cell.
+The residual does not carry one degree of freedom per cell; it carries `(items - 1)(templates -
+1)`, two thirds of them at this shape. Charging all of them overstated the noise by a factor of
+1.5 and drove **six of eleven models to a spurious zero**, which read as a clean result: "the
+interaction is entirely the model's own instability for most of the panel". It was an arithmetic
+error wearing the clothes of a finding.
+
+What caught it was noticing that `local-small-a` survived at 26% while models with a twentieth of
+its template sensitivity read zero. `test_framing_charges_noise_against_the_residual_not_the_cells`
+now generates data whose only item-by-template variation is noise and asserts the estimate
+accounts for all of it and no more; the ratio is 1.46 under the old arithmetic and the test fails.
+
+#### What is left, stated rather than hidden
+
+The flip rate was measured under `plain` alone. A template with more room to wander is charged
+too little noise, so every net figure here is an upper bound on the condition's share. Correcting
+that needs a second administration of each template, 3,300 calls and about US$3, and it is not
+done. The item main effect is not noise-free either and is not corrected at all; it is reported
+as the raw share of variance, which is what it is.
+
 ### 15.31 A key check that outlived the work it was protecting
 
 Section 15.19 put a single key check in front of `mselect run`, because discovering a missing

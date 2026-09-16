@@ -1,10 +1,14 @@
 """The three measurement experiments, analysed.
 
-PLAN.md section 4.3 specifies test-retest reliability, position bias and prompt framing. The
-runs that feed them need vendor calls and have not happened (PLAN.md section 13.4), but the
-analysis does not depend on how the responses were obtained, so it is written and tested here
-against synthetic fixtures. When the own-run panel exists these functions take its matrices
-unchanged.
+PLAN.md section 4.3 specifies test-retest reliability, position bias and prompt framing. All
+three now run on the own-run panel: eleven models, 300 items per arm, four option rotations and
+three prompt templates, finished 2026-09-16.
+
+They were written and tested against synthetic fixtures long before the panel existed, on the
+reasoning that the analysis does not depend on how the responses were obtained. That reasoning
+held, and it hid three defects that only real data showed: a bias index set by a position with
+two observations, an interaction term nobody could read, and an order-dependence count that was
+partly the model disagreeing with itself. Each is recorded at the function it affected.
 
 One rule holds across all three, from CLAUDE.md: every reported number carries an interval. The
 intervals here are percentile bootstraps over items, because the question in each case is
@@ -13,8 +17,10 @@ intervals here are percentile bootstraps over items, because the question in eac
 
 from __future__ import annotations
 
+import math
 from collections.abc import Sequence
 from dataclasses import dataclass
+from typing import Final
 
 import numpy as np
 from numpy.typing import NDArray
@@ -136,6 +142,17 @@ class PositionBias:
     # later letters with only a handful of items, and a spread anchored on two observations is
     # not a measurement of anything. Everything is still reported; only these set the index.
     positions_counted: tuple[str, ...] = ()
+    # What the two headline numbers would read on a model with no position preference at all,
+    # purely from disagreeing with itself across the administrations. NaN when no flip rate was
+    # supplied. See `position_bias` for why one is subtracted and the other is not.
+    share_order_dependent_noise: float = float("nan")
+    share_order_dependent_net: Interval | None = None
+    bias_index_noise_floor: float = float("nan")
+
+    @property
+    def index_clears_its_floor(self) -> bool:
+        """The measured spread is larger than the spread noise alone would produce."""
+        return bool(self.bias_index > self.bias_index_noise_floor)
 
     def describe(self) -> str:
         spread = ", ".join(
@@ -157,6 +174,10 @@ class PositionBias:
 # are simply not allowed to be the headline.
 MIN_PER_POSITION = 30
 
+# Expected range of k independent standard normals, the d2 constants. Used to say what spread
+# four position means show when nothing is driving them apart.
+_EXPECTED_RANGE: Final = {2: 1.128, 3: 1.693, 4: 2.059, 5: 2.326, 6: 2.534}
+
 
 def position_bias(
     model: str,
@@ -165,6 +186,7 @@ def position_bias(
     *,
     seed: int = 0,
     min_per_position: int = MIN_PER_POSITION,
+    flip_rate: float | None = None,
 ) -> PositionBias:
     """Accuracy by the letter the correct answer wore, over cyclic permutations of one item set.
 
@@ -172,6 +194,14 @@ def position_bias(
     in a different position each time. The bias index is the spread of accuracy across positions
     (max minus min), and "order dependent" counts items that are not answered the same way under
     every rotation.
+
+    **Amended 2026-09-16, when the arm completed.** `flip_rate` is the share of answers that
+    move when the same question is asked twice with nothing changed, from the retest arm. Without
+    it, an item the model simply answered inconsistently is counted as order-dependent: at four
+    administrations a model that flips 3% of answers reads 6% order-dependent on its own. The raw
+    share is still reported, with `share_order_dependent_net` beside it. The index is not
+    corrected, because noise has no preferred position; it gets `bias_index_noise_floor`, the
+    spread that four noisy position means show when the truth is flat.
 
     **Amended 2026-09-14, on the first real run.** The index used to span every position that
     appeared at all, which is right when every item has the same number of options and wrong on
@@ -194,12 +224,43 @@ def position_bias(
     per_item = np.array(
         [1.0 if len(set(row[np.isfinite(row)].tolist())) > 1 else 0.0 for row in correct]
     )
+    share = bootstrap(per_item.tolist(), seed=seed)
+    noise_share = float("nan")
+    net_share: Interval | None = None
+    floor = float("nan")
+    if flip_rate is not None and flip_rate < 0.5:
+        # 2q(1-q) = flip_rate, taking the root below a half: a model that agrees with itself
+        # most of the time, which every model on this panel does.
+        q = (1.0 - math.sqrt(1.0 - 2.0 * flip_rate)) / 2.0
+        administrations = correct.shape[1]
+        # An item reads as order-dependent under pure noise unless every administration lands the
+        # same way, which happens with probability q**k + (1-q)**k.
+        noise_share = 1.0 - q**administrations - (1.0 - q) ** administrations
+        raw = share
+        net_share = Interval(
+            point=max(raw.point - noise_share, 0.0),
+            lo=max(raw.lo - noise_share, 0.0),
+            hi=max(raw.hi - noise_share, 0.0),
+            n=raw.n,
+        )
+        # The index is a range over `len(counted)` position means, each the average of about
+        # `per_position` cells whose noise variance is q(1-q). The expected range of k standard
+        # normals is the d2 constant; anything beyond the table is close enough to flat.
+        per_position = float(
+            np.mean([by_position[letter].n for letter in counted]) if counted else 0.0
+        )
+        if per_position > 0 and len(counted) > 1:
+            sigma = math.sqrt(q * (1.0 - q) / per_position)
+            floor = _EXPECTED_RANGE.get(len(counted), 2.534) * sigma
     return PositionBias(
         model=model,
         accuracy_by_position=by_position,
         bias_index=index,
         positions_counted=counted,
-        share_order_dependent=bootstrap(per_item.tolist(), seed=seed),
+        share_order_dependent_noise=noise_share,
+        share_order_dependent_net=net_share,
+        bias_index_noise_floor=floor,
+        share_order_dependent=share,
         n_items=int(correct.shape[0]),
     )
 
@@ -214,14 +275,35 @@ class Framing:
     variance_template: float
     variance_interaction: float
     cost_of_answer_only: Interval
+    # How much of `variance_interaction` a model's own instability accounts for, from the
+    # measured test-retest flip rate, and what is left once it is taken out. NaN when no flip
+    # rate was supplied, because a decomposition nothing measured is worse than no decomposition.
+    variance_noise: float = float("nan")
+    variance_interaction_net: float = float("nan")
+
+    @property
+    def interaction_is_noise(self) -> bool:
+        """The interaction is no larger than the model's own instability.
+
+        Nothing in it can be attributed to the template. Not the same as having measured zero
+        template effect: a model that disagrees with itself often cannot resolve one either way.
+        """
+        return bool(self.variance_interaction_net == 0.0)
 
     def describe(self) -> str:
         parts = ", ".join(
             f"{k} {v.point:.1%}" for k, v in sorted(self.accuracy_by_template.items())
         )
+        split = ""
+        if self.variance_noise == self.variance_noise:  # not NaN
+            split = (
+                f" (of which noise {self.variance_noise:.1%}, "
+                f"net {self.variance_interaction_net:.1%})"
+            )
         return (
             f"{self.model}: {parts}; variance item {self.variance_item:.1%}, "
-            f"template {self.variance_template:.1%}, interaction {self.variance_interaction:.1%}"
+            f"template {self.variance_template:.1%}, "
+            f"interaction {self.variance_interaction:.1%}{split}"
         )
 
 
@@ -233,6 +315,7 @@ def framing(
     baseline: str = "plain",
     reasoning: str = "brief_reasoning",
     seed: int = 0,
+    flip_rate: float | None = None,
 ) -> Framing:
     """Variance decomposition of correctness into item, template and item-by-template.
 
@@ -240,6 +323,19 @@ def framing(
     two-way analysis of variance without replication, so the interaction and the residual are the
     same term and are reported as one; with a single observation per cell they cannot be
     separated, and pretending otherwise would invent precision.
+
+    **Amended 2026-09-16, when the arm first ran on real data.** That last sentence is true and
+    it left the interaction term unreadable: 26.6% for one model and 13.0% for another, with
+    nothing to say whether either was the template or the model disagreeing with itself. Pass
+    `flip_rate`, the share of answers that move when the same cell is administered twice, and the
+    residual half is estimated rather than assumed. Two administrations disagree with probability
+    2q(1-q), so the per-cell noise variance q(1-q) is exactly `flip_rate / 2`.
+
+    The flip rate this project has was measured under `plain` alone, so a template with more room
+    to wander is charged too little noise and `variance_interaction_net` is an upper bound on the
+    template's share. Only the residual is corrected: `variance_item` carries noise of its own,
+    on the order of (items - 1) times the per-cell variance, and is not a noise-free figure. Where the noise exceeds the interaction outright, the net is zero and
+    `interaction_is_noise` says so, rather than a negative variance nobody can interpret.
     """
     if correct.shape[1] != len(templates):
         raise ValueError("correct must have one column per template")
@@ -262,6 +358,18 @@ def framing(
     if baseline in templates and reasoning in templates:
         difference = correct[:, templates.index(reasoning)] - correct[:, templates.index(baseline)]
         cost = bootstrap(difference.tolist(), seed=seed)
+    # q(1-q) = flip_rate / 2 exactly, from 2q(1-q) being the chance two administrations of one
+    # cell disagree. What that variance contributes to the residual is df times it, not one per
+    # cell: fitting the item and template means absorbs the rest. For a full grid the residual
+    # carries (items - 1)(templates - 1) of the degrees of freedom, two thirds of the cells here,
+    # and charging all of them drove six of eleven models to a spurious zero.
+    noise = float("nan")
+    net = float("nan")
+    if flip_rate is not None:
+        observed_cells = int(np.isfinite(correct).sum())
+        df_residual = max(observed_cells - n_items - n_templates + 1, 0)
+        noise = (df_residual * flip_rate / 2.0) / scale
+        net = max(ss_interaction / scale - noise, 0.0)
     return Framing(
         model=model,
         accuracy_by_template=by_template,
@@ -269,6 +377,8 @@ def framing(
         variance_template=ss_template / scale,
         variance_interaction=ss_interaction / scale,
         cost_of_answer_only=cost,
+        variance_noise=noise,
+        variance_interaction_net=net,
     )
 
 

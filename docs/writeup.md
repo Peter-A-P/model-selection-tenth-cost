@@ -152,6 +152,118 @@ So a paired re-run of the same questions is about twice as sensitive as the info
 suggests. `mselect.reliability()` returns the measured figure, and `points_sd(n)` gives the
 column on the right, so a gate can size itself from the measurement rather than from the theory.
 
+## Finding 7: every model on the panel is worse when the answer is A
+
+Same money, same eleven models. 300 multiple-choice questions, each asked four times with the
+correct answer moved to a different option position and nothing else changed.
+
+Accuracy goes **up** as the right answer moves down the list, for all eleven:
+
+| model | at A | at C | at D | spread |
+|---|---:|---:|---:|---:|
+| `local-small-a` | 0.387 | 0.542 | 0.490 | 0.220 |
+| `local-small-b` | 0.455 | 0.609 | 0.615 | 0.160 |
+| `together-open-a` | 0.730 | 0.803 | 0.822 | 0.092 |
+| `anthropic-opus` | 0.877 | 0.924 | 0.927 | 0.051 |
+| `google-frontier` | 0.894 | 0.924 | 0.924 | 0.038 |
+
+Eleven out of eleven, across four vendors, two open-weight models and two 3B models running on a
+laptop. That is not the direction the folklore predicts. The usual claim is that models prefer
+the first option, and on this suite every one of them is worst there.
+
+The spread is small for the good models and enormous for the small ones, which is worth saying
+plainly: **a 22-point swing on `local-small-a` from moving the answer down the list** is larger
+than the gap between most adjacent pairs of models in the ranking.
+
+### The correction that changed the ranking
+
+The obvious second number is how many individual questions change outcome when only the order
+moves. The obvious way to count it is also wrong, and finding 6 is why.
+
+Across four administrations, a model that disagrees with itself 3 percent of the time will answer
+about 6 percent of questions inconsistently with no letter involved at all. The panel's flip rates
+run from 0.0 to 6.4 percent. So the raw count is partly a measurement of instability, and charging
+each model for its own reorders the table:
+
+| model | raw | its own flip rate | net |
+|---|---:|---:|---:|
+| `local-small-a` | 43.3% | 0.2% | **42.9%** (37.6 to 48.6) |
+| `local-small-b` | 36.3% | 0.0% | **36.3%** (31.3 to 42.0) |
+| `anthropic-haiku` | 17.3% | 1.6% | **14.1%** (9.8 to 18.5) |
+| `together-open-a` | 19.3% | 5.0% | **9.4%** (5.0 to 14.0) |
+| `openai-mid` | 20.3% | 6.4% | **7.7%** (3.4 to 12.4) |
+| `together-open-b` | 14.0% | 6.1% | **1.9%** (0.0 to 5.9) |
+| `openai-frontier` | 5.7% | 2.4% | **0.9%** (0.0 to 3.5) |
+
+`openai-mid` reads third worst on the raw column and is mid-panel once charged. `together-open-b`
+reads sixth and is ninth. `anthropic-haiku` goes the other way: it has the second lowest flip rate
+on the panel, so almost all of its 17.3% really is the option order, and it belongs third rather
+than fifth. Publishing the raw column would have put three models in the wrong place.
+
+The spread column needs the same treatment in the opposite direction. Noise has no preferred
+letter, so it does not push the spread up or down, but a maximum minus a minimum over four noisy
+estimates is positive even when the truth is flat. That floor runs from 0.000 to 0.022 here, and
+every one of the eleven spreads is above its own.
+
+## Finding 8: the prompt format does not move the score, and for small models it moves everything else
+
+This project runs its whole item bank answer-only, no reasoning, because reasoning tokens are
+what make a 3,000-item bank expensive. The honest worry is that the bank is therefore measuring
+something cheaper than the benchmark it claims to reproduce. So: 300 questions, eleven models,
+three prompt templates, the same questions each time.
+
+**For ten of the eleven, answer-only costs nothing measurable.** The interval on the difference
+between the answer-only prompt and letting the model reason briefly first spans zero:
+
+| model | answer only | reason briefly | difference |
+|---|---:|---:|---|
+| `anthropic-opus` | 0.902 | 0.903 | +0.0% (-2.0 to +2.0) |
+| `google-frontier` | 0.910 | 0.910 | +0.0% (-1.7 to +2.0) |
+| `openai-frontier` | 0.870 | 0.863 | -0.7% (-2.7 to +1.3) |
+| `anthropic-haiku` | 0.803 | 0.850 | **+5.0% (+2.0 to +8.4)** |
+
+The exception is the cheapest model from one vendor, and five points is not nothing. Across the
+whole panel the template explains at most **0.3 percent** of the variance in whether an answer is
+right. The item explains 73 to 91 percent. Which question you ask matters two hundred times more
+than how you dress it up.
+
+### The part worth the extra work
+
+A variance decomposition with one observation per cell cannot separate item-by-template
+interaction from noise: they are the same term. That term ran from 8.7 to 26.6 percent and was
+unreadable, because a model that disagrees with itself produces interaction without any template
+doing anything.
+
+Finding 6 measured the missing quantity. Two administrations of the same cell disagree with
+probability 2q(1-q), so a measured flip rate gives the per-cell noise variance directly, and it
+can be charged against the residual:
+
+| model | interaction | its own noise | what is left |
+|---|---:|---:|---:|
+| `local-small-a` | 26.6% | 0.3% | **26.3%** |
+| `anthropic-haiku` | 17.6% | 3.6% | **14.0%** |
+| `local-small-b` | 12.1% | 0.0% | **12.1%** |
+| `together-open-a` | 18.2% | 9.5% | **8.7%** |
+| `google-mid` | 12.9% | 12.9% | **0.1%** |
+| `together-open-b` | 12.4% | 13.7% | **0.0%** |
+
+So the two halves of this finding point opposite ways and are both true. The template does not
+move the score. For the weakest models it moves **which questions they get right**, by a quarter
+of all the variance there is, and those changes cancel almost exactly in the total.
+
+That is the same shape as finding 7, and probably the same underlying fact. A small model's
+answer is decided by surface features of how a question is presented, and a frontier model's
+answer is decided by the question. Every one of these prompts is a rephrasing that a human reader
+would call irrelevant, and they are worth 26 percent of the variance to a 3B model and between
+1 and 5 percent to the three frontier ones. Benchmark scores are usually compared as though the prompt were a neutral
+container. It is neutral for the models that need the least help.
+
+One caveat I would rather state than bury. The flip rate used for both corrections was measured
+under the answer-only template alone. If reasoning prompts are less stable, and they have more
+room to be, then the noise charged here is too small and the net figures are upper bounds. The
+item term is not noise-free either. Correcting it properly needs a second administration of every
+template, which is another 3,300 calls, and it is on the list rather than done.
+
 ## What to do on Monday
 
 1. **If you are choosing between models**, ask ten to fifty well-chosen questions per model
@@ -171,6 +283,14 @@ column on the right, so a gate can size itself from the measurement rather than 
    find and cost you money every run.
 5. **If you publish a number**, publish Q3 and a dimensionality check beside it. Both are cheap,
    and both change how the interval should be read.
+6. **If you compare multiple-choice scores**, rotate the answer position and report the spread.
+   It costs one extra administration and on this panel it was worth up to 22 points on a small
+   model. If you cannot afford to rotate, at least do not compare two models whose option orders
+   were generated differently.
+7. **Subtract your own noise before you believe any of it.** Both numbers in findings 7 and 8
+   are partly a measurement of the model disagreeing with itself, and on the raw figures three
+   models sit in the wrong place. You need the test-retest number from finding 6 first; it is
+   the cheapest measurement here and it is what makes the rest readable.
 
 ## What this write-up does not cover
 

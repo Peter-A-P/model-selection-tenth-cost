@@ -39,7 +39,8 @@ transfer" into a number. [Both are below.](#does-it-replicate-a-second-bank-from
 | Differential item functioning, open weights vs API only | 128 items flagged (0.9%) |
 | Test-retest: the same 500 items asked twice at temperature 0, a day apart | hosted models agree **0.936** (0.912 to 0.956) to 0.984 (0.972 to 0.994); the two on a laptop agree 0.998 and 1.000 |
 | How much a benchmark score moves with nothing changed | **up to 2.0 points**, median 0.4, and symmetric (83 flips to right against 85 to wrong, p = 0.94), so it is a random walk rather than drift. A drop smaller than that is noise |
-| Position bias and prompt-framing effects | _pending their own arms (PLAN.md section 4.3)_ |
+| Option order: the same 300 questions asked 4 times with the answer in a different position | every one of 11 models is worse when the answer is at A than at C or D (11/11); items that flip on order alone, net of the model's own instability, run from **0.9%** (0.0% to 3.5%) on `openai-frontier` to **42.9%** (37.6% to 48.6%) on `local-small-a` |
+| What this project's answer-only prompt costs against letting the model reason briefly, over 300 items and 3 templates | **nothing for 10 of 11 models** (interval spans zero); the template explains at most **0.3%** of the variance in correctness. The exception is `anthropic-haiku` at 5.0% (2.0% to 8.4%) |
 | Does this bank rank models it was never fitted on? 11 current models, 2,830 items each, parameters read and not refitted | Kendall's tau **0.855** (0.617 to 1.000) |
 | Adaptive items needed to rank those 11 models as well as all 2,830 do | **100 items** (3.5% of the suite), tau 0.855 (0.617 to 1.000) |
 | Cost per ranking decision, in dollars | **US$0.72** against US$16.05 to ask every item, 4.5% |
