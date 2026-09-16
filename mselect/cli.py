@@ -712,7 +712,11 @@ def run(
     # A missing API key cannot be true for one call and false for the next, so finding it out
     # per call is finding it out thousands of times. On 2026-09-14 this loop wrote 4,000
     # identical ConfigError records over ninety minutes and looked busy the whole way.
-    absent = gateway.missing_keys(config, wanted, all_routes)
+    # Only the aliases with work left. A resume whose remaining models are all Google should
+    # not be refused for want of an Anthropic key: after the restart of 2026-09-14 this asked
+    # for all four vendors' keys while five of the eleven models had nothing to do.
+    outstanding_aliases = [name for name, count in plan if count]
+    absent = gateway.missing_keys(config, outstanding_aliases, all_routes)
     if absent:
         _say("")
         for variable, blocked in sorted(absent.items()):

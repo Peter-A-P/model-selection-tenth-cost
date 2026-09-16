@@ -977,6 +977,28 @@ exists to check.
 It is worth noting that `anthropic-haiku` is the one Anthropic route carrying a dated
 identifier, and the one that works.
 
+### 15.31 A key check that outlived the work it was protecting
+
+Section 15.19 put a single key check in front of `mselect run`, because discovering a missing
+key per call is discovering it four thousand times. It checked the aliases that were named on
+the command line, which is right on a first run and wrong on every resume after one.
+
+The restart of 2026-09-14 named the whole panel, as every resume does, and five of the eleven
+models had nothing left to do. The command printed its plan, said so alias by alias, and then
+refused the run for want of an Anthropic key that only the settled aliases needed. The state it
+had already computed two lines above was the answer, and it asked the environment instead.
+
+So the check reads the plan: only the aliases with calls outstanding, which is what "cannot run
+without it" was always claiming to mean. A resume whose remaining work is all Google no longer
+waits on a key for models that are finished.
+
+Both halves of the guard still hold, and `tests/test_cli_guards.py` now has one test for each.
+A key that is missing with work behind it refuses before the first call, with `--yes` and
+without it. A key that is missing with no work behind it is not a fact about this run.
+
+Two fixes in the same file from the same run, a day apart, and the shape is the same both times:
+the run knew the answer and asked something else for it.
+
 ### 15.30 Two analyses nothing could reach, and a fixture that made one of them look right
 
 `experiments/analysis.py` has held `position_bias` and `framing` since before the runner

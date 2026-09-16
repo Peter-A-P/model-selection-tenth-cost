@@ -226,3 +226,47 @@ def test_neither_reader_can_spend_anything() -> None:
     """The arms are paid for once; the arithmetic is free forever."""
     for command in ("position-bias", "framing"):
         assert "--yes" not in runner.invoke(app, [command, "--help"]).output
+
+
+def test_a_resume_asks_only_for_the_keys_its_remaining_work_needs(
+    elsewhere: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A key check is about the calls that are left, not about the aliases that were named.
+
+    Found on the restart of 2026-09-14: the run was refused for want of an Anthropic key while
+    five of the eleven models on the command line had nothing left to do. The refusal is right
+    when there is work behind it and wrong when there is not, and the difference is the plan the
+    command has already printed two lines above.
+    """
+    from mselect.cli import prompts_settings
+    from mselect.runner import administer, gateway, items, records
+    from mselect.runner import suite as suite_mod
+
+    settled = "anthropic-haiku"
+    pool = items.administrable("v1")
+    index = pool.index()
+    chosen = suite_mod.Suite.load(suite_mod.default_path("v1"))
+    ordered = [index[i] for i in chosen.item_ids if i in index][:2]
+    config = gateway.load_config()
+    all_routes = gateway.routes_of(config)
+    budgets = gateway.tokens_of()
+    asked = administer.build_prompts(
+        ordered,
+        settled,
+        settings=prompts_settings(budgets[settled]) if settled in budgets else None,
+        omit_temperature=gateway.omits_temperature(settled, gateway.omits_of()),
+        route=gateway.route_key(settled, all_routes, gateway.extras_of()),
+    )
+    hashes = frozenset(prompt.request_sha256 for prompt in asked)
+
+    def recorded(path: Path, *, include_errors: bool = False) -> frozenset[str]:
+        return hashes
+
+    monkeypatch.setattr(records, "done", recorded)
+    monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
+    result = runner.invoke(app, ["run", "--alias", f"{settled},local-small-a", "--limit", "2"])
+    assert "ANTHROPIC_API_KEY" not in result.output, (
+        "the one alias with no work left must not hold up the laptop, which needs no key"
+    )
+    assert result.exit_code == 1
+    assert "Add --yes to run it" in result.output
