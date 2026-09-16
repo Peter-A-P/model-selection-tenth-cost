@@ -106,7 +106,7 @@ calibration never saw. Eight to ten current models:
 | Anthropic | Haiku 4.5, Sonnet 5 full suite; Opus 5 on the adaptive subset only | Two full-suite anchors, one frontier check |
 | OpenAI | One mid-tier full suite, one frontier on the adaptive subset | Same shape |
 | Google | One mid-tier full suite, one frontier on the adaptive subset | Same shape |
-| Open weights via a provider | Three mid-size models, full suite | Cheap full-suite anchors, provider-served. Third added 2026-09-16 so that Google is represented in the open tier as well as the hosted one, see section 15.33 |
+| Open weights via a provider | Two mid-size models, full suite | Cheap full-suite anchors, provider-served. A Google entry was attempted 2026-09-16 and dropped: it will not answer in the answer-only format, see section 15.33 |
 | Local | Two small models (3B, 4-bit) on the laptop | Free; they spread the ability range downward, which item calibration needs points for. A third, larger local rung was measured and dropped on wall clock, see section 15.33 |
 
 Run settings: temperature 0, fixed system prompt, answer-only output format (a letter for
@@ -982,18 +982,15 @@ exists to check.
 It is worth noting that `anthropic-haiku` is the one Anthropic route carrying a dated
 identifier, and the one that works.
 
-### 15.33 One model added, five rejected, and a laptop that was never what we thought
+### 15.33 Six models considered, none added, and a laptop that was never what we thought
 
-Section 3.3's panel goes from eleven models to twelve: `google-open-a`, Google open weights,
-served free through the Gemini API on the key this project already holds. It is an addition rather than a replacement, because a replacement
-discards about 5,000 calls already paid for and forces the transfer tau and every table in
-findings 6 to 8 to be recomputed, which buys nothing.
+**The panel stays at eleven.** Two additions were built, wired, smoke-tested and dropped. The
+day is a result rather than a wasted afternoon: five Gemma builds and one Qwen were measured
+against real bank items, and the reason each failed is worth more than the twelfth row would
+have been.
 
-A second addition was built, measured and then dropped: `local-mid-a`, a 7B rung on the laptop
-between the 3B models and everything hosted. It works and it is the right model for the slot.
-It costs **26 hours of saturated CPU** on a machine Peter works on, and that is the whole reason
-it is not in the panel. The measurements below are kept because the next person to want a local
-rung needs them, and because the reason four other candidates failed is a result in itself.
+Nothing was spent. Every rejection came from `mselect smoke`, three items at a time, before any
+of them reached the 5,000-call version.
 
 #### What the panel was missing
 
@@ -1038,7 +1035,8 @@ not about a switch nobody found. Ollama lists `thinking` as a capability for Gem
 writes prose in the content instead. Neither `reasoning_effort` nor `chat_template_kwargs`
 reaches it through the OpenAI-compatible endpoint: 423 tokens against 394, which is noise.
 
-Gemma 4 31B is in the panel hosted, where somebody else's hardware pays for the 800 tokens.
+Gemma 4 31B was going to be in the panel hosted, where somebody else's hardware pays for the 800
+tokens. It is not, and the two sections below are why.
 
 #### The first route for it was wrong, and three failed calls said so
 
@@ -1061,6 +1059,34 @@ route that spends no money. The run will have to find the ceiling by reaching it
 15.22 records what that looks like.
 
 The whole detour cost three failed requests, because `mselect smoke` exists and was run first.
+
+#### Then the format refused it, which is the part worth keeping
+
+The Gemini route works. The model does not fit the experiment:
+
+    google-open-a   2/3 scored, 1 failed
+      ! med_qa the model returned no text (max_tokens), 1021 output tokens spent
+
+An empty reply rather than a truncated one looked like reasoning consuming the budget, which is
+what `thinkingConfig` fixes for `google-frontier`. Gemma refuses the field:
+
+    400 INVALID_ARGUMENT: Thinking budget is not supported for this model.
+
+So there is no thinking channel to suppress. Those 1,021 tokens were content, and Gemini returns
+an empty candidate rather than partial text when a generation hits `MAX_TOKENS`. The model writes
+an explanation, which is what all four local builds did as well.
+
+A `tokens:` override would have let it finish, and a cap is a ceiling rather than a bill, so
+raising one model's ceiling costs no other model anything. **The reason not to is not cost.**
+Section 4.3's position-bias and framing arms are experiments whose independent variable is the
+prompt format. A model that ignores the format instruction has not received the treatment, and
+including it would mean reporting a format experiment on a model the format never reached. No
+budget fixes that. Peter's call on 2026-09-16, and the right one.
+
+What survives is the measurement, now in finding 8: the same answer-only instruction produces 4
+to 15 tokens from Qwen, Llama, OpenAI and Anthropic models and 114 to 1,021 from every Gemma.
+**"Answer only" is a request, not a setting**, and a run sized on the assumption that it is
+honoured is wrong by a factor of sixty on some families.
 
 #### This is a result about the format, not only about a laptop
 

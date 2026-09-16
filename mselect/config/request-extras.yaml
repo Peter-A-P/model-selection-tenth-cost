@@ -32,6 +32,7 @@ aliases:
   together-open-b:
     reasoning_effort: low
 
+
 # Request fields this project must not send to a given model, because the model refuses them.
 #
 # Not the same as sending a different value. `temperature: 0` and no temperature at all are
@@ -68,4 +69,21 @@ omit:
 # Left empty until the right number is measured rather than guessed:
 # `mselect smoke --alias anthropic-opus --max-tokens N --yes` finds it, and changing the
 # budget changes the request hash, so the items really are asked again.
+#
+# **2026-09-16, google-open-a.** The first entry this block has ever carried, and it is worth
+# being explicit about why an override is allowed here when prompts.ANSWER_BUDGET says a
+# per-model budget is a thumb on the scale. It is allowed because a cap is a ceiling and not a
+# bill: a model that answers in 4 tokens spends 4 whether the cap is 1024 or 2048, so raising
+# one model's ceiling changes nothing about any other model's answer. What it does change is
+# whether this model gets to finish a sentence.
+#
+# Raising ANSWER_BUDGET for everyone would have been cleaner and is not available: the budget
+# is part of the request body, so it is part of the request hash, and moving it would invalidate
+# all 59,000 cached calls and force the whole panel to be re-run.
+#
+# The fact this override reports, as that comment requires: gemma-4-31b-it needs more than
+# twenty times the tokens the median panel model uses to answer the same multiple-choice
+# question. Measured on 2026-09-16, 1 of 3 smoke items spent 1,021 of 1,024 and returned no
+# text at all, and four Gemma builds measured locally the same day wrote 114 to 800 tokens
+# each. That is a property of the family and it belongs in finding 8.
 tokens: {}

@@ -136,18 +136,6 @@ per_million_tokens:
       batch_multiplier: 0.5
 
   google:
-    # Added 2026-09-16. Gemma is served through the Gemini API at no charge: the pricing page
-    # gives "Free of charge" for input, output and context caching alike. A zero rate, not a
-    # missing one, so the row costs to 0.00 and is auditable rather than landing in the ledger
-    # as uncosted, which is what an absent model does and which reads identically to a mistake.
-    #
-    # Free does not mean unlimited. The limit is requests rather than dollars and Google does
-    # not document it for Gemma, so the caps file cannot protect this route and the run has to
-    # find the ceiling by hitting it. Section 15.22 is what that looked like the last time.
-    gemma-4-31b-it:
-      input: 0.0
-      output: 0.0
-      cache_read: 0.0
     gemini-2.5-flash:
       input: 0.30
       output: 2.50
@@ -203,9 +191,14 @@ per_million_tokens:
       input: 0.15
       output: 0.60
       cache_read: 0.15
-    # google/gemma-4-31B-it was priced here on 2026-09-16 at 0.39/0.97 from Together's model
-    # page and then removed the same day: Together's API refuses the model as non-serverless and
-    # only offers it on a dedicated endpoint, so no per-token rate applies at all and a rate
-    # sitting here would be a rate nothing can ever use. The model is in the panel on the
-    # `google` provider instead. A page that advertises a per-million price is not evidence that
-    # a per-million price is available, which is a sharper version of this file's own rule.
+    # Gemma 4 31B was priced here twice on 2026-09-16 and carries no rate, deliberately.
+    #
+    # First at 0.39/0.97 from Together's model page. Together's API then refused the model as
+    # non-serverless, dedicated endpoint only, so no per-token rate exists to record: a page
+    # that advertises a per-million price is not evidence that a per-million price can be
+    # bought, which is a sharper version of this file's own rule about reading the vendor.
+    #
+    # Then at 0.0/0.0 on the `google` provider, where the Gemini API serves Gemma free of
+    # charge. That route works and the model was dropped from the panel for a different reason
+    # entirely: it will not answer in the answer-only format the bank is built on. PLAN.md
+    # section 15.33. Nothing in the panel calls it, so nothing here should price it.

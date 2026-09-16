@@ -258,6 +258,37 @@ would call irrelevant, and they are worth 26 percent of the variance to a 3B mod
 1 and 5 percent to the three frontier ones. Benchmark scores are usually compared as though the prompt were a neutral
 container. It is neutral for the models that need the least help.
 
+### The instruction is obeyed by some families and ignored by others
+
+Everything above measures what the template does to **correctness**, and finds almost nothing:
+0.3% of the variance at most. It says nothing about what the template does to **how much a model
+writes**, and there the same instruction produces a sixty-fold spread.
+
+Every model in the panel is asked to give the answer on a final line and nothing else. Measured
+on identical items:
+
+| family | tokens spent answering |
+|---|---:|
+| Qwen 7B, Llama 3B, and the nine hosted models | 4 to 15 |
+| Gemma 3 4B | 268 |
+| Gemma 3n 8B | 114 |
+| Gemma 4, on-device and hosted alike | 780 to 1,021 |
+
+Four Gemma builds were tested locally and a fifth through Google's API, and all five write an
+explanation whatever the prompt asks for. It is not a reasoning mode that can be switched off:
+Gemma 4 on the Gemini API rejects a thinking budget outright, and the local builds move the words
+from the thinking block into the prose when you suppress it.
+
+**This is why Gemma is not in the panel.** Not the cost, which was zero on Google's API, but
+because Findings 7 and 8 are experiments whose independent variable is the prompt format. A model
+that does not follow the format instruction has not received the treatment, so including it would
+mean reporting a format experiment run on a model the format never reached.
+
+The practical form of this, for anyone sizing a benchmark run: **"answer only" is a request, not a
+setting.** If you budget tokens on the assumption it is honoured, you will be wrong by a factor of
+sixty on some model families, and on a 1,024-token cap Gemma 4 returns an empty reply rather than
+a short one, which reads as a failed call rather than a verbose one.
+
 One caveat I would rather state than bury. The flip rate used for both corrections was measured
 under the answer-only template alone. If reasoning prompts are less stable, and they have more
 room to be, then the noise charged here is too small and the net figures are upper bounds. The
