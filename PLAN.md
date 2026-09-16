@@ -106,8 +106,8 @@ calibration never saw. Eight to ten current models:
 | Anthropic | Haiku 4.5, Sonnet 5 full suite; Opus 5 on the adaptive subset only | Two full-suite anchors, one frontier check |
 | OpenAI | One mid-tier full suite, one frontier on the adaptive subset | Same shape |
 | Google | One mid-tier full suite, one frontier on the adaptive subset | Same shape |
-| Open weights via a provider | Two mid-size models, full suite | Cheap full-suite anchors, provider-served |
-| Local | Two or three small models (3B to 8B, 4-bit) on the laptop | Free; they also spread the ability range downward, which item calibration needs |
+| Open weights via a provider | Three mid-size models, full suite | Cheap full-suite anchors, provider-served. Third added 2026-09-16 so that Google is represented in the open tier as well as the hosted one, see section 15.33 |
+| Local | Three models (3B to 8B, 4-bit) on the laptop | Free; two spread the ability range downward, which item calibration needs points for, and the third is a rung between them and the hosted models, see section 15.33 |
 
 Run settings: temperature 0, fixed system prompt, answer-only output format (a letter for
 multiple choice, a boxed final answer for MATH). **Amended 2026-09-12, twice, because the panel
@@ -297,8 +297,13 @@ test-retest run a week later; (3) nothing. Record the actual invoice in the port
 STATUS next to the estimate. Hard spend caps in every vendor console before the first
 call.
 
-Local models cost electricity. The laptop's 4 GB card runs 3B to 4B models at 4-bit;
-anything larger runs on CPU overnight or is dropped.
+Local models cost electricity. **Corrected 2026-09-16:** there is no 4 GB card. The machine is
+Intel integrated graphics with 2 GB and 64 GB of system RAM, so every local model runs on the CPU
+out of RAM and size is not the binding constraint; a 9.6 GB model loads without complaint. The
+constraint is decode speed, measured at 4 to 8 tokens/s across five builds, so what bounds a
+local slot is how many tokens a model writes rather than how many parameters it has. A model that
+answers in 4 tokens is 18 s/call at 7.6B; one that explains itself in 800 is 125 s/call at 8.0B.
+Section 15.33 has the measurements and the four builds they ruled out.
 
 ## 8. Handover to project 03
 
@@ -976,6 +981,75 @@ exists to check.
 
 It is worth noting that `anthropic-haiku` is the one Anthropic route carrying a dated
 identifier, and the one that works.
+
+### 15.33 The panel gains a rung and a family, and Gemma cost a day to rule out
+
+Section 3.3's panel goes from eleven models to thirteen: `together-open-c`, Google open weights
+on the existing Together route, and `local-mid-a`, a 7B on the laptop between the 3B models and
+everything hosted. Both are additions rather than replacements, because a replacement discards
+about 5,000 calls already paid for and forces the transfer tau and every table in findings 6 to 8
+to be recomputed, which buys nothing.
+
+#### What the panel was missing
+
+**A family.** The open-weights tier was Meta and OpenAI. Google had two hosted models and no
+open-weights entry, which is the one gap in family coverage the panel had.
+
+**A rung.** The ability range ran 3B, then straight to hosted frontier models. Findings 7 and 8
+both claim a capability gradient and the evidence for it is two 3B models at one end and nine
+hosted models at the other, with nothing in between and with capability, vendor and harness all
+changing at once. `local-mid-a` is `qwen2.5:7b`, the same family as `local-small-b`'s
+`qwen2.5:3b`, so it moves capability while holding the training recipe and the harness fixed.
+That is the closest thing to a controlled comparison this panel can contain.
+
+#### Four Gemma builds, measured and rejected
+
+The rung was meant to be Gemma 4, which Peter had installed and which is the on-device model
+people are actually deploying. It is not usable here, and the reason is not the one anybody
+guessed. Eight real bank items each, `plain` template, the uniform 1024-token budget:
+
+| build | size | tokens written | s/call | 5,000 calls |
+|---|---|---:|---:|---:|
+| `local-small-a` (`llama3.2:3b`) | 3B | 12 | 4.1 | 6 h |
+| **`qwen2.5:7b`** | **7.6B** | **4** | **18.4** | **26 h** |
+| `gemma3n:e4b` | 8B | 114 | 37 | 51 h |
+| `gemma3:4b` | 4B | 268 | 44 | 61 h |
+| `gemma4:e2b` | 5.1B | 759 | 102 | 142 h |
+| `gemma4:e4b` | 8.0B | 800 | 125 | 174 h |
+
+**The ordering does not follow size.** A 4B Gemma is slower than an 8B one, and a 7.6B Qwen is
+seven times faster than an 8B Gemma. The variable is how many tokens a model writes: every Gemma
+build ignores the answer-only instruction and explains itself anyway, and at this CPU's 4 to 8
+tokens/s that is the entire cost. `gemma4:e4b` also truncated at the 1024-token cap on 1 item in
+6 before reaching its answer, so even a 174-hour run would have come back with holes.
+
+Two dead ends were checked before giving up on it, so that the rejection is about the model and
+not about a switch nobody found. Ollama lists `thinking` as a capability for Gemma 4 and
+`think: False` does turn the thinking block off; it saves about a third, because the model then
+writes prose in the content instead. Neither `reasoning_effort` nor `chat_template_kwargs`
+reaches it through the OpenAI-compatible endpoint: 423 tokens against 394, which is noise.
+
+Gemma 4 31B is in the panel hosted, where somebody else's hardware pays for the 800 tokens.
+
+#### This is a result about the format, not only about a laptop
+
+Section 3.3's answer-only format is the project's central cost decision, and finding 8 reports
+that the prompt template explains at most 0.3% of the variance in **correctness**. True, and it
+measures the wrong quantity for planning a run: the template's effect on **how much a model
+writes** is a factor of sixty across families, 12 tokens against 800 for the same instruction.
+A budget built on "answer only means answer only" is wrong by that much on some families, and the
+write-up should say so.
+
+#### The laptop was never what the config said
+
+`boundary.yaml` claimed a 4 GB card, and section 15.20 rejected `qwen2.5:7b` on 2026-09-12 for
+being 4.7 GB against it. There is no such card. The machine is Intel integrated graphics with
+2 GB and 64 GB of system RAM, so every local model has always run on the CPU out of RAM, which is
+how a 9.6 GB Gemma loaded at all.
+
+So the constraint on a local slot was never VRAM. It is decode speed, 4 to 8 tokens/s measured
+across five builds, and therefore the number of tokens a model writes. The model rejected in
+September on a false hardware belief is the one that turned out to be right for the slot.
 
 ### 15.32 Two arms finished, and both were measuring their own noise
 

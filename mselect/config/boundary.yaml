@@ -110,15 +110,48 @@ routes:
   together-open-b:
     provider: openweights
     model: openai/gpt-oss-120b
+  # Added 2026-09-16. The open-weights tier was Meta and OpenAI, so Google was the one family
+  # with hosted models in the panel and no open-weights entry. It runs on the openweights
+  # provider because that is where the key and the cap already are; the alias says Together
+  # because the route does, not because the model is Together's.
+  #
+  # It reasons before answering, like every Gemma 4: about 800 output tokens against the 12 a
+  # 3B model spends, measured locally on 2026-09-16. That is inside the uniform 1024 budget and
+  # is the reason this alias costs more per item than the two beside it.
+  together-open-c:
+    provider: openweights
+    model: google/gemma-4-31B-it
   local-small-a:
     provider: local
     model: llama3.2:3b
-  # Peter's choice 2026-09-12. qwen2.5:7b was the first pick and is about 4.7 GB at 4-bit
-  # against a 4 GB card, so it would have run on the CPU; section 7's constraint for this slot
-  # is 3B to 4B. Needs `ollama pull qwen2.5:3b`.
+  # Peter's choice 2026-09-12. qwen2.5:7b was the first pick and was rejected as too large for
+  # what was then believed to be a 4 GB card; section 7's constraint for this slot is 3B to 4B.
+  #
+  # **That hardware belief was wrong and is corrected here 2026-09-16.** There is no 4 GB card.
+  # The machine is Intel integrated graphics with 2 GB and 64 GB of system RAM, so every local
+  # model runs on the CPU out of RAM and the ceiling for this slot is RAM, not VRAM: a 9.6 GB
+  # model loads without complaint. The slot keeps its 3B model anyway, because its job is to sit
+  # at the bottom of the ability range, which a larger model would not do.
+  #
+  # What actually bounds a local slot is decode speed, and it is severe: measured 2026-09-16,
+  # this CPU runs a 5B model at 7.7 tokens/s and an 8B at 6.4. A model that answers in 12 tokens
+  # is therefore fine and one that reasons for 800 is not, whatever its parameter count. See
+  # PLAN.md section 15.33 for the two Gemma 4 builds this ruled out.
   local-small-b:
     provider: local
     model: qwen2.5:3b
+  # Added 2026-09-16, and it is the qwen2.5:7b that section 15.20 rejected on 2026-09-12 for a
+  # card this machine does not have. Same family as local-small-b, which is the point: 3B and
+  # 7B on one harness is a capability ladder with the training recipe held constant, and
+  # findings 7 and 8 both rest on a capability gradient measured across families and vendors.
+  #
+  # Chosen over four Gemma builds that were measured first and all rejected. Every Gemma writes
+  # an explanation whatever the prompt says, 114 to 800 tokens, and at this CPU's 4 to 8
+  # tokens/s that is 37 to 125 s/call. This answers in 4 tokens at 18 s/call, 8 of 8 parsed.
+  # PLAN.md section 15.33 has the measurements.
+  local-mid-a:
+    provider: local
+    model: qwen2.5:7b
 
 prices: prices
 caps: caps.yaml

@@ -133,8 +133,14 @@ PANEL: Final[tuple[PanelEntry, ...]] = (
     PanelEntry("google-frontier", "frontier", "full suite", "frontier check, and the top anchor"),
     PanelEntry("together-open-a", "open weights", "full suite", "cheap full-suite anchor"),
     PanelEntry("together-open-b", "open weights", "full suite", "cheap full-suite anchor"),
+    # Google open weights. The panel had Google's hosted models and no open-weights entry from
+    # that family, which left the open tier as Meta and OpenAI only.
+    PanelEntry("together-open-c", "open weights", "full suite", "the missing open-weights family"),
     PanelEntry("local-small-a", "local", "full suite", "extends the ability range downward"),
     PanelEntry("local-small-b", "local", "full suite", "extends the ability range downward"),
+    # The rung between the 3B models and the hosted ones, and the same family as local-small-b
+    # so that capability moves while the training recipe does not.
+    PanelEntry("local-mid-a", "local", "full suite", "a capability rung inside one family"),
 )
 
 

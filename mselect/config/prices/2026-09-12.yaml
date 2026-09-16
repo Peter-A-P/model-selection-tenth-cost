@@ -191,3 +191,16 @@ per_million_tokens:
       input: 0.15
       output: 0.60
       cache_read: 0.15
+    # Added 2026-09-16 for the panel's new Google open-weights entry. A missing rate added, not
+    # a rate changed, so it belongs here rather than in a new dated file, on the same reasoning
+    # as the cache_read addition above.
+    #
+    # Read from https://www.together.ai/models/gemma-4-31b on 2026-09-16, which states 0.39 and
+    # 0.97 "effective May 21, 2026". A search summary had given 0.20 and 0.50 for this model and
+    # was wrong by a factor of two in both directions, which is exactly why this file's rule is
+    # to read the vendor's page. No discounted cached rate is shown, so cache reads are charged
+    # as ordinary input, the same as the two models above.
+    google/gemma-4-31B-it:
+      input: 0.39
+      output: 0.97
+      cache_read: 0.39
