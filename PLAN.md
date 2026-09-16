@@ -107,7 +107,7 @@ calibration never saw. Eight to ten current models:
 | OpenAI | One mid-tier full suite, one frontier on the adaptive subset | Same shape |
 | Google | One mid-tier full suite, one frontier on the adaptive subset | Same shape |
 | Open weights via a provider | Three mid-size models, full suite | Cheap full-suite anchors, provider-served. Third added 2026-09-16 so that Google is represented in the open tier as well as the hosted one, see section 15.33 |
-| Local | Three models (3B to 8B, 4-bit) on the laptop | Free; two spread the ability range downward, which item calibration needs points for, and the third is a rung between them and the hosted models, see section 15.33 |
+| Local | Two small models (3B, 4-bit) on the laptop | Free; they spread the ability range downward, which item calibration needs points for. A third, larger local rung was measured and dropped on wall clock, see section 15.33 |
 
 Run settings: temperature 0, fixed system prompt, answer-only output format (a letter for
 multiple choice, a boxed final answer for MATH). **Amended 2026-09-12, twice, because the panel
@@ -982,27 +982,36 @@ exists to check.
 It is worth noting that `anthropic-haiku` is the one Anthropic route carrying a dated
 identifier, and the one that works.
 
-### 15.33 The panel gains a rung and a family, and Gemma cost a day to rule out
+### 15.33 One model added, five rejected, and a laptop that was never what we thought
 
-Section 3.3's panel goes from eleven models to thirteen: `together-open-c`, Google open weights
-on the existing Together route, and `local-mid-a`, a 7B on the laptop between the 3B models and
-everything hosted. Both are additions rather than replacements, because a replacement discards
-about 5,000 calls already paid for and forces the transfer tau and every table in findings 6 to 8
-to be recomputed, which buys nothing.
+Section 3.3's panel goes from eleven models to twelve: `together-open-c`, Google open weights on
+the existing Together route. It is an addition rather than a replacement, because a replacement
+discards about 5,000 calls already paid for and forces the transfer tau and every table in
+findings 6 to 8 to be recomputed, which buys nothing.
+
+A second addition was built, measured and then dropped: `local-mid-a`, a 7B rung on the laptop
+between the 3B models and everything hosted. It works and it is the right model for the slot.
+It costs **26 hours of saturated CPU** on a machine Peter works on, and that is the whole reason
+it is not in the panel. The measurements below are kept because the next person to want a local
+rung needs them, and because the reason four other candidates failed is a result in itself.
 
 #### What the panel was missing
 
 **A family.** The open-weights tier was Meta and OpenAI. Google had two hosted models and no
 open-weights entry, which is the one gap in family coverage the panel had.
 
-**A rung.** The ability range ran 3B, then straight to hosted frontier models. Findings 7 and 8
-both claim a capability gradient and the evidence for it is two 3B models at one end and nine
-hosted models at the other, with nothing in between and with capability, vendor and harness all
-changing at once. `local-mid-a` is `qwen2.5:7b`, the same family as `local-small-b`'s
-`qwen2.5:3b`, so it moves capability while holding the training recipe and the harness fixed.
-That is the closest thing to a controlled comparison this panel can contain.
+**A rung, which it still lacks.** The ability range runs 3B, then straight to hosted frontier
+models. Findings 7 and 8 both claim a capability gradient and the evidence for it is two 3B
+models at one end and nine hosted models at the other, with nothing in between and with
+capability, vendor and harness all changing at once. `qwen2.5:7b` would have closed that: same
+family as `local-small-b`'s `qwen2.5:3b`, so capability moves while the training recipe and the
+harness hold still, which is the closest thing to a controlled comparison this panel can contain.
 
-#### Four Gemma builds, measured and rejected
+**That gap is now a stated limitation rather than a plan.** It is the cheapest unbought
+improvement the project has, 26 hours of laptop time and no money, and the write-up should say
+so where it claims the gradient.
+
+#### Five local builds measured, and what stopped each
 
 The rung was meant to be Gemma 4, which Peter had installed and which is the on-device model
 people are actually deploying. It is not usable here, and the reason is not the one anybody
@@ -1011,7 +1020,7 @@ guessed. Eight real bank items each, `plain` template, the uniform 1024-token bu
 | build | size | tokens written | s/call | 5,000 calls |
 |---|---|---:|---:|---:|
 | `local-small-a` (`llama3.2:3b`) | 3B | 12 | 4.1 | 6 h |
-| **`qwen2.5:7b`** | **7.6B** | **4** | **18.4** | **26 h** |
+| `qwen2.5:7b` (built, then dropped on wall clock) | 7.6B | 4 | 18.4 | 26 h |
 | `gemma3n:e4b` | 8B | 114 | 37 | 51 h |
 | `gemma3:4b` | 4B | 268 | 44 | 61 h |
 | `gemma4:e2b` | 5.1B | 759 | 102 | 142 h |
@@ -1049,7 +1058,8 @@ how a 9.6 GB Gemma loaded at all.
 
 So the constraint on a local slot was never VRAM. It is decode speed, 4 to 8 tokens/s measured
 across five builds, and therefore the number of tokens a model writes. The model rejected in
-September on a false hardware belief is the one that turned out to be right for the slot.
+September on a false hardware belief is the one that turned out to be right for the slot, and it
+was then dropped for a truer reason: 26 hours is too much of a working machine to ask for.
 
 ### 15.32 Two arms finished, and both were measuring their own noise
 

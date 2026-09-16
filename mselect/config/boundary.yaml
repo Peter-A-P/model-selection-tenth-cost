@@ -140,19 +140,6 @@ routes:
   local-small-b:
     provider: local
     model: qwen2.5:3b
-  # Added 2026-09-16, and it is the qwen2.5:7b that section 15.20 rejected on 2026-09-12 for a
-  # card this machine does not have. Same family as local-small-b, which is the point: 3B and
-  # 7B on one harness is a capability ladder with the training recipe held constant, and
-  # findings 7 and 8 both rest on a capability gradient measured across families and vendors.
-  #
-  # Chosen over four Gemma builds that were measured first and all rejected. Every Gemma writes
-  # an explanation whatever the prompt says, 114 to 800 tokens, and at this CPU's 4 to 8
-  # tokens/s that is 37 to 125 s/call. This answers in 4 tokens at 18 s/call, 8 of 8 parsed.
-  # PLAN.md section 15.33 has the measurements.
-  local-mid-a:
-    provider: local
-    model: qwen2.5:7b
-
 prices: prices
 caps: caps.yaml
 
