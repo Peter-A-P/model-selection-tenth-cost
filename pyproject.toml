@@ -45,9 +45,8 @@ dependencies = [
 ]
 
 [tool.uv.sources]
-# A private repository, installed from the tag. CI authenticates with a fine-grained
-# read-only token held as the BOUNDARY_GITHUB_TOKEN secret; the tag, not a branch, so a
-# lockfile resolves to one commit and a rerun is the same library.
+# Public since 2026-09-14, so CI installs it anonymously and no token is involved. Pinned to
+# the tag, not a branch, so a lockfile resolves to one commit and a rerun is the same library.
 boundary = { git = "https://github.com/Peter-A-P/compliant-ai-gateway", tag = "v0.2.0" }
 
 [project.urls]
