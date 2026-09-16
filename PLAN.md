@@ -993,6 +993,70 @@ exists to check.
 It is worth noting that `anthropic-haiku` is the one Anthropic route carrying a dated
 identifier, and the one that works.
 
+### 15.35 The gate was sizing itself from a laptop, and project 03 found it
+
+Project 03 was asked on 2026-09-16 whether it needed anything from this project before its second
+run. The answer for run 2 was nothing: part A is self-contained and does not import `mselect`, so
+02 is not on its critical path and must not be allowed to become it. The answer for part B, which
+starts in December, was one administrative item and one defect. The defect is real and is fixed
+here.
+
+**`points_sd()` was pooled and should not have been.** Its own docstring calls it "the number a
+release gate sizes itself with". It was derived from `observed_flip_rate`, which is the flip rate
+over the whole panel, laptop models included.
+
+This project had already made exactly this call once and made it correctly. `_own_run_retest`
+sets `agreement` from `worst_hosted_agreement` and says why in the caveat the consumer reads: a
+gate has to hold for the model it is watching rather than for the average one, and the two models
+on a laptop agree almost perfectly and are excluded for that reason. `points_sd` did not get the
+same treatment, so the object shipped a caveat saying the laptop models were excluded next to a
+number that included them.
+
+#### What it costs, measured rather than argued
+
+| flip rate | value | `points_sd(500)` |
+|---|---:|---:|
+| pooled over the panel, what it used | 0.0303 | 0.78 points |
+| mean over the nine hosted models | 0.0374 | 0.87 points |
+| **worst hosted (`openai-mid`), what it uses now** | **0.0640** | **1.13 points** |
+
+The gate was sizing itself **1.45 times more sensitive than it can be** for the worst hosted model
+it watches. That is the false-pass direction: a gate certifying it can detect drift it would in
+fact miss.
+
+**Adding `local-mid-a` would have made it worse**, which is what made 03 raise it now rather than
+in December. The two laptop models sit at 1.000 and 0.998 agreement, a third at temperature 0
+would be near-deterministic too, and the pooled rate would fall to about 0.028. Sized from the
+worst hosted model the coupling is not reduced, it is removed: a laptop model cannot reach the
+figure at all, whatever its agreement and however many of them there are. There is a test that
+says so.
+
+#### One thing in 03's suggested fix that would have broken something else
+
+03 proposed having `points_sd` use the worst hosted rate. Swapping `observed_flip_rate` itself
+would have done it and would have broken `resampling_note()`, which compares the observed flip
+rate against the 2p(1-p) prediction to show that a paired re-run sits in the smaller variance.
+`predicted_flip_rate` is panel-wide, so an observed figure from one model against a prediction
+over eleven is two different populations and the ratio stops meaning anything.
+
+So the fix is a separate field. `observed_flip_rate` stays panel-wide and keeps describing the
+panel; `worst_hosted_flip_rate` is written out beside it and is what `points_sd` sizes from;
+`points_sd(n, pooled=True)` returns the old number for a caller who wants the panel. Both are
+named in the caveat, because these two differ by nearly half and a bare one is not a result.
+
+`mselect retest` writes the new key. An artifact written before today does not have it, so
+`_worst_hosted_flip_rate` derives it from the per-model agreement map rather than falling back to
+the pooled figure, which would have been the failure mode this whole entry is about.
+
+#### Sequencing, and why no tag yet
+
+03 pins `tag = "v0.3.0"` with `mselect>=0.3,<0.4` and cannot import any of this until 02 cuts a
+tag. It asked for one tag rather than two, and it is right: the 7B run is rewriting the retest
+summary as this is written, so a tag cut today would pin a measurement that is about to change
+underneath it, and the whole reason that file is committed rather than left in gitignored `out/`
+is so the consumer sees a stable artifact. Order: the 7B lands, `own-run-retest-v1.json` is
+regenerated with twelve models, then one tag. Part B starts in December, so there are ten weeks.
+
 ### 15.34 The rung is bought after all, at 26 hours and no money
 
 Section 15.33 closed with the missing rung recorded as a stated limitation: the panel runs 3B,

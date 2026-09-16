@@ -6,6 +6,7 @@ PLAN.md section 5: `mselect bank build`, `mselect fit`, `mselect simulate`, `mse
 
 from __future__ import annotations
 
+import datetime as _dt
 from typing import TYPE_CHECKING
 
 import typer
@@ -1095,11 +1096,20 @@ def retest(
     # flip counts and the derived floor, with no item text and no replies, so section 13.5 is
     # untouched. It sits beside own-run-suite-v1.json, already a committed artefact of a run.
     beside = paths.ROOT / "mselect" / "config" / f"own-run-retest-{version}.json"
+    # A model on the laptop is not what a release gate watches, and at temperature 0 it barely
+    # disagrees with itself: the two 3B models came back at 1.000 and 0.998 agreement. Averaging
+    # them into a figure a gate sizes itself with makes the gate look more sensitive than it can
+    # be for the hosted models it exists to watch, which is the false-pass direction. So the
+    # worst hosted model is written out separately for both quantities, agreement and flip rate,
+    # and `handover.Reliability` sizes from the second. Raised by project 03 on 2026-09-16 when
+    # a third laptop model was about to drag the pooled rate down further still.
     hosted = [r for r in rows if not r.model.startswith("local-")]
     beside.write_text(
         json.dumps(
             {
-                "measured": "2026-09-14",
+                # When this summary was computed. The administrations behind it are whatever the
+                # record files hold, which after 2026-09-16 is more than one date.
+                "measured": _dt.datetime.now(_dt.UTC).date().isoformat(),
                 "bank_version": version,
                 "template": template,
                 "design": "the same items asked twice at temperature 0, a day apart",
@@ -1108,6 +1118,9 @@ def retest(
                 "agreement": {r.model: r.agreement.point for r in rows},
                 "worst_hosted_agreement": min(
                     (r.agreement.point for r in hosted), default=float("nan")
+                ),
+                "worst_hosted_flip_rate": max(
+                    (resamplings[r.model].observed_flip_rate for r in hosted), default=float("nan")
                 ),
                 "largest_score_move_points": max(
                     (abs(r.net_points) for r in rows if r.n_items), default=float("nan")

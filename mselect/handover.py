@@ -87,6 +87,10 @@ class Reliability:
     observed_flip_rate: float | None = None
     predicted_flip_rate: float | None = None
     symmetry_p: float | None = None
+    # The same quantity as `observed_flip_rate` for the worst-agreeing hosted model rather than
+    # for the panel. `points_sd` sizes from this one; see its docstring for why the pooled figure
+    # is the wrong number for a gate and the right one for `resampling_note`.
+    worst_hosted_flip_rate: float | None = None
 
     @property
     def measured(self) -> bool:
@@ -98,16 +102,29 @@ class Reliability:
         """True when this is the temperature-0 test-retest rather than the HELM stand-in."""
         return self.score_move_points is not None
 
-    def points_sd(self, n_items: int) -> float:
+    def points_sd(self, n_items: int, *, pooled: bool = False) -> float:
         """Standard deviation of a score change, in points, on a test of this many items.
 
         The number a release gate sizes itself with. Derived from the measured flip rate rather
         than from the information function, and the two differ by a factor of five: see
         `resampling_note`.
+
+        **Sized from the worst hosted model by default, corrected 2026-09-16.** It used to use
+        the pooled rate over the whole panel, which `agreement` had already been fixed not to do
+        and for the same reason: a gate has to hold for the model it is watching rather than for
+        the average one, and the models on a laptop agree with themselves almost perfectly at
+        temperature 0. Pooling them in understated the noise by 10% in points, and against the
+        worst hosted arm by a factor of 1.45. That is the false-pass direction, a gate certifying
+        it can detect drift it would in fact miss. Project 03 found it.
+
+        `pooled=True` returns the old panel-wide figure, which is the right one for describing
+        the panel and the wrong one for sizing a gate. Whichever a caller takes, the report says
+        which, because these two numbers differ by nearly half and a bare one is not a result.
         """
-        if self.observed_flip_rate is None or n_items <= 0:
+        rate = self.observed_flip_rate if pooled else self.worst_hosted_flip_rate
+        if rate is None or n_items <= 0:
             return float("nan")
-        return 100.0 * float(np.sqrt(self.observed_flip_rate / n_items))
+        return 100.0 * float(np.sqrt(rate / n_items))
 
     def resampling_note(self) -> str:
         """Why a drift test needs fewer items than the information function says it does."""
@@ -293,6 +310,22 @@ def dependent_block_index(version: str = bank_io.DEFAULT_VERSION) -> dict[str, i
     }
 
 
+def _worst_hosted_flip_rate(payload: dict[str, Any]) -> float | None:
+    """How often the least self-consistent hosted model changed its own answer.
+
+    Written out by `mselect retest` since 2026-09-16. Derived from the per-model agreement map
+    when it is absent, so that an artifact generated before that date still sizes a gate from a
+    hosted model rather than from a laptop. The two routes differ only in how they weight models
+    with unequal item counts, which on this design is nothing.
+    """
+    direct = payload.get("worst_hosted_flip_rate")
+    if direct is not None:
+        return float(direct)
+    agreement: dict[str, float] = payload.get("agreement") or {}
+    hosted = [v for k, v in agreement.items() if not k.startswith("local-")]
+    return 1.0 - min(hosted) if hosted else None
+
+
 def _own_run_retest(version: str) -> Reliability | None:
     """The committed summary of the own-run test-retest, if this bank has one.
 
@@ -313,14 +346,18 @@ def _own_run_retest(version: str) -> Reliability | None:
             f"twice at temperature 0, a day apart, measured {payload['measured']}"
         ),
         caveat=(
-            "The worst hosted model is reported, because a gate has to hold for the model it is "
-            "watching rather than for the average one. The two models on a laptop agree almost "
-            "perfectly and are excluded from this figure for that reason."
+            "The worst hosted model is reported, for `agreement` and for the flip rate "
+            "`points_sd` sizes from, because a gate has to hold for the model it is watching "
+            "rather than for the average one. The models on a laptop agree almost perfectly and "
+            "are excluded from both figures for that reason. `observed_flip_rate` is the "
+            "panel-wide number and stays panel-wide, because `resampling_note` compares it "
+            "against a panel-wide prediction and the two have to be the same population."
         ),
         score_move_points=float(payload["largest_score_move_points"]),
         observed_flip_rate=float(payload["observed_flip_rate"]),
         predicted_flip_rate=float(payload["predicted_flip_rate"]),
         symmetry_p=float(payload["symmetry_p_pooled"]),
+        worst_hosted_flip_rate=_worst_hosted_flip_rate(payload),
     )
 
 

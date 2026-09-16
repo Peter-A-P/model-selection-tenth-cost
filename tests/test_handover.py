@@ -206,3 +206,55 @@ def test_the_reliability_figure_is_the_worst_hosted_model_not_the_average() -> N
     assert min(hosted.values()) < min(
         payload["agreement"][n] for n in payload["agreement"] if n.startswith("local-")
     )
+
+
+def test_points_sd_is_sized_from_a_hosted_model_not_from_a_laptop() -> None:
+    """The number a gate sizes itself with must not be flattered by near-deterministic models.
+
+    Raised by project 03 on 2026-09-16. `agreement` had already been fixed to report the worst
+    hosted model, and the caveat string said the laptop models were excluded, but `points_sd`
+    was still derived from the pooled flip rate with those models in it. On bank v1 that
+    understates a gate's noise floor by a factor of 1.45 against the worst hosted arm, which is
+    the false-pass direction: a gate certifying it can detect drift it would in fact miss.
+    """
+    result = mselect.reliability()
+    assert result.worst_hosted_flip_rate is not None
+    assert result.observed_flip_rate is not None
+    # The pooled rate is the smaller one, which is exactly why it was the wrong number.
+    assert result.worst_hosted_flip_rate > result.observed_flip_rate
+    assert result.points_sd(500) == pytest.approx(
+        100.0 * (result.worst_hosted_flip_rate / 500) ** 0.5
+    )
+    # The panel-wide figure is still reachable, and saying which one you took is the point.
+    assert result.points_sd(500, pooled=True) == pytest.approx(
+        100.0 * (result.observed_flip_rate / 500) ** 0.5
+    )
+    assert result.points_sd(500) > result.points_sd(500, pooled=True)
+
+
+def test_another_laptop_model_cannot_move_the_gates_noise_floor() -> None:
+    """The regression 03 predicted, made impossible rather than merely unlikely.
+
+    A third near-deterministic local model drags the pooled flip rate down and would have made
+    the gate look more sensitive still. Sized from the worst hosted model, a laptop model cannot
+    reach the figure at all, whatever its agreement and however many of them there are.
+    """
+    from mselect.handover import _worst_hosted_flip_rate
+
+    payload = {
+        "agreement": {"openai-mid": 0.936, "local-small-a": 0.998, "local-small-b": 1.000},
+    }
+    before = _worst_hosted_flip_rate(payload)
+    payload["agreement"]["local-mid-a"] = 0.999
+    assert _worst_hosted_flip_rate(payload) == before
+    assert before == pytest.approx(1.0 - 0.936)
+
+
+def test_an_artifact_written_before_the_fix_still_sizes_from_a_hosted_model() -> None:
+    """The committed summary predates the new key, and a missing key must not silently
+    fall back to a pooled figure. It is derived from the per-model map instead."""
+    from mselect.handover import _worst_hosted_flip_rate
+
+    assert _worst_hosted_flip_rate({"agreement": {"a": 0.9, "local-x": 1.0}}) == pytest.approx(0.1)
+    assert _worst_hosted_flip_rate({"worst_hosted_flip_rate": 0.25}) == pytest.approx(0.25)
+    assert _worst_hosted_flip_rate({}) is None

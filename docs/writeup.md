@@ -149,8 +149,16 @@ than the large across-model one:
 | noise actually observed | 1.7 points | 0.8 points |
 
 So a paired re-run of the same questions is about twice as sensitive as the information function
-suggests. `mselect.reliability()` returns the measured figure, and `points_sd(n)` gives the
-column on the right, so a gate can size itself from the measurement rather than from the theory.
+suggests. `mselect.reliability()` returns the measured figure, so a gate can size itself from the
+measurement rather than from the theory.
+
+The row above is the panel average, and **a gate should not use it.** `points_sd(n)` returns the
+worst hosted model instead, 2.5 points on 100 items and 1.1 on 500, because a gate has to hold
+for the model it is watching rather than for the average one. The two models on a laptop agree
+with themselves almost perfectly at temperature 0, and averaging them in makes a gate look 1.45
+times more sensitive than it can actually be for the hosted models it exists to watch. That is
+the direction that passes a release it should have caught. `points_sd(n, pooled=True)` gives the
+panel figure back for describing the panel.
 
 ## Finding 7: every model on the panel is worse when the answer is A
 
