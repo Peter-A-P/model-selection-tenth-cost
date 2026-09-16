@@ -111,16 +111,23 @@ routes:
     provider: openweights
     model: openai/gpt-oss-120b
   # Added 2026-09-16. The open-weights tier was Meta and OpenAI, so Google was the one family
-  # with hosted models in the panel and no open-weights entry. It runs on the openweights
-  # provider because that is where the key and the cap already are; the alias says Together
-  # because the route does, not because the model is Together's.
+  # with hosted models in the panel and no open-weights entry.
   #
-  # It reasons before answering, like every Gemma 4: about 800 output tokens against the 12 a
-  # 3B model spends, measured locally on 2026-09-16. That is inside the uniform 1024 budget and
-  # is the reason this alias costs more per item than the two beside it.
-  together-open-c:
-    provider: openweights
-    model: google/gemma-4-31B-it
+  # It runs on the `google` provider, not on `openweights`, and that is the second attempt.
+  # Together's page advertises this model at 0.39/0.97 per million and its API refuses it:
+  #   400 invalid_request_error: Unable to access non-serverless model google/gemma-4-31B-it.
+  #   Please visit ... to create and start a new dedicated endpoint for the model.
+  # Dedicated endpoints bill GPU-hours whether or not they are used, which is the wrong cost
+  # model for 5,000 calls. The smoke command found this for the price of three failed requests.
+  #
+  # Google serves Gemma through the Gemini API at the same endpoint this project already uses
+  # for gemini-3.5 and gemini-3.8, on the same key, and charges nothing for it: input, output
+  # and caching are all documented free of charge. The rate limit is therefore the constraint
+  # rather than the price, and it is undocumented; section 15.22 is what a Google quota refusal
+  # looks like when it arrives mid-run.
+  google-open-a:
+    provider: google
+    model: gemma-4-31b-it
   local-small-a:
     provider: local
     model: llama3.2:3b

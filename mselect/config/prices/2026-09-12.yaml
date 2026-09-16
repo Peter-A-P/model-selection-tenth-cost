@@ -136,6 +136,18 @@ per_million_tokens:
       batch_multiplier: 0.5
 
   google:
+    # Added 2026-09-16. Gemma is served through the Gemini API at no charge: the pricing page
+    # gives "Free of charge" for input, output and context caching alike. A zero rate, not a
+    # missing one, so the row costs to 0.00 and is auditable rather than landing in the ledger
+    # as uncosted, which is what an absent model does and which reads identically to a mistake.
+    #
+    # Free does not mean unlimited. The limit is requests rather than dollars and Google does
+    # not document it for Gemma, so the caps file cannot protect this route and the run has to
+    # find the ceiling by hitting it. Section 15.22 is what that looked like the last time.
+    gemma-4-31b-it:
+      input: 0.0
+      output: 0.0
+      cache_read: 0.0
     gemini-2.5-flash:
       input: 0.30
       output: 2.50
@@ -191,16 +203,9 @@ per_million_tokens:
       input: 0.15
       output: 0.60
       cache_read: 0.15
-    # Added 2026-09-16 for the panel's new Google open-weights entry. A missing rate added, not
-    # a rate changed, so it belongs here rather than in a new dated file, on the same reasoning
-    # as the cache_read addition above.
-    #
-    # Read from https://www.together.ai/models/gemma-4-31b on 2026-09-16, which states 0.39 and
-    # 0.97 "effective May 21, 2026". A search summary had given 0.20 and 0.50 for this model and
-    # was wrong by a factor of two in both directions, which is exactly why this file's rule is
-    # to read the vendor's page. No discounted cached rate is shown, so cache reads are charged
-    # as ordinary input, the same as the two models above.
-    google/gemma-4-31B-it:
-      input: 0.39
-      output: 0.97
-      cache_read: 0.39
+    # google/gemma-4-31B-it was priced here on 2026-09-16 at 0.39/0.97 from Together's model
+    # page and then removed the same day: Together's API refuses the model as non-serverless and
+    # only offers it on a dedicated endpoint, so no per-token rate applies at all and a rate
+    # sitting here would be a rate nothing can ever use. The model is in the panel on the
+    # `google` provider instead. A page that advertises a per-million price is not evidence that
+    # a per-million price is available, which is a sharper version of this file's own rule.

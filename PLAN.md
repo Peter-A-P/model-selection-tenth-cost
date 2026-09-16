@@ -984,8 +984,8 @@ identifier, and the one that works.
 
 ### 15.33 One model added, five rejected, and a laptop that was never what we thought
 
-Section 3.3's panel goes from eleven models to twelve: `together-open-c`, Google open weights on
-the existing Together route. It is an addition rather than a replacement, because a replacement
+Section 3.3's panel goes from eleven models to twelve: `google-open-a`, Google open weights,
+served free through the Gemini API on the key this project already holds. It is an addition rather than a replacement, because a replacement
 discards about 5,000 calls already paid for and forces the transfer tau and every table in
 findings 6 to 8 to be recomputed, which buys nothing.
 
@@ -1039,6 +1039,28 @@ writes prose in the content instead. Neither `reasoning_effort` nor `chat_templa
 reaches it through the OpenAI-compatible endpoint: 423 tokens against 394, which is noise.
 
 Gemma 4 31B is in the panel hosted, where somebody else's hardware pays for the 800 tokens.
+
+#### The first route for it was wrong, and three failed calls said so
+
+`together-open-c` was wired against `google/gemma-4-31B-it` on Together, whose model page
+advertises 0.39 and 0.97 per million tokens. Together's API refuses it:
+
+    400 invalid_request_error: Unable to access non-serverless model google/gemma-4-31B-it.
+    Please visit ... to create and start a new dedicated endpoint for the model.
+
+A dedicated endpoint bills GPU-hours whether or not it is used, which is the wrong cost model for
+5,000 calls. **A page that advertises a per-million price is not evidence that a per-million
+price is available**, which is a sharper version of the price file's own rule about reading the
+vendor rather than a summary: this time the vendor's own page was the thing that misled.
+
+The route is `google-open-a` on the Gemini API instead, which serves Gemma at the same endpoint
+and on the same key as `google-mid` and `google-frontier`, and charges nothing: input, output and
+caching all documented free of charge. So the constraint on this alias is a rate limit rather
+than a bill, Google does not document that limit for Gemma, and `caps.yaml` cannot protect a
+route that spends no money. The run will have to find the ceiling by reaching it, and section
+15.22 records what that looks like.
+
+The whole detour cost three failed requests, because `mselect smoke` exists and was run first.
 
 #### This is a result about the format, not only about a laptop
 
