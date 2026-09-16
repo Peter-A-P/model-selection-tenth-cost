@@ -107,7 +107,7 @@ calibration never saw. Eight to ten current models:
 | OpenAI | One mid-tier full suite, one frontier on the adaptive subset | Same shape |
 | Google | One mid-tier full suite, one frontier on the adaptive subset | Same shape |
 | Open weights via a provider | Two mid-size models, full suite | Cheap full-suite anchors, provider-served. A Google entry was attempted 2026-09-16 and dropped: it will not answer in the answer-only format, see section 15.33 |
-| Local | Two small models (3B, 4-bit) on the laptop | Free; they spread the ability range downward, which item calibration needs points for. A third, larger local rung was measured and dropped on wall clock, see section 15.33 |
+| Local | Two small models (3B) and one 7B on the laptop | Free; they spread the ability range downward, which item calibration needs points for. The 7B is the same family as one of the 3B models, so the pair moves capability and nothing else, see section 15.34 |
 
 Run settings: temperature 0, fixed system prompt, answer-only output format (a letter for
 multiple choice, a boxed final answer for MATH). **Amended 2026-09-12, twice, because the panel
@@ -303,7 +303,8 @@ out of RAM and size is not the binding constraint; a 9.6 GB model loads without 
 constraint is decode speed, measured at 4 to 8 tokens/s across five builds, so what bounds a
 local slot is how many tokens a model writes rather than how many parameters it has. A model that
 answers in 4 tokens is 18 s/call at 7.6B; one that explains itself in 800 is 125 s/call at 8.0B.
-Section 15.33 has the measurements and the four builds they ruled out.
+Section 15.33 has the measurements and the four builds they ruled out; the 7.6B one was bought
+on 2026-09-16 for 26 hours and no money, section 15.34.
 
 ## 8. Handover to project 03
 
@@ -991,6 +992,56 @@ exists to check.
 
 It is worth noting that `anthropic-haiku` is the one Anthropic route carrying a dated
 identifier, and the one that works.
+
+### 15.34 The rung is bought after all, at 26 hours and no money
+
+Section 15.33 closed with the missing rung recorded as a stated limitation: the panel runs 3B,
+then straight to hosted frontier models, so findings 7 and 8 claim a capability gradient on
+evidence where capability, vendor and harness all move at once. Peter's call on 2026-09-16, after
+reading that section: buy it. **The panel is twelve models.**
+
+`local-mid-a` is `qwen2.5:7b`, the same family, training recipe and harness as `local-small-b`'s
+`qwen2.5:3b`. That is the point of it and the reason it is this model rather than a better one.
+Every other pair in the panel differs in several things at once; this pair differs in capability
+alone, which is the only controlled comparison twelve models can contain.
+
+It has now been rejected twice and bought once, and the two rejections were wrong in different
+ways worth keeping:
+
+- **2026-09-12, on memory.** 4.7 GB against a 4 GB card. There is no 4 GB card, so the number it
+  was compared against did not exist. Section 15.33.
+- **2026-09-16, on wall clock.** 26 hours, correctly measured, and dropped as too expensive in a
+  currency the project had not been counting. It is still 26 hours. What changed is that the
+  limitation it leaves behind was written down in section 15.33 and then read, at which point 26
+  hours of a laptop that is otherwise idle stopped looking like the expensive option.
+
+#### What it costs and what it buys
+
+Nothing, in dollars. `local` is `price_zero` in `boundary.yaml`, so this arm cannot move the
+US$35.50 lifetime spend or the CA$220 budget line. The cost is 5,000 calls at 18.4 s measured,
+about 26 hours of laptop time, run in one sequence across all seven arms:
+
+| arm | calls | template | why |
+|---|---:|---|---|
+| suite | 3,000 | `plain` rotation 0 | the full-suite score, and the validation row |
+| rotations | 900 | `plain` rotations 1, 2, 3 | finding 7, position bias |
+| retest | 500 | `plain` rotation 0, administration 2 | the flip rate both noise corrections need |
+| framing | 600 | `letter_only`, `brief_reasoning` | finding 8 |
+
+That is the same 5,000 calls every other member of the panel made, in the same order, on the same
+items, which is what makes the twelfth row comparable rather than merely present.
+
+#### What has to be recomputed, and what does not
+
+Nothing already paid for is discarded, which is why this is an addition and not a replacement.
+The item bank is calibrated from public response data and does not move. What moves is everything
+computed over the panel: the validation tau, the retest table, findings 7 and 8, and the report.
+All of it is recomputation from record files and costs nothing.
+
+**One thing to watch when the numbers land.** A twelfth model widens every bootstrap interval
+over the panel before it narrows any of them, because the interval is over models and twelve is
+still a small number. If the validation tau moves, that is not the new model being good or bad;
+section 15.26 has why a tau over this few models moves in visible steps.
 
 ### 15.33 Six models considered, none added, and a laptop that was never what we thought
 

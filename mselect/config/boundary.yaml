@@ -129,6 +129,22 @@ routes:
   local-small-b:
     provider: local
     model: qwen2.5:3b
+  # The rung between 3B and the hosted models, added 2026-09-16 after being rejected twice.
+  #
+  # Rejected on 2026-09-12 for being 4.7 GB against a 4 GB card that does not exist, and again on
+  # 2026-09-16 on wall clock, 26 hours. Peter's call to buy the hours: findings 7 and 8 both claim
+  # a capability gradient, and without this alias the evidence for it is two 3B models at one end
+  # and nine hosted models at the other, with capability, vendor and harness moving together.
+  #
+  # Same family as `local-small-b` on purpose. `qwen2.5:3b` and `qwen2.5:7b` share a training
+  # recipe and a harness, so the comparison between them moves capability and nothing else, which
+  # is the only controlled comparison this panel can contain.
+  #
+  # Measured 2026-09-16 on eight real bank items: 4 output tokens at the median, 18.4 s/call,
+  # 8/8 parsed. It is seven times faster than an 8B Gemma because it does what it is told.
+  local-mid-a:
+    provider: local
+    model: qwen2.5:7b
 prices: prices
 caps: caps.yaml
 

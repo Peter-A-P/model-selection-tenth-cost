@@ -123,6 +123,10 @@ class PanelEntry:
 # model with no full-suite run cannot appear in the second one, so the panel had eleven models
 # and the validation had eight, two of them a 3B and a 7B on the laptop. The frontier check is
 # unchanged, because the adaptive subset is chosen from what was administered.
+#
+# Twelfth entry 2026-09-16: `local-mid-a`, a 7B on the laptop. It is the only member of the panel
+# that differs from another member in capability alone, sharing `local-small-b`'s family, training
+# recipe and harness, which is what findings 7 and 8 need and did not have. PLAN.md section 15.34.
 PANEL: Final[tuple[PanelEntry, ...]] = (
     PanelEntry("anthropic-haiku", "mid", "full suite", "full-suite anchor"),
     PanelEntry("anthropic-sonnet", "mid", "full suite", "full-suite anchor"),
@@ -135,6 +139,7 @@ PANEL: Final[tuple[PanelEntry, ...]] = (
     PanelEntry("together-open-b", "open weights", "full suite", "cheap full-suite anchor"),
     PanelEntry("local-small-a", "local", "full suite", "extends the ability range downward"),
     PanelEntry("local-small-b", "local", "full suite", "extends the ability range downward"),
+    PanelEntry("local-mid-a", "local", "full suite", "the rung between 3B and the hosted models"),
 )
 
 
