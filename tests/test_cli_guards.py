@@ -7,6 +7,7 @@ an alias that costs money without saying so is refused before a gateway is even 
 
 from __future__ import annotations
 
+import re
 from pathlib import Path
 
 import pytest
@@ -16,6 +17,22 @@ from mselect import paths
 from mselect.cli import app
 
 runner = CliRunner()
+
+_STYLING = re.compile(r"\x1b\[[0-9;]*m")
+
+
+def unstyled(output: str) -> str:
+    """What the command said, with the escape sequences rich wraps it in taken out.
+
+    Typer forces colour on whenever `GITHUB_ACTIONS` is set, and rich's option highlighter then
+    writes `--rotation` as a styled `-` followed by a styled `-rotation`, so the flag is no
+    longer in the output as a literal string. Nothing sets that variable on a laptop, the same
+    output arrives unstyled, and the same assertion passes: that is why
+    `test_the_experiment_readers_refuse_a_missing_arm` was green on Windows and red on the
+    runner for six builds in a row. Every assertion about output goes through here, the ones
+    that check a flag is absent above all, because under styling those could not have failed.
+    """
+    return _STYLING.sub("", output)
 
 
 @pytest.fixture
@@ -34,52 +51,52 @@ def elsewhere(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
 def test_naming_a_paid_alias_without_yes_calls_nothing() -> None:
     result = runner.invoke(app, ["smoke", "--alias", "anthropic-haiku"])
     assert result.exit_code == 1
-    assert "would cost money" in result.output
-    assert "Nothing was called" in result.output
+    assert "would cost money" in unstyled(result.output)
+    assert "Nothing was called" in unstyled(result.output)
 
 
 def test_a_paid_alias_is_refused_even_alongside_a_free_one() -> None:
     """A free alias in the list does not buy the paid one a pass."""
     result = runner.invoke(app, ["smoke", "--alias", "local-small-a,openai-mid"])
     assert result.exit_code == 1
-    assert "openai-mid" in result.output
-    assert "local-small-a would cost" not in result.output
+    assert "openai-mid" in unstyled(result.output)
+    assert "local-small-a would cost" not in unstyled(result.output)
 
 
 def test_an_unknown_alias_is_refused_before_anything_opens() -> None:
     result = runner.invoke(app, ["smoke", "--alias", "not-a-model"])
     assert result.exit_code != 0
-    assert "no route for not-a-model" in result.output
+    assert "no route for not-a-model" in unstyled(result.output)
 
 
 def test_routes_and_suite_never_take_a_yes_flag() -> None:
     """The two free commands stay free: nothing about them should be gated on spending."""
     for command in ("routes", "suite"):
-        help_text = runner.invoke(app, [command, "--help"]).output
+        help_text = unstyled(runner.invoke(app, [command, "--help"]).output)
         assert "--yes" not in help_text, f"{command} should not be able to spend"
 
 
 def test_run_without_yes_sends_nothing_and_says_so(elsewhere: Path) -> None:
     """The run that spends the budget must not start because someone typed the command."""
     result = runner.invoke(app, ["run", "--alias", "local-small-a", "--limit", "1"])
-    assert "nothing to do" not in result.output, "the guard needs something to guard"
+    assert "nothing to do" not in unstyled(result.output), "the guard needs something to guard"
     assert result.exit_code == 1
-    assert "nothing was sent" in result.output
-    assert "--yes" in result.output
+    assert "nothing was sent" in unstyled(result.output)
+    assert "--yes" in unstyled(result.output)
 
 
 def test_run_prints_the_plan_before_it_asks_for_permission(elsewhere: Path) -> None:
     """A plan nobody can read is not a confirmation step."""
     result = runner.invoke(app, ["run", "--alias", "local-small-a", "--limit", "5"])
-    assert "calls outstanding" in result.output
-    assert "local-small-a" in result.output
-    assert "llama3.2:3b" in result.output, "the model, not just the alias it hides behind"
+    assert "calls outstanding" in unstyled(result.output)
+    assert "local-small-a" in unstyled(result.output)
+    assert "llama3.2:3b" in unstyled(result.output), "the model, not just the alias it hides behind"
 
 
 def test_run_refuses_an_alias_with_no_route() -> None:
     result = runner.invoke(app, ["run", "--alias", "not-a-model", "--limit", "1", "--yes"])
     assert result.exit_code != 0
-    assert "no route for not-a-model" in result.output
+    assert "no route for not-a-model" in unstyled(result.output)
 
 
 def test_rescore_reports_without_writing_by_default(tmp_path: Path) -> None:
@@ -88,22 +105,23 @@ def test_rescore_reports_without_writing_by_default(tmp_path: Path) -> None:
     path.write_text("", encoding="utf-8")
     result = runner.invoke(app, ["rescore", str(path)])
     assert result.exit_code == 0
-    assert "--write" not in result.output or "nothing written" in result.output
+    said = unstyled(result.output)
+    assert "--write" not in said or "nothing written" in said
 
 
 def test_rescore_refuses_a_file_that_is_not_there(tmp_path: Path) -> None:
     result = runner.invoke(app, ["rescore", str(tmp_path / "nope.jsonl")])
     assert result.exit_code != 0
-    assert "no record file" in result.output
+    assert "no record file" in unstyled(result.output)
 
 
 def test_a_repeat_administration_writes_somewhere_else(elsewhere: Path) -> None:
     """Test-retest compares two administrations, so merging them into one file loses the arm."""
     plain = runner.invoke(app, ["run", "--alias", "local-small-a", "--limit", "1"])
     again = runner.invoke(app, ["run", "--alias", "local-small-a", "--limit", "1", "--repeat", "2"])
-    assert "own-run-plain-0.jsonl" in plain.output
-    assert "own-run-plain-0-r2.jsonl" in again.output
-    assert "administration 2" in again.output
+    assert "own-run-plain-0.jsonl" in unstyled(plain.output)
+    assert "own-run-plain-0-r2.jsonl" in unstyled(again.output)
+    assert "administration 2" in unstyled(again.output)
 
 
 def test_a_repeat_administration_says_it_will_not_read_the_first_one_s_cache(
@@ -124,8 +142,8 @@ def test_a_repeat_administration_says_it_will_not_read_the_first_one_s_cache(
     result = runner.invoke(
         app, ["run", "--alias", "local-small-a", "--limit", "1", "--repeat", "2"]
     )
-    assert "cache namespace 'r2'" in result.output
-    assert "made again rather than answered from administration 1" in result.output
+    assert "cache namespace 'r2'" in unstyled(result.output)
+    assert "made again rather than answered from administration 1" in unstyled(result.output)
 
 
 def test_repeat_zero_is_refused(elsewhere: Path) -> None:
@@ -133,7 +151,7 @@ def test_repeat_zero_is_refused(elsewhere: Path) -> None:
         app, ["run", "--alias", "local-small-a", "--limit", "1", "--repeat", "0"]
     )
     assert result.exit_code != 0
-    assert "repeat starts at 1" in result.output
+    assert "repeat starts at 1" in unstyled(result.output)
 
 
 def test_a_run_without_the_keys_refuses_before_it_calls_anything(
@@ -158,10 +176,10 @@ def test_a_run_without_the_keys_refuses_before_it_calls_anything(
         ["run", "--alias", "anthropic-haiku,local-small-a", "--limit", "2", "--yes"],
     )
     assert result.exit_code == 1
-    assert "ANTHROPIC_API_KEY is not set" in result.output
-    assert "anthropic-haiku cannot run without it" in result.output
-    assert "nothing was sent" in result.output
-    assert "local-small-a" not in result.output.split("is not set")[-1], (
+    assert "ANTHROPIC_API_KEY is not set" in unstyled(result.output)
+    assert "anthropic-haiku cannot run without it" in unstyled(result.output)
+    assert "nothing was sent" in unstyled(result.output)
+    assert "local-small-a" not in unstyled(result.output).split("is not set")[-1], (
         "the laptop needs no key and must not be named as blocked by one"
     )
 
@@ -170,12 +188,12 @@ def test_retest_refuses_when_there_is_no_second_administration(elsewhere: Path) 
     """Comparing one administration against itself would report perfect reliability."""
     result = runner.invoke(app, ["retest"])
     assert result.exit_code != 0
-    assert "no record file" in result.output
+    assert "no record file" in unstyled(result.output)
 
 
 def test_retest_never_takes_a_yes_flag() -> None:
     """Both administrations were paid for once; the arithmetic is free forever."""
-    assert "--yes" not in runner.invoke(app, ["retest", "--help"]).output
+    assert "--yes" not in unstyled(runner.invoke(app, ["retest", "--help"]).output)
 
 
 def test_a_rotated_run_sets_aside_the_items_a_rotation_cannot_touch(elsewhere: Path) -> None:
@@ -188,16 +206,16 @@ def test_a_rotated_run_sets_aside_the_items_a_rotation_cannot_touch(elsewhere: P
     states as multiple choice. On this suite that is 2,783 items of 3,000.
     """
     result = runner.invoke(app, ["run", "--alias", "local-small-a", "--rotation", "1"])
-    assert "free-response items set aside" in result.output
-    assert "multiple-choice items remain" in result.output
-    assert "cannot be rotated" not in result.output, "it must not reach the guard at all"
+    assert "free-response items set aside" in unstyled(result.output)
+    assert "multiple-choice items remain" in unstyled(result.output)
+    assert "cannot be rotated" not in unstyled(result.output), "it must not reach the guard at all"
 
 
 def test_an_unrotated_run_keeps_every_item(elsewhere: Path) -> None:
     """The filter belongs to the position-bias arm and must not quietly shrink the others."""
     result = runner.invoke(app, ["run", "--alias", "local-small-a"])
-    assert "set aside" not in result.output
-    assert "3,000 items per alias" in result.output
+    assert "set aside" not in unstyled(result.output)
+    assert "3,000 items per alias" in unstyled(result.output)
 
 
 def test_the_experiment_readers_refuse_a_missing_arm(elsewhere: Path) -> None:
@@ -208,24 +226,26 @@ def test_the_experiment_readers_refuse_a_missing_arm(elsewhere: Path) -> None:
     """
     bias = runner.invoke(app, ["position-bias", "--rotations", "0,1"])
     assert bias.exit_code != 0
-    assert "no record file" in bias.output and "--rotation" in bias.output
+    said = unstyled(bias.output)
+    assert "no record file" in said and "--rotation" in said
 
     frame = runner.invoke(app, ["framing", "--templates", "plain,letter_only"])
     assert frame.exit_code != 0
-    assert "no record file" in frame.output and "--template" in frame.output
+    said = unstyled(frame.output)
+    assert "no record file" in said and "--template" in said
 
 
 def test_comparing_needs_something_to_compare_against(elsewhere: Path) -> None:
     for command, flag in (("position-bias", "--rotations"), ("framing", "--templates")):
         result = runner.invoke(app, [command, flag, "0" if "rot" in flag else "plain"])
         assert result.exit_code != 0
-        assert "at least two" in result.output
+        assert "at least two" in unstyled(result.output)
 
 
 def test_neither_reader_can_spend_anything() -> None:
     """The arms are paid for once; the arithmetic is free forever."""
     for command in ("position-bias", "framing"):
-        assert "--yes" not in runner.invoke(app, [command, "--help"]).output
+        assert "--yes" not in unstyled(runner.invoke(app, [command, "--help"]).output)
 
 
 def test_a_resume_asks_only_for_the_keys_its_remaining_work_needs(
@@ -265,8 +285,8 @@ def test_a_resume_asks_only_for_the_keys_its_remaining_work_needs(
     monkeypatch.setattr(records, "done", recorded)
     monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
     result = runner.invoke(app, ["run", "--alias", f"{settled},local-small-a", "--limit", "2"])
-    assert "ANTHROPIC_API_KEY" not in result.output, (
+    assert "ANTHROPIC_API_KEY" not in unstyled(result.output), (
         "the one alias with no work left must not hold up the laptop, which needs no key"
     )
     assert result.exit_code == 1
-    assert "Add --yes to run it" in result.output
+    assert "Add --yes to run it" in unstyled(result.output)
