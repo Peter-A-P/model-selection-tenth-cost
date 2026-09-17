@@ -132,7 +132,8 @@ the same way as the incomplete items in
 [items-that-measure-nothing.md](items-that-measure-nothing.md), and that models would score at
 or below chance on them.
 
-They do not. Over the own-run panel of eleven models, accuracy on those items is 0.733 (0.631 to
+They do not. Measured 2026-09-13 over the own-run panel as it stood then, eleven models rather
+than the twelve it has since 2026-09-17, accuracy on those items is 0.733 (0.631 to
 0.815) against 0.808 (0.776 to 0.837) on the other MATH items in the suite: intervals that
 overlap across most of their width, on 86 scored replies. Whatever penalty exists is smaller
 than this panel can resolve, and the honest reading is that the models simply read the drawing

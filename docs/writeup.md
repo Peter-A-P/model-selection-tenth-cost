@@ -105,12 +105,12 @@ something else. [rejected.md](rejected.md) has the full argument and the numbers
 ## Finding 6: your model disagrees with itself, and by more than you would gate on
 
 Everything above is measured on other people's published results. This one needed our own money:
-eleven current models from four vendors, plus two small ones on a laptop, asked the same 500
-questions twice at temperature 0, a day apart.
+nine current models from four vendors, plus three on a laptop, asked the same 500 questions
+twice at temperature 0, a day apart.
 
 | model tier | agreement with itself | score moved |
 |---|---:|---:|
-| two small models on a laptop | 0.998 and 1.000 | 0.0 and -0.2 points |
+| three models on a laptop | 0.998 to 1.000 | -0.2 to +0.2 points |
 | nine hosted models | 0.936 to 0.984 | -2.0 to +1.0 points |
 
 Temperature 0 is not determinism. Between 1.6 and 6.4 percent of answers changed on hosted
@@ -122,16 +122,16 @@ rather than the measurement.
 same 500 questions it had already answered. If your release gate fires on a two-point drop, it
 would have fired here, on nothing.
 
-And it really is nothing rather than a trend: the flips are symmetric, 83 answers moving to right
-against 85 moving to wrong across the whole panel, p = 0.94 on McNemar's exact test. That is a
+And it really is nothing rather than a trend: the flips are symmetric, 84 answers moving to right
+against 85 moving to wrong across the whole panel, p = 1.00 on McNemar's exact test. That is a
 random walk. Drift would have been the easier problem, because a systematic shift can be
 corrected for and a random walk can only be measured and allowed for.
 
 ### The part that was a surprise
 
 Item response theory treats an answer as a coin weighted by p, so a model re-asked an item it has
-a 50-50 chance on should change its answer half the time. **It changes 3 percent of the time.**
-Across the panel, answers move five times less often than the response model says they should,
+a 50-50 chance on should change its answer half the time. **It changes 2.8 percent of the time.**
+Across the panel, answers move six times less often than the response model says they should,
 and that holds for every model separately.
 
 The reason is that p is not what it looks like. It describes how models *at the same ability*
@@ -145,39 +145,48 @@ than the large across-model one:
 
 | | on 100 items | on 500 items |
 |---|---:|---:|
-| noise the response model predicts | 4.0 points | 1.8 points |
+| noise the response model predicts | 4.2 points | 1.9 points |
 | noise actually observed | 1.7 points | 0.8 points |
 
-So a paired re-run of the same questions is about twice as sensitive as the information function
-suggests. `mselect.reliability()` returns the measured figure, so a gate can size itself from the
-measurement rather than from the theory.
+So a paired re-run of the same questions is about two and a half times as sensitive as the
+information function suggests. `mselect.reliability()` returns the measured figure, so a gate can
+size itself from the measurement rather than from the theory.
 
 The row above is the panel average, and **a gate should not use it.** `points_sd(n)` returns the
-worst hosted model instead, 2.5 points on 100 items and 1.1 on 500, because a gate has to hold
-for the model it is watching rather than for the average one. The two models on a laptop agree
-with themselves almost perfectly at temperature 0, and averaging them in makes a gate look 1.45
+worst hosted model instead, 2.6 points on 100 items and 1.2 on 500, because a gate has to hold
+for the model it is watching rather than for the average one. The three models on a laptop agree
+with themselves almost perfectly at temperature 0, and averaging them in makes a gate look 1.5
 times more sensitive than it can actually be for the hosted models it exists to watch. That is
 the direction that passes a release it should have caught. `points_sd(n, pooled=True)` gives the
 panel figure back for describing the panel.
 
-## Finding 7: every model on the panel is worse when the answer is A
+## Finding 7: eleven of twelve models are worse when the answer is A
 
-Same money, same eleven models. 300 multiple-choice questions, each asked four times with the
+Same money, same twelve models. 300 multiple-choice questions, each asked four times with the
 correct answer moved to a different option position and nothing else changed.
 
-Accuracy goes **up** as the right answer moves down the list, for all eleven:
+Accuracy goes **up** as the right answer moves down the list, for eleven of twelve:
 
 | model | at A | at C | at D | spread |
 |---|---:|---:|---:|---:|
 | `local-small-a` | 0.387 | 0.542 | 0.490 | 0.220 |
 | `local-small-b` | 0.455 | 0.609 | 0.615 | 0.160 |
 | `together-open-a` | 0.730 | 0.803 | 0.822 | 0.092 |
+| `local-mid-a` | 0.659 | 0.687 | **0.622** | 0.067 |
 | `anthropic-opus` | 0.877 | 0.924 | 0.927 | 0.051 |
 | `google-frontier` | 0.894 | 0.924 | 0.924 | 0.038 |
 
-Eleven out of eleven, across four vendors, two open-weight models and two 3B models running on a
+Eleven out of twelve, across four vendors, two open-weight models and three models running on a
 laptop. That is not the direction the folklore predicts. The usual claim is that models prefer
-the first option, and on this suite every one of them is worst there.
+the first option, and on this suite eleven of them are worst there.
+
+**The twelfth is the model added last, and it is worth being exact about what it does and does
+not overturn.** `local-mid-a` is still worse at A than at C, and it is the D column that breaks
+the pattern: 0.622 (0.565 to 0.679) against 0.659 (0.607 to 0.708) at A. Those intervals overlap
+almost entirely, so this is not a model that prefers the first option; it is a model whose
+position effect is not ordered, measured on 262 items in that cell. The honest reading is that
+the monotone version of this claim was always the weaker one, and that it took a twelfth model to
+show it. The claim that survives unchanged is A against C, which holds twelve times out of twelve.
 
 The spread is small for the good models and enormous for the small ones, which is worth saying
 plainly: **a 22-point swing on `local-small-a` from moving the answer down the list** is larger
@@ -197,6 +206,7 @@ each model for its own reorders the table:
 |---|---:|---:|---:|
 | `local-small-a` | 43.3% | 0.2% | **42.9%** (37.6 to 48.6) |
 | `local-small-b` | 36.3% | 0.0% | **36.3%** (31.3 to 42.0) |
+| `local-mid-a` | 24.0% | 0.2% | **23.6%** (18.9 to 28.6) |
 | `anthropic-haiku` | 17.3% | 1.6% | **14.1%** (9.8 to 18.5) |
 | `together-open-a` | 19.3% | 5.0% | **9.4%** (5.0 to 14.0) |
 | `openai-mid` | 20.3% | 6.4% | **7.7%** (3.4 to 12.4) |
@@ -211,16 +221,16 @@ than fifth. Publishing the raw column would have put three models in the wrong p
 The spread column needs the same treatment in the opposite direction. Noise has no preferred
 letter, so it does not push the spread up or down, but a maximum minus a minimum over four noisy
 estimates is positive even when the truth is flat. That floor runs from 0.000 to 0.022 here, and
-every one of the eleven spreads is above its own.
+every one of the twelve spreads is above its own.
 
 ## Finding 8: the prompt format does not move the score, and for small models it moves everything else
 
 This project runs its whole item bank answer-only, no reasoning, because reasoning tokens are
 what make a 3,000-item bank expensive. The honest worry is that the bank is therefore measuring
-something cheaper than the benchmark it claims to reproduce. So: 300 questions, eleven models,
+something cheaper than the benchmark it claims to reproduce. So: 300 questions, twelve models,
 three prompt templates, the same questions each time.
 
-**For ten of the eleven, answer-only costs nothing measurable.** The interval on the difference
+**For ten of the twelve, answer-only costs nothing measurable.** The interval on the difference
 between the answer-only prompt and letting the model reason briefly first spans zero:
 
 | model | answer only | reason briefly | difference |
@@ -228,12 +238,17 @@ between the answer-only prompt and letting the model reason briefly first spans 
 | `anthropic-opus` | 0.902 | 0.903 | +0.0% (-2.0 to +2.0) |
 | `google-frontier` | 0.910 | 0.910 | +0.0% (-1.7 to +2.0) |
 | `openai-frontier` | 0.870 | 0.863 | -0.7% (-2.7 to +1.3) |
+| `local-mid-a` | 0.632 | 0.674 | **+4.4% (+0.7 to +7.8)** |
 | `anthropic-haiku` | 0.803 | 0.850 | **+5.0% (+2.0 to +8.4)** |
 
-The exception is the cheapest model from one vendor, and five points is not nothing. Across the
-whole panel the template explains at most **0.3 percent** of the variance in whether an answer is
-right. The item explains 73 to 91 percent. Which question you ask matters two hundred times more
-than how you dress it up.
+The two exceptions are the cheapest model from one vendor and the 7B on the laptop, and four to
+five points is not nothing. What they do not share is a place in the ranking: `openai-mid` scores
+lower than `anthropic-haiku` and pays nothing, and `local-small-a` and `local-small-b` score
+lower than `local-mid-a` and their intervals span zero. So "small models need the reasoning
+prompt" is not what this shows, and the two exceptions are so far a pair of facts about two
+models rather than a pattern. Across the whole panel the template explains at most **0.3
+percent** of the variance in whether an answer is right. The item explains 73 to 91 percent.
+Which question you ask matters two hundred times more than how you dress it up.
 
 ### The part worth the extra work
 
@@ -251,6 +266,7 @@ can be charged against the residual:
 | `local-small-a` | 26.6% | 0.3% | **26.3%** |
 | `anthropic-haiku` | 17.6% | 3.6% | **14.0%** |
 | `local-small-b` | 12.1% | 0.0% | **12.1%** |
+| `local-mid-a` | 11.8% | 0.3% | **11.5%** |
 | `together-open-a` | 18.2% | 9.5% | **8.7%** |
 | `google-mid` | 12.9% | 12.9% | **0.1%** |
 | `together-open-b` | 12.4% | 13.7% | **0.0%** |
@@ -281,6 +297,15 @@ on identical items:
 | Gemma 3 4B | 268 |
 | Gemma 3n 8B | 114 |
 | Gemma 4, on-device and hosted alike | 780 to 1,021 |
+
+That first row was a smoke-test figure when it was written and is now measured over 3,599 calls
+for the 7B, which sharpens it in a way worth keeping. `local-mid-a` writes a median of 4 tokens
+under the answer-only template and a median of 5 when it is explicitly asked to reason first, so
+the middle of the distribution really does ignore the instruction. Its **mean** under that
+template is 15.5, its 90th percentile 36 and its longest reply 251. It is not that the family
+cannot reason on request; it is that it does so on a minority of items, and that minority is
+where its 4.4-point gain in the table above comes from. A median is the right number for sizing a
+run and the wrong one for asking whether an instruction was followed.
 
 Four Gemma builds were tested locally and a fifth through Google's API, and all five write an
 explanation whatever the prompt asks for. It is not a reasoning mode that can be switched off:
@@ -333,13 +358,16 @@ template, which is another 3,300 calls, and it is on the list rather than done.
 
 ## What this write-up does not cover
 
-**Position bias** across cyclic option permutations, and **prompt-framing effects**. Both need
-vendor calls that have not been made. The analyses are written and tested; what is missing is
-the money, about eight dollars, and the README says so rather than estimating them.
+**A second administration of the `letter_only` and `brief_reasoning` templates.** The flip rate
+that findings 7 and 8 both subtract as noise was measured under the answer-only template alone,
+so a template with more room to wander is charged too little and every net figure in them is an
+upper bound. That is 7,200 calls and about US$5 on items already chosen, and it is on the list
+rather than done.
 
-Everything else in the own-run half is now measured and is above: test-retest at temperature 0
-(finding 6), and the cost per ranking decision, which is **US$0.72 to rank eleven models as well
-as asking them all 2,830 questions does, against US$16.05 to ask everything.**
+Everything else in the own-run half is now measured and is above: position bias (finding 7),
+prompt framing (finding 8), test-retest at temperature 0
+(finding 6), and the cost per ranking decision, which is **US$0.73 to rank twelve models as well
+as asking them all 2,815 questions does, against US$15.97 to ask everything.**
 
 
 ## Postscript: it replicates, and the transfer number is the one to take away

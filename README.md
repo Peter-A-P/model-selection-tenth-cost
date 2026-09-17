@@ -35,15 +35,15 @@ transfer" into a number. [Both are below.](#does-it-replicate-a-second-bank-from
 | Items carrying no measurable information at mid-panel ability | 4,221 (20.7%) |
 | Local dependence: item pairs with Q3 above 0.2 | 8% to 31% of pairs, depending on the benchmark |
 | Dimensionality: correlation between per-benchmark abilities | 0.42 to 0.96 across benchmark pairs |
-| Reliability: the same model answering the same item twice | 93.6% agreement (n = 5,500 repeated cells) |
+| Reliability: the same model answering the same item twice | 93.6% agreement (n = 6,000 repeated cells) |
 | Differential item functioning, open weights vs API only | 128 items flagged (0.9%) |
 | Test-retest: the same 500 items asked twice at temperature 0, a day apart | hosted models agree **0.936** (0.912 to 0.956) to 0.984 (0.972 to 0.994); the two on a laptop agree 0.998 and 1.000 |
-| How much a benchmark score moves with nothing changed | **up to 2.0 points**, median 0.4, and symmetric (83 flips to right against 85 to wrong, p = 0.94), so it is a random walk rather than drift. A drop smaller than that is noise |
-| Option order: the same 300 questions asked 4 times with the answer in a different position | every one of 11 models is worse when the answer is at A than at C or D (11/11); items that flip on order alone, net of the model's own instability, run from **0.9%** (0.0% to 3.5%) on `openai-frontier` to **42.9%** (37.6% to 48.6%) on `local-small-a` |
-| What this project's answer-only prompt costs against letting the model reason briefly, over 300 items and 3 templates | **nothing for 10 of 11 models** (interval spans zero); the template explains at most **0.3%** of the variance in correctness. The exception is `anthropic-haiku` at 5.0% (2.0% to 8.4%) |
-| Does this bank rank models it was never fitted on? 11 current models, 2,830 items each, parameters read and not refitted | Kendall's tau **0.855** (0.617 to 1.000) |
-| Adaptive items needed to rank those 11 models as well as all 2,830 do | **100 items** (3.5% of the suite), tau 0.855 (0.617 to 1.000) |
-| Cost per ranking decision, in dollars | **US$0.72** against US$16.05 to ask every item, 4.5% |
+| How much a benchmark score moves with nothing changed | **up to 2.0 points**, median 0.4, and symmetric (84 flips to right against 85 to wrong, p = 1.00), so it is a random walk rather than drift. A drop smaller than that is noise |
+| Option order: the same 300 questions asked 4 times with the answer in a different position | every one of 12 models is worse when the answer is at A than at C or D (11/12); items that flip on order alone, net of the model's own instability, run from **0.9%** (0.0% to 3.5%) on `openai-frontier` to **42.9%** (37.6% to 48.6%) on `local-small-a` |
+| What this project's answer-only prompt costs against letting the model reason briefly, over 300 items and 3 templates | **nothing for 10 of 12 models** (interval spans zero); the template explains at most **0.3%** of the variance in correctness. The exceptions are `anthropic-haiku` at 5.0% (2.0% to 8.4%), `local-mid-a` at 4.4% (0.7% to 7.8%) |
+| Does this bank rank models it was never fitted on? 12 current models, 2,815 items each, parameters read and not refitted | Kendall's tau **0.879** (0.682 to 1.000) |
+| Adaptive items needed to rank those 12 models as well as all 2,815 do | **100 items** (3.6% of the suite), tau 0.879 (0.695 to 1.000) |
+| Cost per ranking decision, in dollars | **US$0.73** against US$15.97 to ask every item, 4.6% |
 
 Bank `v1` (`4a9871d69f3360d8`): 150 models x 20,365 items, 1,648,626 recorded responses from the public HELM per-item releases. Fitted with marginal maximum a posteriori by Bock-Aitkin EM, 61-point normal quadrature. Regenerate with `mselect report --version v1`.
 <!-- mselect:results:end -->
@@ -81,13 +81,15 @@ you want the benchmark's own average, sample randomly and score it directly. If 
 which model is better, ask ten well-chosen questions.
 
 **The own-run panel reproduces that ceiling on models the bank never saw, which is the version
-of the result that counts.** Eleven current models from four vendors, 2,830 items each, asked
+of the result that counts.** Twelve current models from four vendors, 2,815 items each, asked
 through this repository's own prompts and parser; the item parameters were read from the bank
-and nothing was refitted. They rank at Kendall's tau 0.855, and 100 adaptively chosen items
-reach that same 0.855 for US$0.72 against US$16.05 to ask everything. The ceiling is lower here
+and nothing was refitted. They rank at Kendall's tau 0.879, and 100 adaptively chosen items
+reach that same 0.879 for US$0.73 against US$15.97 to ask everything. The ceiling is lower here
 than on the public bank and the reason is the same construct gap, now measured twice: ability
 and suite average are different quantities, and no number of items closes the distance between
-them. Above 300 items a plain random sample overtakes adaptive selection again, at 0.945.
+them. Below 200 items adaptive selection leads at every checkpoint; from 200 on the two are
+indistinguishable, with a plain random sample ahead at 200, 300 and 750 items and behind at 500
+and 1,000, every interval overlapping.
 
 Three more limits worth stating before the method is used for anything:
 
@@ -97,8 +99,8 @@ Three more limits worth stating before the method is used for anything:
   are on that panel's scale, and the second bank measures what that costs: over the 998 questions
   the two banks share, difficulty correlates 0.71 for the items that discriminate in both and
   not at all for the rest. Filter on discrimination before importing difficulty.
-- The own-run validation is eleven models, not a hundred. It is the right eleven, spanning
-  0.54 to 0.94 accuracy across four vendors and a laptop, but a bootstrap over eleven models
+- The own-run validation is twelve models, not a hundred. It is the right twelve, spanning
+  0.54 to 0.94 accuracy across four vendors and a laptop, but a bootstrap over twelve models
   is wide: every interval in that part of the table overlaps every other. What it settles is
   that the parameters transfer at all. What it cannot settle is a ranking of methods.
 - `items_needed` is optimistic for large effects. Against the simulation it is well calibrated
@@ -370,14 +372,19 @@ Built out of its November slot, ahead of schedule, and nearly finished.
 banks, at no cost to anyone.
 
 **Measured by running current models here**: the transfer result and the dollar cost per
-ranking decision. The panel is eleven models across Anthropic, OpenAI, Google, an open-weights
-host and two small models on a laptop, administered the committed 3,000-item suite on 2026-09-12
+ranking decision. The panel is twelve models across Anthropic, OpenAI, Google, an open-weights
+host and three models on a laptop, administered the committed 3,000-item suite on 2026-09-12
 and 2026-09-13 for US$18.25 through the portfolio gateway, which enforces the spend caps and
-records every call. `mselect validate` reads the records back and costs nothing to repeat.
+records every call. The twelfth, `local-mid-a`, was administered on 2026-09-16 and 2026-09-17
+and added US$0.00 and about nineteen hours of laptop CPU. `mselect validate` reads the records
+back and costs nothing to repeat.
 
-**Not measured yet**: the three measurement experiments of [PLAN.md](PLAN.md) section 4.3,
-test-retest, position bias and prompt framing. Their analyses are written and tested against
-fixtures; what they need is four more arms of roughly US$10, not more design.
+**Not measured yet**: a second administration of the `letter_only` and `brief_reasoning`
+templates. All three measurement experiments of [PLAN.md](PLAN.md) section 4.3 are now run, but
+the flip rate that position bias and prompt framing subtract as noise was measured under the
+answer-only template alone. A template with more room to wander is therefore charged too little
+noise, and both net figures are upper bounds rather than estimates. Closing that is 7,200 more
+calls and about US$5, on the same items already chosen.
 
 A vendor call is possible from this repository now, and it is gated. `mselect run` and
 `mselect smoke` are the only commands that can spend, both refuse to send anything without an

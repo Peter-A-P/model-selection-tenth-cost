@@ -297,3 +297,52 @@ def test_the_report_names_the_source_from_the_bank_rather_than_assuming_helm() -
     assert "HELM" in build_report._source_name(bank)
     for version in bank_io.available():
         assert build_report._source_name(bank_io.default_bank(version))
+
+
+def _framing_cost(model: str, point: float, lo: float, hi: float) -> dict[str, object]:
+    return {"model": model, "cost_of_answer_only": {"point": point, "lo": lo, "hi": hi}}
+
+
+def test_a_second_framing_exception_is_priced_rather_than_counted() -> None:
+    """The bug this fixes shipped into the README: two models, one interval.
+
+    Before 2026-09-17 the sentence named the worst model, said "and 1 other", and gave a single
+    figure. A reader had no way to tell that the other model's cost was different, and the
+    number they did see was not measured on it.
+    """
+    sentence = build_report._framing_exception(
+        [
+            _framing_cost("anthropic-haiku", 0.050, 0.020, 0.084),
+            _framing_cost("local-mid-a", 0.044, 0.007, 0.078),
+        ]
+    )
+    assert "1 other" not in sentence
+    assert "The exceptions are" in sentence
+    for name, point in (("anthropic-haiku", "5.0%"), ("local-mid-a", "4.4%")):
+        assert f"`{name}` at {point}" in sentence
+    assert "(2.0% to 8.4%)" in sentence and "(0.7% to 7.8%)" in sentence
+
+
+def test_one_framing_exception_still_reads_as_one() -> None:
+    sentence = build_report._framing_exception(
+        [_framing_cost("anthropic-haiku", 0.05, 0.02, 0.084)]
+    )
+    assert "The exception is `anthropic-haiku` at 5.0% (2.0% to 8.4%)" in sentence
+    assert "more" not in sentence
+
+
+def test_no_framing_exception_says_so_without_naming_a_model() -> None:
+    assert build_report._framing_exception([]) == (
+        ", and no model pays a cost whose interval excludes zero"
+    )
+
+
+def test_a_long_tail_of_exceptions_is_counted_because_a_count_has_no_interval() -> None:
+    """Only the three named carry figures; the rest are counted, never priced."""
+    settled = [_framing_cost(f"model-{i}", 0.05 - i / 1000, 0.01, 0.09) for i in range(6)]
+    sentence = build_report._framing_exception(settled)
+    assert sentence.count(" at ") == 3
+    assert "and 3 more" in sentence
+    # Ordered worst first, so the figure a reader takes away is the largest cost.
+    assert sentence.index("`model-0`") < sentence.index("`model-1`") < sentence.index("`model-2`")
+    assert "`model-3`" not in sentence

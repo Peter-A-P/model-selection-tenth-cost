@@ -188,18 +188,30 @@ def _cheapest_at_ceiling(own_run: dict[str, Any]) -> dict[str, Any] | None:
 
 
 def _framing_exception(settled: list[dict[str, Any]]) -> str:
-    """Name the models the answer-only format measurably costs, if any."""
+    """Name the models the answer-only format measurably costs, and price each one separately.
+
+    **Corrected 2026-09-17**, the first time the panel had two exceptions rather than one. The
+    sentence read "the exception is `anthropic-haiku` and 1 other at 5.0% (2.0% to 8.4%)": one
+    interval doing duty for two models, when the second was `local-mid-a` at 4.4% (0.7% to
+    7.8%) and never appeared. The wording assumed there could only ever be one exception, and
+    a number standing for a model it was not measured on is the bare number this repository
+    calls a bug, not a wording problem.
+
+    Three are named in full. Beyond that the sentence counts the rest rather than pricing them,
+    because a count carries no interval to get wrong.
+    """
     if not settled:
         return ", and no model pays a cost whose interval excludes zero"
-    worst = max(settled, key=lambda m: m["cost_of_answer_only"]["point"])
-    cost = worst["cost_of_answer_only"]
-    others = f" and {len(settled) - 1} other" if len(settled) == 2 else ""
-    if len(settled) > 2:
-        others = f" and {len(settled) - 1} others"
-    return (
-        f". The exception is `{worst['model']}`{others} at {cost['point']:.1%} "
-        f"({cost['lo']:.1%} to {cost['hi']:.1%})"
-    )
+    ranked = sorted(settled, key=lambda m: m["cost_of_answer_only"]["point"], reverse=True)
+    named, rest = ranked[:3], ranked[3:]
+    priced = [
+        f"`{m['model']}` at {m['cost_of_answer_only']['point']:.1%} "
+        f"({m['cost_of_answer_only']['lo']:.1%} to {m['cost_of_answer_only']['hi']:.1%})"
+        for m in named
+    ]
+    label = "The exception is" if len(ranked) == 1 else "The exceptions are"
+    tail = f", and {len(rest)} more" if rest else ""
+    return f". {label} {', '.join(priced)}{tail}"
 
 
 def results_table(

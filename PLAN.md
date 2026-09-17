@@ -359,28 +359,32 @@ work not yet run rather than work that is blocked.
       not anticipate**: 10 adaptive items match 127 random ones (tau 0.778), and above about 200
       items the baselines win. Section 13.6 and `docs/rejected.md`
 - [x] Validation on the own-run panel of models the calibration never saw. **Measured
-      2026-09-13**, `mselect validate` and section 15.23: eleven models, 3,000 items each,
-      parameters read from the bank and nothing refitted. The bank ranks them at tau 0.855
-      (0.617 to 1.000), and adaptive selection reaches that same 0.855 from 100 items, 3.5% of
-      the 2,830-item block every model answered. Complete: `google-frontier` was topped up the
-      same evening after its daily quota reset
+      2026-09-13 and rerun 2026-09-17 at twelve**, `mselect validate` and sections 15.23 and
+      15.36: twelve models, 3,000 items each, parameters read from the bank and nothing refitted.
+      The bank ranks them at tau 0.879 (0.682 to 1.000), and adaptive selection reaches that same
+      0.879 from 100 items, 3.6% of the 2,815-item block every model answered. Complete:
+      `google-frontier` was topped up the same evening after its daily quota reset
 - [x] Position bias, framing effects and test-retest reliability each measured with intervals.
-      All three done, eleven models.
+      All three done, and all three rerun 2026-09-17 at twelve models; section 15.36.
       **Test-retest, 2026-09-14** (section 15.28, `mselect retest`): the same 500 items twice at
       temperature 0 a day apart, agreement 0.936 to 1.000, and the number that matters, **a score
       moves by up to 2.0 points with nothing changed**. It agrees with the free partial from
       HELM, where repeated administrations of the same model and item agreed 95.3% of the time
       (n = 8,431).
       **Position bias, 2026-09-16** (section 15.32, `mselect position-bias`): 300 multiple-choice
-      items under four option rotations. **Every one of eleven models is worse when the answer is
-      at A than at C or D**, no exceptions across four vendors and the laptop, which is the
-      opposite of the first-position preference usually assumed. Items that flip on order alone,
-      net of each model's own instability, run from 0.9% (0.0 to 3.5) to 42.9% (37.6 to 48.6).
+      items under four option rotations. **Eleven of twelve models are worse when the answer is
+      at A than at C or D**, across four vendors and the laptop, which is the opposite of the
+      first-position preference usually assumed. The twelfth, `local-mid-a`, is still worse at A
+      than at C and breaks the pattern only at D, by less than its own interval. A against C
+      holds twelve times out of twelve. Items that flip on order alone, net of each model's own
+      instability, run from 0.9% (0.0 to 3.5) to 42.9% (37.6 to 48.6).
       **Framing, 2026-09-16** (`mselect framing`): three templates over 300 items. The template
       explains at most **0.3%** of the variance in correctness and this project's answer-only
-      format costs nothing measurable for ten of eleven models. It does move *which* items are
-      answered right, by 26.3% of all variance on a 3B model against 0.9 to 5.4% on the frontier
-      ones. Total spend for the three arms: US$8.79, against the US$8 estimate
+      format costs nothing measurable for ten of twelve models; the exceptions are
+      `anthropic-haiku` at 5.0% (2.0 to 8.4) and `local-mid-a` at 4.4% (0.7 to 7.8). It does move
+      *which* items are answered right, by 26.3% of all variance on a 3B model against 0.9 to
+      5.4% on the frontier ones. Total spend for the three arms: US$8.79, against the US$8
+      estimate, and the twelfth model added US$0.00 to it
 - [x] A list of items that measure nothing, with evidence per item. `docs/items-that-measure-nothing.md`
 - [x] Q3 and dimensionality diagnostics reported. `docs/diagnostics.md`
 - [x] `items_needed` power function validated against the simulation. Validation table in
@@ -388,8 +392,10 @@ work not yet run rather than work that is blocked.
 - [x] Handed to project 03. `mselect` v0.1.0 tagged 2026-09-11 with the interface 03's plan
       calls (`items_needed(delta, 0.8, ability)` works with no bank argument), plus
       `dependence()` for the local-dependence correction and `reliability()` for the noise floor
-- [x] Cost per ranking decision reported in dollars. **Measured 2026-09-13**: **US$0.72 to rank
-      eleven models as well as every response can**, against US$16.05 to ask them everything.
+- [x] Cost per ranking decision reported in dollars. **Measured 2026-09-13, rerun 2026-09-17**:
+      **US$0.73 to rank twelve models as well as every response can**, against US$15.97 to ask
+      them everything. The twelfth model is free, so adding it moved both figures by cents and
+      moved the ratio not at all.
       Priced from the recorded cost of the exact cells the selector chose rather than from an
       average, which matters on a panel spanning a factor of ten in price per item
 - [x] README opens with the one-liner and the results table
@@ -992,6 +998,120 @@ exists to check.
 
 It is worth noting that `anthropic-haiku` is the one Anthropic route carrying a dated
 identifier, and the one that works.
+
+### 15.37 Two item ids, one question, and a run that could not tell
+
+The `plain` rotation-0 arm finished with 2,999 records for `local-mid-a` where every other model
+has 3,000, and re-running it says "nothing to do" rather than asking for the missing one. Both
+facts have the same cause and it is not a bug in the resume logic.
+
+| item_id | benchmark | scenario | instance | release |
+|---|---|---|---|---|
+| `3f18adc703532cb1` | `mmlu_pro` | `subset=all` | `id3054` | v1.15.0 |
+| `a868dc3a77f21d61` | `mmlu` | `subject=high_school_biology` | `id252` | v1.13.0 |
+
+**They are the same question.** Byte-identical prompt, therefore one `request_sha256`, so the
+3,000-item suite contains 2,999 distinct requests. MMLU-Pro was built partly out of MMLU, and
+this is that overlap appearing in the data rather than in a paper. Any record file shows it:
+group by `request_sha256` and exactly one hash carries two item ids.
+
+**Why a record went missing.** `records.done` keys on the request hash and not on the cell, for
+the reason its docstring gives, which is still right: a hash covers the prompt, the budget, the
+temperature and the resolved model, so an edited run re-asks what changed. The side effect is
+that two items sharing a hash are one entry. The 7B run was killed four times, one kill lost an
+unflushed chunk containing one of the twins, and the surviving twin then marked the hash settled.
+
+**No measurement is missing**, which is the part worth being precise about. That question was
+asked and `qwen2.5:7b` answered it; the answer is recorded under the other item id. The panel
+confirms the two behave as one item: `local-small-b` holds both and answered `A` to both, as it
+must, because it was sent the same bytes twice.
+
+Two consequences, and neither is "backfill the 2,999".
+
+**For the analysis.** A duplicated item is local dependence by construction, and section 4.1
+reports local dependence rather than hiding it. Two labels for one question also load on whatever
+they both load on, twice. The decision to make before the local dependence section is written is
+whether the pair is reported as a found duplicate or one of the two is dropped from the suite;
+what is not available is passing over it.
+
+**For the bank.** This was found in 3,000 items because a run was interrupted in exactly the
+wrong place. The full bank is 20,365 items and has never been checked for this, and
+`items.parquet` carries no question text, so the check has to run through prompts or record
+files. Cheap, not done, and on the list.
+
+### 15.36 The twelfth row lands, and it moves three findings and one sentence
+
+`local-mid-a` finished its full participation on 2026-09-17 at 21:05Z: seven arms, all exit 0,
+4,999 records, zero failures, **US$0.00** and about nineteen hours of laptop CPU. It was
+interrupted four times, three by a session restart killing a tracked background job and once by
+the laptop flattening its battery and sleeping for 59 minutes, and none of that cost anything,
+because every call is keyed by request hash and a resume re-asks only what is outstanding.
+
+#### The rung does what it was bought to do
+
+| model | accuracy | note |
+|---|---:|---|
+| `openai-mid` | 0.795 | the cheapest hosted rung |
+| **`local-mid-a`** (`qwen2.5:7b`) | **0.644** | the gap that section 15.34 bought |
+| `local-small-b` (`qwen2.5:3b`) | 0.541 | same family, same recipe, same harness |
+| `local-small-a` (`llama3.2:3b`) | 0.541 | |
+
+The `qwen2.5` pair is the point. **10.3 points of accuracy with capability moved and the training
+recipe, the vendor and the harness held fixed**, which is the only controlled comparison this
+panel contains and the thing findings 7 and 8 were asserting without. The transfer correlation
+went up rather than down, tau 0.855 (0.617 to 1.000) to **0.879 (0.682 to 1.000)**, and 100
+adaptive items still reach it.
+
+#### What moved in the three experiments
+
+**Test-retest.** The pooled flip rate fell from 0.0303 to **0.0280**, which is exactly the 0.028
+project 03 predicted when it reported the `points_sd` defect, before either of us had the data.
+The worst hosted model is still `openai-mid` at **0.0658**. So the gate's noise floor at 500
+items is **1.15 points against a pooled 0.75**: the pooled figure understates by 53%, where
+before this model it understated by 45%. Section 15.35 changed `points_sd` to size from the worst
+hosted model a day before the number that would have made it worse arrived.
+
+**Position bias.** The headline loses a word. "Every model is worse when the answer is at A"
+becomes **eleven of twelve**, and the exception is the new model: `local-mid-a` scores 0.622
+(0.565 to 0.679) at D against 0.659 (0.607 to 0.708) at A. Those intervals overlap almost
+entirely, so this is not a model that prefers the first option; it is a model whose position
+effect is not ordered. **A against C survives at twelve out of twelve**, and that was always the
+stronger version of the claim. It took a twelfth model to find out which version was load bearing.
+
+**Framing.** There are now two models the answer-only format measurably costs, `anthropic-haiku`
+at 5.0% (2.0 to 8.4) and `local-mid-a` at 4.4% (0.7 to 7.8). They are not the two weakest models:
+`openai-mid` scores below Haiku and pays nothing, and both 3B models score below the 7B and their
+intervals span zero. "Small models need the reasoning prompt" is not what this shows.
+
+#### The instruction is ignored at the median and obeyed in the tail
+
+Section 15.33 measured this family at 4 tokens a reply on a smoke test and concluded it does what
+it is told. Over 3,599 real calls that is right about the middle of the distribution and wrong
+about the shape:
+
+| template | median | mean | p90 | max |
+|---|---:|---:|---:|---:|
+| `plain` | 4 | 4.4 | 6 | 39 |
+| `letter_only` | 2 | 2.4 | 2 | 11 |
+| `brief_reasoning` | 5 | 15.5 | 36 | 251 |
+
+Asked to reason first, it writes the same 5 tokens on most items and a real explanation on a
+minority, and that minority is where the 4.4-point gain comes from. A median is the right number
+for sizing a run and the wrong one for asking whether an instruction was followed. Section 15.33
+used a median to answer the second question and should have said so.
+
+#### A sentence that reported one interval for two models
+
+`mselect report` regenerates the README table, and with two framing exceptions instead of one it
+wrote: "The exception is `anthropic-haiku` and 1 other at 5.0% (2.0% to 8.4%)". The second model
+was never named and the figure shown was not measured on it. `_framing_exception` had been
+written when one exception was the only case there was.
+
+It is fixed to price every model it names, up to three, and to count rather than price beyond
+that, because a count has no interval to get wrong. Four tests cover one exception, two, none and
+a long tail. This is a small bug with a rule attached: **a number standing for a model it was not
+measured on is the bare number this project calls a bug**, and the report generator is the one
+place where that can be introduced without anybody writing it down.
 
 ### 15.35 The gate was sizing itself from a laptop, and project 03 found it
 

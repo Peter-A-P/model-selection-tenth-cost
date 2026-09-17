@@ -1,9 +1,9 @@
 {
-  "measured": "2026-09-14",
+  "measured": "2026-09-17",
   "bank_version": "v1",
   "template": "plain",
   "design": "the same items asked twice at temperature 0, a day apart",
-  "n_models": 11,
+  "n_models": 12,
   "n_items": 500,
   "agreement": {
     "local-small-b": 1.0,
@@ -16,11 +16,13 @@
     "google-frontier": 0.9819639278557114,
     "together-open-a": 0.9495967741935484,
     "together-open-b": 0.9387755102040817,
-    "local-small-a": 0.9979879275653923
+    "local-small-a": 0.9979879275653923,
+    "local-mid-a": 0.9979757085020243
   },
   "worst_hosted_agreement": 0.936,
+  "worst_hosted_flip_rate": 0.06584362139917696,
   "largest_score_move_points": 2.0,
-  "symmetry_p_pooled": 0.9385334053887999,
-  "observed_flip_rate": 0.030314441724722276,
-  "predicted_flip_rate": 0.1635074650435736
+  "symmetry_p_pooled": 1.0,
+  "observed_flip_rate": 0.027974443101364186,
+  "predicted_flip_rate": 0.17218928936250047
 }
