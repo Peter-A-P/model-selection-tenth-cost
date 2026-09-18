@@ -361,7 +361,7 @@ work not yet run rather than work that is blocked.
       2026-09-13 and rerun 2026-09-17 at twelve**, `mselect validate` and sections 15.23 and
       15.36: twelve models, 3,000 items each, parameters read from the bank and nothing refitted.
       The bank ranks them at tau 0.879 (0.682 to 1.000), and adaptive selection reaches that same
-      0.879 from 100 items, 3.6% of the 2,815-item block every model answered. Complete:
+      0.879 from 100 items, 3.6% of the 2,816-item block every model answered. Complete:
       `google-frontier` was topped up the same evening after its daily quota reset
 - [x] Position bias, framing effects and test-retest reliability each measured with intervals.
       All three done, and all three rerun 2026-09-17 at twelve models; section 15.36.
@@ -997,6 +997,49 @@ exists to check.
 
 It is worth noting that `anthropic-haiku` is the one Anthropic route carrying a dated
 identifier, and the one that works.
+
+### 15.39 The page runs the method rather than describing it, 2026-09-18
+
+Every result in this repository is a number in a table, and a table is the right form for a
+reader who is going to check it. It is the wrong form for a reader deciding whether to read
+further. So `demo/` is a static page at `adaptive.peterparker.ca`, built the way project 01's
+is: no framework, no build step for the page, no off-origin request, the same content security
+policy, and `mselect demo serve` to check it under the headers the live site sends rather than
+under none.
+
+**The decision worth recording is what runs in the browser.** Project 01's page precomputes
+everything, and says so, because a causal forest cannot run in a tab. This one does the
+opposite: the selector, the posterior and the stopping rule are about two hundred lines of
+arithmetic, so the page ships them in `irt.js` and runs the real procedure, one question at a
+time, against the recorded answers of the twelve own-run models. A visitor who can watch the
+interval narrow and then stop has understood the project in a way no finished chart conveys.
+
+Two things constrain that. The browser must not be able to invent a response, so what ships is
+the response matrix as measured, one bit per cell, and the price the ledger charged for each of
+those cells: the page can only replay what was asked and paid for. And it cannot reproduce
+numpy's generator, so the randomesque draw differs from the published run and the page says it
+is a fresh draw rather than a replay of the figure in the README.
+
+**What the page then measured, which the repository had not.** Running all sixty-six pairs of
+the twelve models is a few seconds of arithmetic, so the page offers it, and it is a stronger
+statement of the same claim: adaptive selection settles 53 of 66 pairs inside 300 questions
+against random selection's 38, it gets there first in 37 of the 38 both settle, and it agrees
+with the full-suite ranking in 52 of the 53 it settles. The one disagreement is a pair a tenth
+of an accuracy point apart, which is the construct gap of section 13 rather than a fault: ability
+and a count of correct answers are different quantities and at that distance they can order two
+models differently.
+
+**One stale number fell out of building it.** `demo build` reads the own-run panel directly and
+came back with 2,816 items on the common frame where the committed validation said 2,815. The
+validation had been written before the last arm of `local-mid-a` landed, so the README had been
+carrying a count one item short since 09-17. `mselect validate --write` and `mselect report`
+were rerun; nothing else moved, which is itself the check that the extra item changed no claim.
+
+`tests/test_demo.py` holds the page to the repository: the panel is compared against the
+validation file it claims to come from, the packed response bits against the accuracies that
+validation reported, the per-cell prices against the run's own total, the page's list of data
+files against the files the builder writes, and every file in `demo/` against the one CSP
+mistake project 01 shipped, a style attribute in markup.
 
 ### 15.38 The caveat is paid off, and the prediction in it was half wrong
 

@@ -1,0 +1,378 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Model Selection at a Tenth of the Cost: ask ten questions, not three thousand</title>
+<meta name="description" content="Run an adaptive test against twelve real language models, question by question, on the recorded answers of a benchmark run. Ten well-chosen questions rank a shortlist as well as 127 random ones. Every number is reproducible from the repository.">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="top">
+  <div class="top-inner">
+    <a class="brand" href="https://peterparker.ca"><span class="mono-mark" aria-hidden="true">P</span>Peter Parker</a>
+    <p class="top-nav"><a href="https://peterparker.ca/projects/model-selection/">Project 02: Model Selection at a Tenth of the Cost</a></p>
+  </div>
+</header>
+<main>
+
+  <header class="hero">
+    <p class="eyebrow">Measured results, reproducible from one command</p>
+    <h1>Most benchmark questions are not worth asking. These are.</h1>
+    <p class="lead">
+      Choosing between AI models means running a benchmark: a few thousand questions, put to every
+      model on the shortlist, counted up into a percentage. Twenty models is sixty thousand paid
+      calls, and it has to be repeated every time any vendor ships anything. <strong>Most of those
+      questions separate nobody.</strong> Standardised testing worked this out decades ago and
+      stopped handing everybody the same fixed paper. This page does the same thing to a language
+      model benchmark, on real recorded answers, and lets you watch it happen.
+    </p>
+    <div class="hero-points">
+      <div class="point">
+        <span class="point-figure" id="hero-items">10</span>
+        <span class="point-unit">questions</span>
+        <span class="point-label" id="hero-items-label">rank a shortlist as well as 127 chosen at random</span>
+      </div>
+      <div class="point">
+        <span class="point-figure" id="hero-cost">&ndash;</span>
+        <span class="point-unit">to rank twelve models</span>
+        <span class="point-label" id="hero-cost-label">against the price of asking all of them everything</span>
+      </div>
+      <div class="point">
+        <span class="point-figure" id="hero-dead">1 in 5</span>
+        <span class="point-unit">of the bank measures nothing</span>
+        <span class="point-label">and every published benchmark score counts them at full weight</span>
+      </div>
+    </div>
+    <p class="hero-note">
+      Twelve current models from four vendors and a laptop, <span id="hero-suite">2,816</span> real
+      questions, and the answers they actually gave, recorded in September 2026 for
+      <span id="hero-spend">US$16</span>. The adaptive test runs in your browser against those
+      answers; it can only replay what was asked and paid for, and it never invents a response.
+    </p>
+  </header>
+
+  <section class="section" id="idea">
+    <h2>The idea in one table</h2>
+    <p class="section-lead">
+      A benchmark score is a count of correct answers. A count cannot tell these five kinds of
+      question apart, so it treats them as equal evidence about which model to buy.
+    </p>
+    <div class="table-wrap">
+      <table class="five-types">
+        <thead>
+          <tr><th>What a question does</th><th>What it tells you about which model to buy</th><th>What a percentage does with it</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>Every model gets it right</strong></td><td>Nothing. It separates nobody</td><td>Counts it, at full weight</td></tr>
+          <tr><td><strong>Every model gets it wrong</strong></td><td>Nothing. It separates nobody</td><td>Counts it, at full weight</td></tr>
+          <tr class="bad"><td><strong>Its stored answer key is wrong</strong></td><td>Worse than nothing: it penalises the models that were right</td><td>Counts it, at full weight</td></tr>
+          <tr><td><strong>It leaked into training data</strong></td><td>Measures memory, not capability</td><td>Counts it, at full weight</td></tr>
+          <tr class="good"><td><strong>It cleanly separates stronger models from weaker ones</strong></td><td>This is the entire signal you are paying for</td><td>Counts it, at full weight</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>
+      Nobody knows which of a benchmark's questions belong to which row, because results are
+      published as one aggregate and the per-question detail is thrown away. Item response theory,
+      the statistics behind the GRE and every professional licensing exam, measures each question
+      first: <strong>how hard it is</strong>, and <strong>how sharply it separates ability just
+      above its threshold from ability just below</strong>. Once each question carries those two
+      numbers, the test can be short, because you can ask the question that tells you the most
+      about this particular model and stop when the answer is decided.
+    </p>
+  </section>
+
+  <section class="section" id="run">
+    <h2>Run the test yourself</h2>
+    <p class="section-lead">
+      Pick two models. The test asks one question at a time: after each answer it updates what it
+      believes about each model, then chooses the next question to be the one that will tell it the
+      most about them at their current level. Beside it, the same two models are asked questions
+      drawn <strong>at random</strong> from the same suite. Same models, same budget, same recorded
+      answers, and the only difference is which questions get asked.
+    </p>
+
+    <div class="controls">
+      <div class="control">
+        <label for="model-a">First model<span class="hint">an alias: the vendor mapping lives in the gateway, not here</span></label>
+        <select id="model-a"></select>
+      </div>
+      <div class="control">
+        <label for="model-b">Second model<span class="hint">the closer these two are, the more questions it takes</span></label>
+        <select id="model-b"></select>
+      </div>
+      <div class="control">
+        <label for="speed">Speed<span class="hint">how fast the questions arrive on screen</span></label>
+        <select id="speed">
+          <option value="90">Slow, so you can watch it</option>
+          <option value="24" selected>Brisk</option>
+          <option value="0">All at once</option>
+        </select>
+      </div>
+      <div class="control run-buttons">
+        <label>&nbsp;</label>
+        <div class="button-row">
+          <button type="button" id="run-test" class="primary">Run the test</button>
+          <button type="button" id="reset">Reset</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="race">
+      <article class="arena" id="arena-adaptive">
+        <div class="arena-head">
+          <h3>Adaptive: ask the question that tells you the most</h3>
+          <span class="tag tag-good">the method</span>
+        </div>
+        <p class="pair-legend" id="legend-adaptive"></p>
+        <svg class="chart posteriors" id="chart-adaptive" aria-label="Posterior ability for both models under adaptive selection"></svg>
+        <div class="arena-stats">
+          <div><span class="figure" id="adaptive-items">0</span><span class="caption">questions asked, each</span></div>
+          <div><span class="figure" id="adaptive-cost">$0.00</span><span class="caption">spent, at the price these calls cost</span></div>
+          <div><span class="figure" id="adaptive-width">&ndash;</span><span class="caption">width of the wider interval</span></div>
+        </div>
+        <p class="verdict" id="adaptive-verdict">Not started.</p>
+      </article>
+
+      <article class="arena" id="arena-random">
+        <div class="arena-head">
+          <h3>Random: ask whatever comes up</h3>
+          <span class="tag">the baseline</span>
+        </div>
+        <p class="pair-legend" id="legend-random"></p>
+        <svg class="chart posteriors" id="chart-random" aria-label="Posterior ability for both models under random selection"></svg>
+        <div class="arena-stats">
+          <div><span class="figure" id="random-items">0</span><span class="caption">questions asked, each</span></div>
+          <div><span class="figure" id="random-cost">$0.00</span><span class="caption">spent, at the price these calls cost</span></div>
+          <div><span class="figure" id="random-width">&ndash;</span><span class="caption">width of the wider interval</span></div>
+        </div>
+        <p class="verdict" id="random-verdict">Not started.</p>
+      </article>
+    </div>
+
+    <details class="disclose" id="log-wrap">
+      <summary>The questions the adaptive test chose, in the order it chose them</summary>
+      <div class="table-wrap">
+        <table class="log">
+          <thead>
+            <tr><th>#</th><th>Benchmark</th><th class="num">Difficulty</th><th class="num">Discrimination</th><th id="log-a">First</th><th id="log-b">Second</th></tr>
+          </thead>
+          <tbody id="log-body"></tbody>
+        </table>
+      </div>
+      <p class="note">
+        Watch the difficulty column. The test starts near the middle of the scale, and as it learns
+        that a model is strong it stops wasting questions the model will certainly get right. A
+        negative discrimination in that table is not a mistake either: the selector treats
+        information as information, and an item whose fitted slope runs backwards still carries
+        some. It is also the signature of a wrong answer key, which is why the repository publishes
+        a list of them rather than quietly dropping them here.
+      </p>
+    </details>
+
+    <p class="note">
+      Nothing here is simulated. The answers are the ones the twelve models gave when they were
+      administered the frozen suite in September 2026, one bit per cell, and the dollars are the
+      ones the gateway's ledger recorded for those exact calls. The arithmetic, about two hundred
+      lines, is in <code>irt.js</code> beside this page. The item parameters were fitted to 150
+      other models from a public evaluation archive, and <strong>not one of the twelve models here
+      was in that fit</strong>, which is the only version of the claim worth anything: the
+      questions were measured before these models existed.
+    </p>
+    <p class="note">
+      Two models can also fail to separate, and that is a real answer rather than a failure. It
+      says these two are indistinguishable for what you were willing to spend, so stop paying for
+      evaluations and choose on price, latency or context window instead.
+    </p>
+
+    <h3>One pair is an anecdote. Here are all sixty-six.</h3>
+    <p>
+      Every pair of the twelve models, both methods, same budget, in your browser. It takes a few
+      seconds and nothing is fetched to do it.
+    </p>
+    <p><button type="button" id="sweep" class="primary">Run all 66 pairs</button>
+      <span class="note" id="sweep-progress"></span></p>
+    <div class="headline" id="sweep-stats" hidden></div>
+    <p class="verdict" id="sweep-verdict" hidden></p>
+  </section>
+
+  <section class="section" id="curve">
+    <h2>Where it wins, and where it stops winning</h2>
+    <p class="section-lead">
+      One run is an anecdote. This is the whole thing: how closely a short test reproduces the
+      ranking a full benchmark produces, against the number of questions it was allowed, with a
+      bootstrap interval on every point. The dashed line is what the same budget buys spent at
+      random.
+    </p>
+    <div class="legend" id="curve-switch"></div>
+    <figure class="chart-figure">
+      <div class="chart"><svg id="chart-curve" aria-label="Rank agreement against number of questions asked"></svg></div>
+      <figcaption id="curve-caption"></figcaption>
+    </figure>
+    <p class="verdict" id="curve-verdict"></p>
+    <p>
+      <strong>The honest part of this chart is the right-hand end.</strong> Above roughly two
+      hundred questions adaptive selection stops winning and a plain random sample catches it. That
+      is not a broken estimator, it is two different quantities: the adaptive test converges on the
+      bank's ability scale, while a leaderboard reports the suite average, and even with every
+      question in hand those two rankings agree only to about 0.92. If you want the benchmark's own
+      average, sample at random and score it directly. If you want to know which model is better,
+      ask ten well-chosen questions. The project publishes the ceiling rather than cropping the
+      chart before it.
+    </p>
+  </section>
+
+  <section class="section" id="power">
+    <h2>How many questions does your decision actually need?</h2>
+    <p class="section-lead">
+      This is the step almost everybody skips, and it is where an evaluation budget goes. Before
+      spending anything, ask what size of difference the decision turns on. If your candidates are
+      about a point apart, no affordable test will separate them, and learning that first is itself
+      a result.
+    </p>
+    <div class="power-grid">
+      <div class="power-controls">
+        <div class="control">
+          <label for="effect">Difference to detect
+            <span class="hint">in percentage points of benchmark accuracy</span>
+          </label>
+          <input type="range" id="effect" min="0" max="9" step="1" value="5">
+          <output id="effect-out"></output>
+        </div>
+        <div class="control">
+          <label for="ability">Where the model sits
+            <span class="hint">weak models and strong ones are not equally easy to measure</span>
+          </label>
+          <input type="range" id="ability" min="0" max="6" step="1" value="3">
+          <output id="ability-out"></output>
+        </div>
+        <div class="control">
+          <label for="confidence">How often you want to catch it
+            <span class="hint">statistical power, at the usual 5% false-alarm rate</span>
+          </label>
+          <input type="range" id="confidence" min="0" max="1" step="1" value="0">
+          <output id="confidence-out"></output>
+        </div>
+      </div>
+      <div class="power-output">
+        <div class="power-floor">
+          <span class="figure" id="power-items">&ndash;</span>
+          <span class="caption">questions per model, chosen adaptively</span>
+        </div>
+        <p class="power-lead" id="power-sentence"></p>
+        <table class="power-table">
+          <tbody>
+            <tr><td>Asked of a shortlist of five</td><td class="num" id="power-five"></td></tr>
+            <tr><td>At the price this panel's calls cost</td><td class="num" id="power-price"></td></tr>
+            <tr><td>Share of the 2,816-question suite</td><td class="num" id="power-share"></td></tr>
+          </tbody>
+        </table>
+        <p class="power-note">
+          Treat every number here as a floor. It assumes questions are independent evidence and
+          they are not: questions share passages, templates and subjects, which the project
+          measures rather than assumes away. On this bank a hundred mathematics questions carry
+          about six questions' worth of independent evidence.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="dead">
+    <h2>One question in five is measuring nothing</h2>
+    <p class="section-lead">
+      Every dot is one question from the bank of 20,365. Across: how hard it is. Up: how sharply it
+      separates stronger models from weaker ones. <strong>Everything in the shaded band is close to
+      a coin flip for everybody</strong>, and everything below zero runs backwards, meaning
+      stronger models get it wrong more often, which is the signature of a wrong answer key.
+    </p>
+    <div class="legend" id="cloud-switch"></div>
+    <figure class="chart-figure">
+      <div class="chart"><canvas id="chart-cloud" aria-label="Item discrimination against difficulty"></canvas></div>
+      <figcaption id="cloud-caption"></figcaption>
+    </figure>
+    <div class="headline" id="cloud-stats"></div>
+    <p>
+      A negative slope has four possible causes and they are not equally interesting: a wrong
+      answer key, an ambiguous question where the better model sees the ambiguity, a grader marking
+      a correct answer wrong, and genuine inverse scaling. Telling them apart needs the question
+      text and a person, so nothing here is published as mis-keyed. But one fit produces the list,
+      and if you own a benchmark it is where to look first: those questions are free to find and
+      they cost you money on every run.
+    </p>
+  </section>
+
+  <section class="section" id="hidden">
+    <h2>Three things a single score cannot tell you</h2>
+    <p class="section-lead">
+      The same twelve models, measured three more ways. Each of these is cheap to run and almost
+      nobody publishes them, which is why a two-point drop in a leaderboard gets a headline it has
+      not earned.
+    </p>
+    <div class="legend" id="hidden-switch"></div>
+    <div id="hidden-body">
+      <p class="lead" id="hidden-lead"></p>
+      <figure class="chart-figure">
+        <div class="chart"><svg id="chart-hidden"></svg></div>
+        <figcaption id="hidden-caption"></figcaption>
+      </figure>
+      <p class="verdict" id="hidden-verdict"></p>
+    </div>
+  </section>
+
+  <section class="section" id="limits">
+    <h2>What this does not do</h2>
+    <div class="takeaways">
+      <div class="takeaway">
+        <h3>It scores right or wrong, and nothing else</h3>
+        <p>
+          No writing quality, no human preference, and no second model acting as a judge. The
+          psychometrics rests on a correct-or-not response, and a judge would add a second,
+          drifting instrument to the measurement.
+        </p>
+      </div>
+      <div class="takeaway">
+        <h3>Questions are not independent, and that is measured</h3>
+        <p>
+          Between 8 and 31 percent of question pairs, depending on the benchmark, are correlated
+          beyond what ability explains. Every interval from a fixed-length benchmark is therefore
+          optimistic, including some of this project's own, and the correction ships with the bank.
+        </p>
+      </div>
+      <div class="takeaway">
+        <h3>Twelve models is twelve models</h3>
+        <p>
+          The live half of this page rests on twelve models spanning 0.54 to 0.94 accuracy across
+          four vendors and a laptop. That settles that the question parameters transfer at all. It
+          is too few to rank methods against each other, and every interval in it is wide and
+          published wide.
+        </p>
+      </div>
+      <div class="takeaway">
+        <h3>It replicates, which is why there are two banks</h3>
+        <p>
+          A result measured on one panel is a result about that panel, so the whole method was run
+          again on 400 open-weight models from a different source with a different harness. The
+          shape replicates and so does the ceiling. Item parameters transfer between the two only
+          after the questions that measure nothing are dropped.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <p class="footer-lead">Every number on this page is reproducible from the repository with one command.</p>
+    <p class="footer-back">
+      <a href="https://github.com/Peter-A-P/model-selection-tenth-cost">The repository, the method and the write-up</a>
+      &middot;
+      <a href="https://peterparker.ca/projects/model-selection/">The project page</a>
+      &middot;
+      <a href="https://peterparker.ca">The rest of the portfolio</a>
+    </p>
+    <p class="note" id="footer-provenance"></p>
+  </footer>
+
+</main>
+<script type="module" src="app.js"></script>
+</body>
+</html>

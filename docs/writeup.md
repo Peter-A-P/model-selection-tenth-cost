@@ -402,7 +402,7 @@ rather than done.
 Everything else in the own-run half is now measured and is above: position bias (finding 7),
 prompt framing (finding 8), test-retest at temperature 0
 (finding 6), and the cost per ranking decision, which is **US$0.73 to rank twelve models as well
-as asking them all 2,815 questions does, against US$15.97 to ask everything.**
+as asking them all 2,816 questions does, against US$15.97 to ask everything.**
 
 
 ## Postscript: it replicates, and the transfer number is the one to take away

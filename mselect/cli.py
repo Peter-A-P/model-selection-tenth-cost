@@ -1481,5 +1481,54 @@ def report(version: str = typer.Option("v1")) -> None:
     _say(build_report.write_all(version=version, progress=_say))
 
 
+demo_app = typer.Typer(
+    add_completion=False, help="Build and check the static page at adaptive.peterparker.ca."
+)
+app.add_typer(demo_app, name="demo")
+
+
+@demo_app.command("build")
+def demo_build(
+    out: str = typer.Option("", help="Where the data files go. Defaults to demo/data."),
+) -> None:
+    """Write the JSON the page reads, from the artefacts the README's table comes from."""
+    from pathlib import Path as _Path
+
+    from mselect.demo import build
+
+    written = build.build_all(_Path(out) if out else None)
+    total = sum(item.bytes for item in written)
+    for item in written:
+        _say(f"{item.path.name:<18}{item.bytes / 1024:>9,.1f} KB")
+    _say(f"{'total':<18}{total / 1024:>9,.1f} KB")
+
+
+@demo_app.command("serve")
+def demo_serve(
+    directory: str = typer.Option("demo", help="The folder to serve."),
+    port: int = typer.Option(8081, help="Loopback port."),
+) -> None:
+    """Serve the page locally under the headers the live site sends.
+
+    Not `python -m http.server`: that sends no content security policy, so it shows a page the
+    live host would partly refuse to run.
+    """
+    from pathlib import Path as _Path
+
+    from mselect.demo.serve import build_server, declared_headers
+
+    folder = _Path(directory)
+    server = build_server(folder, port)
+    for key in declared_headers(folder):
+        _say(f"sending {key}")
+    _say(f"http://127.0.0.1:{port}/  (ctrl-c to stop)")
+    try:
+        server.serve_forever()
+    except KeyboardInterrupt:  # pragma: no cover - interactive
+        _say("")
+    finally:
+        server.server_close()
+
+
 if __name__ == "__main__":  # pragma: no cover
     app()

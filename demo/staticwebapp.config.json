@@ -1,0 +1,23 @@
+{
+  "navigationFallback": {
+    "rewrite": "/index.html",
+    "exclude": ["/data/*.json", "*.css", "*.js", "*.woff2"]
+  },
+  "mimeTypes": {
+    ".json": "application/json"
+  },
+  "globalHeaders": {
+    "Content-Security-Policy": "default-src 'none'; script-src 'self'; style-src 'self'; font-src 'self'; connect-src 'self'; img-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'",
+    "X-Content-Type-Options": "nosniff",
+    "Referrer-Policy": "no-referrer",
+    "Cross-Origin-Opener-Policy": "same-origin"
+  },
+  "routes": [
+    {
+      "route": "/data/*",
+      "headers": {
+        "Cache-Control": "public, max-age=3600"
+      }
+    }
+  ]
+}

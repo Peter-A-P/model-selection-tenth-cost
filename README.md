@@ -5,6 +5,13 @@ confidence, using a fraction of the evaluation calls a full benchmark needs. For
 re-evaluating models every month, that is a day instead of a week and tens of dollars instead
 of thousands, and it names the benchmark questions that were never measuring anything.
 
+**[Run the adaptive test yourself at adaptive.peterparker.ca](https://adaptive.peterparker.ca)**:
+pick two of the twelve models this project paid to run, and watch the test ask one question at a
+time until the two are separated, beside the same two models being asked questions at random. It
+is the real procedure on the real recorded answers, it runs in the browser, and most pairs are
+settled inside a hundred questions for a few cents. There is a button that runs all sixty-six
+pairs at once, which is the same claim without having to take one run's word for it.
+
 Item response theory, the psychometrics behind every standardised test, fitted to a matrix of
 150 language models by 20,365 benchmark items built from the public HELM per-item releases.
 Calibrate the items once, then test each new model adaptively on the items that discriminate at
@@ -41,8 +48,8 @@ transfer" into a number. [Both are below.](#does-it-replicate-a-second-bank-from
 | How much a benchmark score moves with nothing changed | **up to 2.0 points**, median 0.4, and symmetric (84 flips to right against 85 to wrong, p = 1.00), so it is a random walk rather than drift. A drop smaller than that is noise |
 | Option order: the same 300 questions asked 4 times with the answer in a different position | every one of 12 models is worse when the answer is at A than at C or D (11/12); items that flip on order alone, net of the model's own instability, run from **0.9%** (0.0% to 3.5%) on `openai-frontier` to **42.9%** (37.6% to 48.6%) on `local-small-a` |
 | What this project's answer-only prompt costs against letting the model reason briefly, over 300 items and 3 templates | **nothing for 10 of 12 models** (interval spans zero); the template explains at most **0.3%** of the variance in correctness. The exceptions are `anthropic-haiku` at 5.0% (2.0% to 8.4%), `local-mid-a` at 4.4% (0.7% to 7.8%) |
-| Does this bank rank models it was never fitted on? 12 current models, 2,815 items each, parameters read and not refitted | Kendall's tau **0.879** (0.682 to 1.000) |
-| Adaptive items needed to rank those 12 models as well as all 2,815 do | **100 items** (3.6% of the suite), tau 0.879 (0.695 to 1.000) |
+| Does this bank rank models it was never fitted on? 12 current models, 2,816 items each, parameters read and not refitted | Kendall's tau **0.879** (0.682 to 1.000) |
+| Adaptive items needed to rank those 12 models as well as all 2,816 do | **100 items** (3.6% of the suite), tau 0.879 (0.695 to 1.000) |
 | Cost per ranking decision, in dollars | **US$0.73** against US$15.97 to ask every item, 4.6% |
 
 Bank `v1` (`4a9871d69f3360d8`): 150 models x 20,365 items, 1,648,626 recorded responses from the public HELM per-item releases. Fitted with marginal maximum a posteriori by Bock-Aitkin EM, 61-point normal quadrature. Regenerate with `mselect report --version v1`.
@@ -81,7 +88,7 @@ you want the benchmark's own average, sample randomly and score it directly. If 
 which model is better, ask ten well-chosen questions.
 
 **The own-run panel reproduces that ceiling on models the bank never saw, which is the version
-of the result that counts.** Twelve current models from four vendors, 2,815 items each, asked
+of the result that counts.** Twelve current models from four vendors, 2,816 items each, asked
 through this repository's own prompts and parser; the item parameters were read from the bank
 and nothing was refitted. They rank at Kendall's tau 0.879, and 100 adaptively chosen items
 reach that same 0.879 for US$0.73 against US$15.97 to ask everything. The ceiling is lower here
@@ -112,6 +119,50 @@ Three more limits worth stating before the method is used for anything:
   for small gaps and over-promises for big ones (88 percent predicted against 42 percent
   observed for models 5 to 10 points apart at ten items), because it assumes items are locally
   independent and they are not. Treat it as a floor. [PLAN.md](PLAN.md) section 13.6.
+
+## What this says, if you do not do statistics for a living
+
+A benchmark score is a count of correct answers, and a count cannot tell these five kinds of
+question apart. It treats them as equal evidence about which model to buy.
+
+| What a question does | What it tells you about which model to buy | What a percentage does with it |
+|---|---|---|
+| Every model gets it right | Nothing. It separates nobody | Counts it, at full weight |
+| Every model gets it wrong | Nothing. It separates nobody | Counts it, at full weight |
+| Its stored answer key is wrong | Worse than nothing: it penalises the models that were right | Counts it, at full weight |
+| It leaked into training data | Measures memory, not capability | Counts it, at full weight |
+| It cleanly separates stronger models from weaker ones | This is the entire signal you are paying for | Counts it, at full weight |
+
+Nobody knows which questions are in which row, because benchmark results are published as one
+aggregate and the per-question detail is thrown away. Standardised testing solved this decades
+ago: measure each question first, then give each candidate the questions that tell you the most
+about them. That is what this repository does to a language model benchmark, and four things fall
+out of it that a leaderboard cannot say.
+
+**A fifth of the questions are not measuring anything.** 20.9% of this bank discriminates below
+0.3, which means the answer barely depends on how good the model is, and 8.6% runs backwards:
+stronger models get them wrong more often, which is the signature of a wrong stored answer. That
+is one item in five that costs money on every run and separates nobody, and the list of them is
+published.
+
+**Ten well-chosen questions do the work of 127 random ones.** That is the screening budget, where
+the saving is, and it is measured against two baselines rather than asserted. It does not hold
+everywhere: above about two hundred questions a plain random sample catches up, for a reason
+stated in the limitation above rather than cropped out of the chart.
+
+**A benchmark score moves on its own.** The same models, the same questions, asked twice a day
+apart with randomness turned down as far as the vendors allow: up to two accuracy points move
+with nothing changed at all, and they move in both directions equally. Every "the new version
+dropped two points" claim has to clear that floor first, and almost nobody publishes what their
+floor is.
+
+**Some of a leaderboard is formatting.** Ask the same multiple-choice question with the right
+answer in a different position and, on the weakest model here, 43% of answers change. On the
+strongest, under 1%. Both numbers sit in the same published table at the same apparent precision.
+
+If you are hiring for evaluation work, the part worth looking at is not the headline. It is that
+the ceiling on the method is published beside it, the caveats are measured rather than waved at,
+and every number in this file is regenerated by one command from the artefacts in the repository.
 
 ## Using it to choose a model
 
@@ -393,6 +444,11 @@ term in finding 8 is still not noise-free, and the 36 repeated questions in
 [docs/diagnostics.md](docs/diagnostics.md) are a floor rather than a count, because duplicates
 are matched on exact text.
 
+**Published as a page as well as a table.** [adaptive.peterparker.ca](https://adaptive.peterparker.ca)
+runs the adaptive test in the browser against those twelve models' recorded answers, and it is
+built from these artefacts by `mselect demo build` rather than written by hand.
+[docs/deploy.md](docs/deploy.md).
+
 A vendor call is possible from this repository now, and it is gated. `mselect run` and
 `mselect smoke` are the only commands that can spend, both refuse to send anything without an
 explicit `--yes`, and both print what they would ask first. Every other command reads what is
@@ -402,7 +458,8 @@ already recorded.
 
 `mselect` is a typed Python package: `data/` fetches and freezes the bank, `irt/` fits and
 diagnoses it, `cat/` runs the adaptive test and the simulation, `power.py` is the interface
-project 03 imports, `report/` writes everything in this README. `ruff` and `mypy --strict` are
+project 03 imports, `report/` writes everything in this README, and `demo/` writes the data
+behind the page. `ruff` and `mypy --strict` are
 clean and the tests fail meaningfully: parameter recovery on simulated matrices, adaptive
 estimator convergence, planted local dependence and planted differential item functioning both
 detected, and answer parsers against adversarial fixtures.
@@ -425,6 +482,10 @@ git config core.hooksPath .githooks
   silently rather than loudly, which is the more useful failure.
 - [docs/writeup.md](docs/writeup.md): the practitioner write-up, "your benchmark is measuring
   fewer things than you think".
+- [docs/deploy.md](docs/deploy.md): how the page at
+  [adaptive.peterparker.ca](https://adaptive.peterparker.ca) is built and hosted. `demo/` is
+  five static files and a folder of JSON written by `mselect demo build`, so nothing on it can
+  say anything this repository did not measure.
 
 ## Licence, and what is redistributed
 

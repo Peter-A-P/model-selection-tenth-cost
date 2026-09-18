@@ -3,6 +3,32 @@
 Versions follow semantic versioning on a 0.x line: the interface re-exported from `mselect`
 itself is stable within a minor version, and everything else in the package is internal.
 
+## v0.3.2 - 2026-09-18
+
+A page that runs the method, and one stale count corrected. Nothing re-exported from `mselect`
+changed, so a consumer pinned to `>=0.3,<0.4` needs to do nothing.
+
+### `mselect demo`, and the page at adaptive.peterparker.ca
+
+`demo/` is a static page: no framework, no build step, no off-origin request, and the same
+content security policy the rest of the portfolio's pages carry. `mselect demo build` writes the
+JSON it reads from the artefacts the README's own table comes from, and `mselect demo serve`
+serves it locally under the headers the live host sends, which is the only way a policy
+violation is visible before it is published.
+
+The adaptive test itself runs in the browser against the twelve own-run models' recorded
+answers, one bit per cell, priced with what the ledger charged for those exact calls. It can
+replay only what was asked and paid for. PLAN.md section 15.39 records why that was worth
+shipping rather than precomputing, and what running all sixty-six pairs of the panel then
+measured.
+
+### The own-run item count was one short
+
+The committed validation had been written before the last arm of `local-mid-a` landed, so the
+common frame every own-run figure is computed on was reported as 2,815 items where the records
+hold 2,816. `mselect validate --write` and `mselect report` were rerun and **no other figure
+moved**, which is the check rather than the excuse.
+
 ## v0.3.1 - 2026-09-17
 
 A twelfth model on the panel, two defects fixed, and the first whole-bank duplicate check. The
