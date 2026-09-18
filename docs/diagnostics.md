@@ -38,6 +38,30 @@ Separately, 115 tight blocks covering 474 items have a Q3 above 0.8 inside the b
 
 This is the honest limitation of the whole project. Benchmark items are not independent given ability: they share passages, templates, subject matter and formats. Every standard error from a fixed-length test is therefore optimistic, the more so the more items come from the same block. Project 03 is told which blocks these are so that it does not treat them as independent evidence.
 
+### The same question twice, exactly
+
+**36 questions appear more than once**, covering 72 of the 19,919 administrable items, so the bank holds 19,883 distinct questions rather than 19,919. Matching is exact on the question text and the set of options, so this is a floor: a question reworded by a comma counts here as two questions. 446 items have no text at all and could not be compared.
+
+35 of them span two benchmarks and 1 sits inside one. The cross-benchmark pairs are the interesting ones, and they are not a mystery: MMLU-Pro was assembled partly out of MMLU, so an item can arrive twice under two releases with two ids and two scenario keys.
+
+| Question | Items | Benchmarks |
+|---|---|---|
+| Statement 1 \| If a group has an element of order 10, then it has el... | `002b6b2c8f80117e`, `5164eadb1c7bd052` | mmlu, mmlu_pro |
+| Which of the following is, according to the introduction to chapter... | `07ab66f82d3d3267`, `268c8be80b49f905` | mmlu, mmlu_pro |
+| Rawls argues that parties in the original position would not accept... | `16265095adfcb22d`, `8998690bf9350ee3` | mmlu, mmlu_pro |
+| Arrests may occasionally be made without a warrant. Which of the fo... | `1705708b770ff1d9`, `648cc0c3fe6e0c51` | mmlu, mmlu_pro |
+| Which of the following is not a purportedly beneficial outcome of t... | `1bac50156d4c387d`, `8a84b65c5aa3652c` | mmlu, mmlu_pro |
+| Which of the following is the odd one out? | `1ff322ee83c1737c`, `464cd06d99eed6b9` | mmlu, mmlu_pro |
+| Economy X is an open economy with flexible exchange rates. Economy ... | `211317ec54e5ac26`, `c09da9e646c0ddf8` | mmlu, mmlu_pro |
+| Suppose two athletes, A and B, are equally skilled. Suppose also th... | `22bfce1090bc49c7`, `bd3fc621cc2ec157` | mmlu, mmlu_pro |
+| There are specific research designs and strategies used to gain the... | `28e0a5874a293a86`, `91e107a1768cc28b` | mmlu, mmlu_pro |
+| Which of the following is a remote Trojan? | `29b06bc0bbe675af`, `92fc1767a63f7640` | mmlu, mmlu_pro |
+| ... and 26 more | | |
+
+**This is local dependence by construction**, and the strongest kind: two labels for one question load on whatever they both load on, twice, with a residual correlation that no threshold has to be chosen to believe. They are reported rather than dropped, because a bank that silently deduplicates is a bank whose item count nobody can check.
+
+Every group agrees with itself about the answer, which is the one piece of good news here: the copies are redundant rather than contradictory, so no model is being marked wrong by one release for the answer another release calls right.
+
 ## Dimensionality
 
 Eigenvalues of the tetrachoric correlation matrix against a parallel-analysis reference built by permuting each item independently, on a sample of each benchmark's items.

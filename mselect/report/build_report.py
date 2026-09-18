@@ -784,6 +784,95 @@ def _quintile_curves(bank: bank_io.Bank, item_ids: list[str]) -> dict[str, list[
     return out
 
 
+def _duplicates_section(version: str) -> list[str]:
+    """Items that are not merely dependent but identical: one question under two item ids.
+
+    Q3 above finds items whose residuals move together and calls the tightest of them
+    "effectively the same question asked twice". This section is the set that literally is, found
+    by comparing question text rather than by fitting anything, and it belongs beside Q3 because
+    a reader who has just been told about near-duplicates deserves the exact ones in the same
+    breath. `mselect/experiments/duplicates.py` has the matching rule and its limits.
+
+    Absent rather than empty when the pool cannot be rebuilt, for the reason `_incomplete_section`
+    gives: a bank whose source ships no question text cannot be checked for duplicate text, and
+    silence would read as a clean result.
+    """
+    from mselect.experiments import duplicates as dup
+    from mselect.runner import items as item_pool
+
+    heading = ["", "### The same question twice, exactly", ""]
+    try:
+        pool = item_pool.administrable(version)
+    except (FileNotFoundError, OSError):  # pragma: no cover - only without the fetched cache
+        pool = None
+    if pool is None or not pool.items:
+        return [
+            *heading,
+            "**Not checked on this bank.** Exact duplicates are found by comparing question "
+            f"text, and the source behind bank `{version}` publishes per-item scores without "
+            "publishing the items.",
+        ]
+
+    found = dup.scan(pool.items, unscannable=len(pool.excluded))
+    if not found.duplicates:
+        return [
+            *heading,
+            f"**None found.** All {found.n_scanned:,} administrable items carry distinct "
+            f"questions. {found.n_unscannable:,} more have no text and could not be compared.",
+        ]
+
+    cross = [d for d in found.duplicates if d.cross_benchmark]
+    within = [d for d in found.duplicates if not d.cross_benchmark]
+    lines = [
+        *heading,
+        f"**{len(found.duplicates)} questions appear more than once**, covering "
+        f"{found.n_items_involved} of the {found.n_scanned:,} administrable items, so the bank "
+        f"holds {found.n_distinct_questions:,} distinct questions rather than "
+        f"{found.n_scanned:,}. Matching is exact on the question text and the set of options, "
+        "so this is a floor: a question reworded by a comma counts here as two questions. "
+        f"{found.n_unscannable:,} items have no text at all and could not be compared.",
+        "",
+        f"{len(cross)} of them span two benchmarks and {len(within)} "
+        f"{'sits' if len(within) == 1 else 'sit'} inside one. The cross-benchmark pairs are the "
+        "interesting ones, and they are not a mystery: MMLU-Pro was assembled partly out of "
+        "MMLU, so an item can arrive twice under two releases with two ids and two scenario "
+        "keys.",
+        "",
+        "| Question | Items | Benchmarks |",
+        "|---|---|---|",
+    ]
+    for entry in found.duplicates[:10]:
+        text = entry.question if len(entry.question) <= 70 else entry.question[:67] + "..."
+        ids = ", ".join(f"`{i}`" for i in entry.item_ids)
+        lines.append(f"| {text.replace('|', r'\|')} | {ids} | {', '.join(entry.benchmarks)} |")
+    if len(found.duplicates) > 10:
+        lines.append(f"| ... and {len(found.duplicates) - 10} more | | |")
+
+    lines += [
+        "",
+        "**This is local dependence by construction**, and the strongest kind: two labels for "
+        "one question load on whatever they both load on, twice, with a residual correlation "
+        "that no threshold has to be chosen to believe. They are reported rather than dropped, "
+        "because a bank that silently deduplicates is a bank whose item count nobody can check.",
+    ]
+    if found.contradictions:
+        lines += [
+            "",
+            f"**{len(found.contradictions)} of these groups are scored against different "
+            "answers**, which is a different and worse problem than redundancy: the same "
+            "question with two keys means one of the copies is marking models wrong for being "
+            "right.",
+        ]
+    else:
+        lines += [
+            "",
+            "Every group agrees with itself about the answer, which is the one piece of good "
+            "news here: the copies are redundant rather than contradictory, so no model is "
+            "being marked wrong by one release for the answer another release calls right.",
+        ]
+    return lines
+
+
 def diagnostics_document(
     bank: bank_io.Bank, diagnostics: dict[str, Any], fit_meta: dict[str, Any]
 ) -> str:
@@ -852,6 +941,7 @@ def diagnostics_document(
         "error from a fixed-length test is therefore optimistic, the more so the more items come "
         "from the same block. Project 03 is told which blocks these are so that it does not treat "
         "them as independent evidence.",
+        *_duplicates_section(bank.version),
         "",
         "## Dimensionality",
         "",

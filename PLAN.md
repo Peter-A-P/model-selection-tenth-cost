@@ -1030,14 +1030,41 @@ Two consequences, and neither is "backfill the 2,999".
 
 **For the analysis.** A duplicated item is local dependence by construction, and section 4.1
 reports local dependence rather than hiding it. Two labels for one question also load on whatever
-they both load on, twice. The decision to make before the local dependence section is written is
-whether the pair is reported as a found duplicate or one of the two is dropped from the suite;
-what is not available is passing over it.
+they both load on, twice. **Peter's decision 2026-09-17: report them, do not drop them.** A bank
+that silently deduplicates is a bank whose item count nobody can check, and the pair is a better
+result than its absence.
 
-**For the bank.** This was found in 3,000 items because a run was interrupted in exactly the
-wrong place. The full bank is 20,365 items and has never been checked for this, and
-`items.parquet` carries no question text, so the check has to run through prompts or record
-files. Cheap, not done, and on the list.
+#### The whole bank, checked 2026-09-17
+
+One pair found by accident in 3,000 items is a reason to look at the other 17,365, which had
+never been done, because `items.parquet` carries no question text and the check has to go through
+the reconstructed pool. It is now `mselect/experiments/duplicates.py`, it runs inside
+`mselect report`, and it writes into `docs/diagnostics.md` beside Q3, which is where a reader who
+has just been told about near-duplicates should meet the exact ones.
+
+| | |
+|---|---:|
+| administrable items scanned | 19,919 |
+| distinct questions among them | **19,883** |
+| questions appearing more than once | **36** |
+| items involved | 72 |
+| pairs spanning two benchmarks | 35 |
+| pairs inside one benchmark | 1 |
+| groups scored against different answers | **0** |
+| items with no text, not comparable | 446 |
+
+Thirty-five of the thirty-six are MMLU against MMLU-Pro, which is not a mystery: MMLU-Pro was
+assembled partly out of MMLU, so an item arrives twice under two releases with two ids and two
+scenario keys. The thirty-sixth is a duplicate inside MMLU itself. **No group disagrees with
+itself about the answer**, which is the one piece of good news: these are redundant rather than
+contradictory, so no model is being marked wrong by one release for the answer another calls
+right. That was worth checking separately, because the same question under two keys would have
+been a defect of a different order.
+
+Matching is exact on the question text and the sorted option set, whitespace normalised and
+nothing else. So 36 is a floor: a question reworded by a comma counts here as two. The options
+are sorted because finding 7 is the argument that option order is presentation rather than
+question.
 
 ### 15.36 The twelfth row lands, and it moves three findings and one sentence
 

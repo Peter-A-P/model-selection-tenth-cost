@@ -3,6 +3,65 @@
 Versions follow semantic versioning on a 0.x line: the interface re-exported from `mselect`
 itself is stable within a minor version, and everything else in the package is internal.
 
+## v0.3.1 - 2026-09-17
+
+A twelfth model on the panel, two defects fixed, and the first whole-bank duplicate check. The
+re-exported interface is unchanged apart from one addition, so project 03 can move its pin from
+`v0.3.0` to `v0.3.1` without touching anything else.
+
+### `reliability()` sizes a gate from the worst hosted model, not from a laptop
+
+`Reliability` gains `worst_hosted_flip_rate`, and `points_sd(n)` now uses it. The old behaviour
+is still available as `points_sd(n, pooled=True)`, which is the right number for describing the
+panel and the wrong one for a release gate.
+
+The panel's pooled flip rate includes three models running on a laptop that agree with themselves
+almost perfectly at temperature 0, so pooling made a gate look more sensitive than it can be for
+the hosted models it exists to watch. On 500 items the measured floor is **1.15 points** against
+a pooled **0.75**: the pooled figure understated by 53%, in the direction that passes a release
+it should have caught. Found by project 03 reading the handover rather than by this repository.
+
+`own-run-retest-v1.json` is regenerated at twelve models and now carries the figure directly
+rather than leaving it to be derived from the agreement map. It also stops recording a hard-coded
+measurement date.
+
+### The panel gains the rung between 3B and the hosted models
+
+`local-mid-a` is `qwen2.5:7b` on the same laptop and in the same harness as `local-small-b`'s
+`qwen2.5:3b`, so the two differ in capability and nothing else. It scores 0.644 against 0.541.
+Transfer tau rose from 0.855 (0.617 to 1.000) to **0.879 (0.682 to 1.000)**.
+
+Two published claims changed as a result, both narrowing:
+
+- "Every model on the panel is worse when the answer is A" is now **eleven of twelve**. The
+  exception breaks the pattern only at D and by less than its own interval. A against C holds
+  twelve times out of twelve, and that was always the stronger version.
+- The answer-only format now measurably costs **two** models rather than one.
+
+### The bank holds 19,883 distinct questions, not 19,919
+
+`mselect.experiments.duplicates` is new, runs inside `mselect report`, and writes into
+`docs/diagnostics.md` beside Q3. **36 questions appear more than once**, covering 72 items, 35 of
+them because MMLU-Pro was assembled partly out of MMLU. No group is scored against two different
+answers. They are reported rather than deduplicated.
+
+Found because an interrupted run came back one record short: two items sharing a question share a
+`request_sha256`, and resume keys on the hash rather than on the cell.
+
+### Fixed
+
+- The README generator wrote one confidence interval for two models whenever the framing
+  experiment had more than one exception, naming only the worst and attaching its figure to both.
+  It now prices every model it names, and counts rather than prices beyond three.
+- `tests/test_cli_guards.py` asserted against styled terminal output, so three checks that a
+  command cannot spend money could not have failed on CI. Every assertion about command output
+  now goes through `unstyled()`.
+
+### Added
+
+- `scripts/full-participation.sh` and `scripts/framing-second-administration.sh`: the arm
+  sequences and item counts that make one model's numbers comparable with another's.
+
 ## v0.3.0 - 2026-09-11
 
 The audit before making the repository public. No measured result changed; both banks were

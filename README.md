@@ -99,6 +99,11 @@ Three more limits worth stating before the method is used for anything:
   are on that panel's scale, and the second bank measures what that costs: over the 998 questions
   the two banks share, difficulty correlates 0.71 for the items that discriminate in both and
   not at all for the rest. Filter on discrimination before importing difficulty.
+- The bank holds 19,883 distinct questions across 19,919 administrable items: **36 questions
+  appear twice**, 35 of them because MMLU-Pro was assembled partly out of MMLU and the same
+  question arrives under two ids. They are reported rather than deduplicated, because a bank that
+  silently drops items is one whose count nobody can check, and they are the exact end of the
+  local dependence scale that [docs/diagnostics.md](docs/diagnostics.md) measures with Q3.
 - The own-run validation is twelve models, not a hundred. It is the right twelve, spanning
   0.54 to 0.94 accuracy across four vendors and a laptop, but a bootstrap over twelve models
   is wide: every interval in that part of the table overlaps every other. What it settles is
