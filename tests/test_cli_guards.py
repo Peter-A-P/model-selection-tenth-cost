@@ -290,3 +290,49 @@ def test_a_resume_asks_only_for_the_keys_its_remaining_work_needs(
     )
     assert result.exit_code == 1
     assert "Add --yes to run it" in unstyled(result.output)
+
+
+# The retest summary is written per template, and only `plain` may write the file the handover
+# reads. Project 03 sizes a release gate from that file, so a second administration of another
+# template landing on it would replace the noise floor with one measured under a prompt nobody
+# gates on. Added 2026-09-18 with the second administration that made the collision possible.
+
+
+def test_only_the_plain_template_writes_the_file_the_handover_reads() -> None:
+    from mselect import cli
+
+    canonical = cli._retest_summary_path("v1", "plain")
+    assert canonical.name == "own-run-retest-v1.json"
+    for template in ("letter_only", "brief_reasoning"):
+        other = cli._retest_summary_path("v1", template)
+        assert other != canonical
+        assert template in other.name
+    # The handover reads the canonical name and nothing else.
+    from mselect import handover
+
+    assert handover.reliability().worst_hosted_flip_rate is not None
+
+
+def test_a_missing_template_summary_is_missing_rather_than_the_plain_one() -> None:
+    """No fallback, on purpose: substituting `plain` is the defect the parameter exists to fix."""
+    from mselect import cli
+
+    assert cli._measured_flip_rates("v1", "no-such-template") == {}
+    assert cli._measured_flip_rates("v1", "plain")
+
+
+def test_every_template_is_measured_separately_and_they_disagree() -> None:
+    """If the three templates had the same flip rate, charging them separately would be pointless.
+
+    They do not. `local-mid-a` flips 15 times more often when asked to reason than when asked for
+    an answer, and `together-open-a` flips 5 times less often under `letter_only` than under
+    `plain`, so the correction goes in opposite directions for different models.
+    """
+    from mselect import cli
+
+    rates = {
+        t: cli._measured_flip_rates("v1", t) for t in ("plain", "letter_only", "brief_reasoning")
+    }
+    assert all(rates.values()), "all three templates have a second administration"
+    assert rates["brief_reasoning"]["local-mid-a"] > 10 * rates["plain"]["local-mid-a"]
+    assert rates["plain"]["together-open-a"] > 4 * rates["letter_only"]["together-open-a"]

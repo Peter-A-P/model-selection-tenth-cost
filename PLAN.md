@@ -998,6 +998,64 @@ exists to check.
 It is worth noting that `anthropic-haiku` is the one Anthropic route carrying a dated
 identifier, and the one that works.
 
+### 15.38 The caveat is paid off, and the prediction in it was half wrong
+
+Findings 7 and 8 both subtract each model's own instability before reporting an effect, and until
+now the flip rate they subtracted was measured under `plain` alone. The write-up said so, and
+predicted that a reasoning prompt is less stable, so the noise charged was too small and every net
+figure was an upper bound. Closing it took a second administration of `letter_only` and
+`brief_reasoning`, 7,200 calls over two days for **US$3.38** against the US$4.90 the first
+administration cost.
+
+#### The pooled prediction was right and did not matter
+
+| template | flip rate, pooled | worst hosted |
+|---|---:|---:|
+| `plain` | 0.0280 | 0.0658 |
+| `letter_only` | 0.0241 | 0.0546 |
+| `brief_reasoning` | 0.0303 | 0.0584 |
+
+`brief_reasoning` is the least stable and `letter_only` the most, exactly the predicted ordering.
+The spread is 0.006, so as a panel-level correction this was worth almost nothing.
+
+#### Per model it is not one ordering, and that is the result
+
+| model | `plain` | `letter_only` | `brief_reasoning` |
+|---|---:|---:|---:|
+| `local-mid-a` | 0.002 | 0.013 | **0.030** |
+| `together-open-a` | 0.050 | **0.010** | 0.040 |
+| `openai-mid` | **0.064** | 0.053 | 0.043 |
+| `google-frontier` | **0.018** | 0.033 | 0.027 |
+
+`qwen2.5:7b` is **fifteen times** less consistent asked to reason than asked for an answer, which
+is the caveat's fear in its strongest form and a real fact about that model. `openai-mid` runs the
+other way: it is least consistent under answer-only. `together-open-a` is five times steadier under
+`letter_only` than under `plain`.
+
+So **the correction was right and the prediction attached to it was wrong**. The net figures did
+not come down; they moved in both directions, `together-open-a` from 8.7% to 11.9% and
+`local-mid-a` from 11.5% to 9.6%, and the model whose interaction vanishes into its own noise
+changed from `together-open-b` to `anthropic-sonnet`. An upper bound is what you have when the
+error has a known sign. This one did not, and nothing short of measuring it would have said so.
+
+**Finding 7 never needed this.** All four option rotations are administered under `plain`, so its
+flip rate was always measured under the template being analysed. The old caveat named both
+findings and was wrong about one of them.
+
+#### What had to change in the code first
+
+`mselect retest --template letter_only` would have written over
+`mselect/config/own-run-retest-v1.json`, which has no template in its name and is the file
+`handover.reliability()` reads and project 03 sizes a release gate from. A second administration
+of a template nobody gates on would have silently become the gate's noise floor. Only `plain`
+writes that name now; the others get `own-run-retest-v1-<template>.json`.
+
+`_measured_flip_rates` takes a template, with **no fallback to `plain`**, because a silent
+substitution is the defect the parameter exists to fix. `framing` charges the mean of the
+per-template rates, which is not an approximation: with one observation per cell the expected
+residual sum of squares under noise is the degrees of freedom times the average per-cell variance,
+and the per-cell variance of template t is its own flip rate over two.
+
 ### 15.37 Two item ids, one question, and a run that could not tell
 
 The `plain` rotation-0 arm finished with 2,999 records for `local-mid-a` where every other model

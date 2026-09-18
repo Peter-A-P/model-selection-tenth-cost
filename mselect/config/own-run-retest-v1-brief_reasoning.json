@@ -1,0 +1,28 @@
+{
+  "measured": "2026-09-18",
+  "bank_version": "v1",
+  "template": "brief_reasoning",
+  "design": "the same items asked twice at temperature 0, a day apart",
+  "n_models": 12,
+  "n_items": 300,
+  "agreement": {
+    "anthropic-haiku": 0.9733333333333334,
+    "anthropic-sonnet": 0.9694915254237289,
+    "anthropic-opus": 0.9765886287625418,
+    "openai-mid": 0.9566666666666667,
+    "openai-frontier": 0.9633333333333334,
+    "google-mid": 0.9429530201342282,
+    "google-frontier": 0.9732441471571907,
+    "together-open-a": 0.96,
+    "together-open-b": 0.9494949494949495,
+    "local-small-a": 1.0,
+    "local-small-b": 1.0,
+    "local-mid-a": 0.9696969696969697
+  },
+  "worst_hosted_agreement": 0.9429530201342282,
+  "worst_hosted_flip_rate": 0.058419243986254296,
+  "largest_score_move_points": 2.3333333333333335,
+  "symmetry_p_pooled": 0.5657001139736338,
+  "observed_flip_rate": 0.030277063696086834,
+  "predicted_flip_rate": 0.18307147139679475
+}

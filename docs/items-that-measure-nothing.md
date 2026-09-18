@@ -63,7 +63,7 @@ No benchmark text appears here or anywhere else in this repository. The bank sto
 
 ## A third kind: the question is not all there
 
-**The panel answers these below chance.** Eleven current models were asked the own-run suite on 2026-09-12 and 2026-09-13. On the items flagged here they scored **0.107 (0.050 to 0.215)** over 56 scored replies, against 0.790 (0.786 to 0.794) on every other item, and against 0.250 for guessing among four options. Below the guessing floor is the part worth reading twice: these are not hard items, they are items where the reading that makes the key correct is not available, so a model that reasons carefully is led away from it.
+**The panel answers these below chance.** Eleven current models were asked the own-run suite on 2026-09-12 and 2026-09-13. On the items flagged here they scored **0.107 (0.050 to 0.215)** over 56 scored replies, against 0.790 (0.786 to 0.795) on every other item, and against 0.250 for guessing among four options. Below the guessing floor is the part worth reading twice: these are not hard items, they are items where the reading that makes the key correct is not available, so a model that reasons carefully is led away from it.
 
 **20 items of 19,919** ask which of several numbered statements are correct, and carry no numbered statements at all. The options are `1,2,3` and `1,3,4` and `2,3,4`, and there is nothing anywhere in the question numbered 1. Nobody can answer these, and a model that says so is describing the item rather than failing it.
 

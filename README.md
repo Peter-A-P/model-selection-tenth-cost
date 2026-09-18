@@ -384,12 +384,14 @@ records every call. The twelfth, `local-mid-a`, was administered on 2026-09-16 a
 and added US$0.00 and about nineteen hours of laptop CPU. `mselect validate` reads the records
 back and costs nothing to repeat.
 
-**Not measured yet**: a second administration of the `letter_only` and `brief_reasoning`
-templates. All three measurement experiments of [PLAN.md](PLAN.md) section 4.3 are now run, but
-the flip rate that position bias and prompt framing subtract as noise was measured under the
-answer-only template alone. A template with more room to wander is therefore charged too little
-noise, and both net figures are upper bounds rather than estimates. Closing that is 7,200 more
-calls and about US$5, on the same items already chosen.
+**Not measured yet**: nothing in the own-run half. All three measurement experiments of
+[PLAN.md](PLAN.md) section 4.3 are run, and the last caveat on them was paid off on 2026-09-18
+with a second administration of the `letter_only` and `brief_reasoning` templates, 7,200 calls
+for US$3.38, so the noise each template is charged is now measured under that template rather
+than borrowed from the answer-only one. What remains open is stated where it belongs: the item
+term in finding 8 is still not noise-free, and the 36 repeated questions in
+[docs/diagnostics.md](docs/diagnostics.md) are a floor rather than a count, because duplicates
+are matched on exact text.
 
 A vendor call is possible from this repository now, and it is gated. `mselect run` and
 `mselect smoke` are the only commands that can spend, both refuse to send anything without an

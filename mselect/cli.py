@@ -14,6 +14,8 @@ import typer
 from mselect import paths
 
 if TYPE_CHECKING:
+    from pathlib import Path
+
     from mselect.runner.prompts import PanelEntry, Settings
 
 app = typer.Typer(add_completion=False, help=__doc__)
@@ -1095,7 +1097,7 @@ def retest(
     # left only in `out/` is a result 03 can never see. This summary is aggregate: agreement,
     # flip counts and the derived floor, with no item text and no replies, so section 13.5 is
     # untouched. It sits beside own-run-suite-v1.json, already a committed artefact of a run.
-    beside = paths.ROOT / "mselect" / "config" / f"own-run-retest-{version}.json"
+    beside = _retest_summary_path(version, template)
     # A model on the laptop is not what a release gate watches, and at temperature 0 it barely
     # disagrees with itself: the two 3B models came back at 1.000 and 0.998 agreement. Averaging
     # them into a figure a gate sizes itself with makes the gate look more sensitive than it can
@@ -1137,7 +1139,19 @@ def retest(
     _say(f"wrote {beside}  (committed, so the handover can read it)")
 
 
-def _measured_flip_rates(version: str) -> dict[str, float]:
+def _retest_summary_path(version: str, template: str) -> Path:
+    """Where the committed retest summary for one template lives.
+
+    `plain` keeps the plain name, because `handover.reliability()` reads it and project 03
+    imports that. A second administration of another template is a different measurement and
+    gets a different file; writing it over the handover's would replace the noise floor a
+    release gate sizes itself with by one measured under a template nobody gates on.
+    """
+    stem = f"own-run-retest-{version}" + ("" if template == "plain" else f"-{template}")
+    return paths.ROOT / "mselect" / "config" / f"{stem}.json"
+
+
+def _measured_flip_rates(version: str, template: str = "plain") -> dict[str, float]:
     """How often each model disagreed with itself, from the committed retest summary.
 
     The share of answers that move when the same question is asked twice with nothing changed.
@@ -1147,10 +1161,18 @@ def _measured_flip_rates(version: str) -> dict[str, float]:
     Missing file or missing model both mean "not measured", and the caller reports the
     uncorrected figure rather than substituting a pooled rate. The rates span 0.000 to 0.064
     across this panel, so a stand-in would be wrong by more than the quantity being estimated.
+
+    **Per template since 2026-09-18.** This used to read the `plain` summary whatever was being
+    analysed, which is right for position bias, where all four rotations are `plain`, and wrong
+    for framing, where the whole point is that three templates are compared. A template that
+    invites a model to reason has more room to wander, so charging it the answer-only template's
+    noise charges it too little. There is deliberately no fallback to `plain`: a missing file
+    means not measured, and quietly substituting the wrong template's rate is the defect this
+    parameter exists to fix.
     """
     import json
 
-    path = paths.ROOT / "mselect" / "config" / f"own-run-retest-{version}.json"
+    path = _retest_summary_path(version, template)
     if not path.is_file():
         return {}
     agreement = json.loads(path.read_text(encoding="utf-8")).get("agreement", {})
@@ -1340,9 +1362,35 @@ def framing(
     # and this says how much of it is the model disagreeing with itself. Absent file, absent
     # model or absent template arm all mean the same thing here: report the confounded term and
     # do not guess at the split.
-    flips = _measured_flip_rates(version)
+    #
+    # **One rate per template since 2026-09-18**, and the residual is charged their mean. With
+    # one observation per cell the expected residual sum of squares under pure noise is the
+    # degrees of freedom times the average per-cell variance, and the per-cell variance of
+    # template t is its own flip rate over two. So the mean across the templates being compared
+    # is not an approximation, it is the quantity. Before the second administration of
+    # `letter_only` and `brief_reasoning` existed, all three columns were charged the
+    # answer-only rate, which undercharges any template with more room to wander and makes every
+    # net figure an upper bound. That is what this arm bought.
+    per_template = {name: _measured_flip_rates(version, name) for name in wanted}
+    measured = [name for name, rates in per_template.items() if rates]
+    flips: dict[str, float] = {}
+    for alias in {a for rates in per_template.values() for a in rates}:
+        rates = [per_template[name][alias] for name in measured if alias in per_template[name]]
+        if rates:
+            flips[alias] = sum(rates) / len(rates)
     if not flips:
         _say("no retest summary; the interaction term stays confounded with response noise")
+    elif len(measured) < len(wanted):
+        missing = ", ".join(name for name in wanted if name not in measured)
+        _say(
+            f"no second administration of {missing}, so the noise charged below is the mean of "
+            f"the {len(measured)} template(s) that have one and every net figure is an upper bound"
+        )
+    else:
+        _say(
+            f"noise charged per template, from a second administration of each of "
+            f"{', '.join(measured)}"
+        )
 
     base = panels[wanted[0]]
     usable = np.ones(base.n_items, dtype=bool)

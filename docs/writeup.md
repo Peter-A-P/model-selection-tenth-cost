@@ -263,13 +263,13 @@ can be charged against the residual:
 
 | model | interaction | its own noise | what is left |
 |---|---:|---:|---:|
-| `local-small-a` | 26.6% | 0.3% | **26.3%** |
-| `anthropic-haiku` | 17.6% | 3.6% | **14.0%** |
-| `local-small-b` | 12.1% | 0.0% | **12.1%** |
-| `local-mid-a` | 11.8% | 0.3% | **11.5%** |
-| `together-open-a` | 18.2% | 9.5% | **8.7%** |
-| `google-mid` | 12.9% | 12.9% | **0.1%** |
-| `together-open-b` | 12.4% | 13.7% | **0.0%** |
+| `local-small-a` | 26.6% | 0.1% | **26.5%** |
+| `anthropic-haiku` | 17.6% | 4.2% | **13.5%** |
+| `local-small-b` | 12.1% | 0.1% | **11.9%** |
+| `together-open-a` | 18.2% | 6.3% | **11.9%** |
+| `local-mid-a` | 11.8% | 2.2% | **9.6%** |
+| `google-mid` | 12.9% | 12.6% | **0.4%** |
+| `anthropic-sonnet` | 8.8% | 9.5% | **0.0%** |
 
 So the two halves of this finding point opposite ways and are both true. The template does not
 move the score. For the weakest models it moves **which questions they get right**, by a quarter
@@ -322,11 +322,46 @@ setting.** If you budget tokens on the assumption it is honoured, you will be wr
 sixty on some model families, and on a 1,024-token cap Gemma 4 returns an empty reply rather than
 a short one, which reads as a failed call rather than a verbose one.
 
-One caveat I would rather state than bury. The flip rate used for both corrections was measured
-under the answer-only template alone. If reasoning prompts are less stable, and they have more
-room to be, then the noise charged here is too small and the net figures are upper bounds. The
-item term is not noise-free either. Correcting it properly needs a second administration of every
-template, which is another 3,300 calls, and it is on the list rather than done.
+### The caveat this used to carry, and what happened when it was paid off
+
+Until 2026-09-18 the paragraph here said that the flip rate subtracted above was measured under
+the answer-only template alone, that a reasoning prompt has more room to wander and is probably
+less stable, and that the net figures were therefore upper bounds. Closing it took a second
+administration of both other templates, 7,200 calls and US$3.38. The guess was half right and the
+half it got wrong is the more useful half.
+
+| template | flip rate, pooled | worst hosted |
+|---|---:|---:|
+| `plain` | 0.0280 | 0.0658 |
+| `letter_only` | **0.0241** | 0.0546 |
+| `brief_reasoning` | **0.0303** | 0.0584 |
+
+`brief_reasoning` is the least stable and `letter_only` the most, which is the predicted
+ordering, but the pooled spread is 0.006 and nothing in the table above moves much on it.
+
+**Per model it is not one ordering at all**, and that is what the arm bought:
+
+| model | `plain` | `letter_only` | `brief_reasoning` |
+|---|---:|---:|---:|
+| `local-mid-a` | 0.002 | 0.013 | **0.030** |
+| `together-open-a` | 0.050 | **0.010** | 0.040 |
+| `openai-mid` | **0.064** | 0.053 | 0.043 |
+| `google-frontier` | **0.018** | 0.033 | 0.027 |
+
+The 7B on the laptop is **fifteen times** less consistent when asked to reason than when asked
+for an answer, which is the caveat's fear in its strongest form. `openai-mid` runs the other way
+and is at its *least* consistent under answer-only. `together-open-a` is five times steadier
+under `letter_only` than under `plain`. So "charge each template its own noise" was the right
+correction, and "the net figures are upper bounds" was the wrong prediction: they moved in both
+directions, `together-open-a` from 8.7% up to 11.9% and `local-mid-a` from 11.5% down to 9.6%,
+and the model whose interaction disappears into its own noise changed from `together-open-b` to
+`anthropic-sonnet`.
+
+The item term is still not noise-free, and that is not fixed by anything here.
+
+**Finding 7 never had this problem**, which the old caveat obscured by naming both findings. All
+four option rotations are administered under `plain`, so the flip rate charged there was always
+measured under the template being analysed.
 
 ## What to do on Monday
 
