@@ -186,6 +186,18 @@
       evaluations and choose on price, latency or context window instead.
     </p>
 
+    <p class="note">
+      <strong>Try <code>anthropic-sonnet</code> against <code>openai-frontier</code>, which the method cannot settle.</strong>
+      Both estimates run to the end of the bank's ability scale and stop there, because the
+      selector asks for questions it believes are a coin flip at that level and these two get
+      about nine in ten of them right. Only 253 of the 2,816 questions are harder than +3, so the
+      suite has run out of questions that could tell them apart, and the tight-looking interval is
+      a wall rather than evidence. The item parameters were fitted on 150 models evaluated between
+      2023 and 2025; a bank calibrated on that panel measures the top of a 2026 shortlist poorly,
+      which is a limit of this bank rather than of the method, and it is the reason the page draws
+      the edge of the scale instead of leaving you to notice the curve is flattened against it.
+    </p>
+
     <h3>One pair is an anecdote. Here are all sixty-six.</h3>
     <p>
       Every pair of the twelve models, both methods, same budget, in your browser. It takes a few

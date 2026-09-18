@@ -98,6 +98,24 @@ them. Below 200 items adaptive selection leads at every checkpoint; from 200 on 
 indistinguishable, with a plain random sample ahead at 200, 300 and 750 items and behind at 500
 and 1,000, every interval overlapping.
 
+**At the top of the panel the suite runs out of questions, and the estimator says so by
+saturating.** The ability grid this estimator carries runs from -4.5 to +4.5. Asked to place the
+two strongest models, the adaptive test lands `anthropic-sonnet` at +4.37 where scoring the whole
+suite puts it at +3.73, and `openai-frontier` at +4.47 against +3.19, so their intervals are
+narrow against a boundary rather than narrow on evidence and the pairwise rule never separates
+them. The cause is countable: only 90 of the 2,816 suite items are both harder than +3 and
+discriminating enough to measure with, and the models get 85 to 92 percent of the items the
+selector picks right, where a well-targeted item should be close to a coin flip. The bias is in
+the same direction all the way down the panel, at +0.2 for a 7B on a laptop and +1.3 for a
+frontier model, which is what a bank fitted on 150 models evaluated between 2023 and 2025 does
+when it is pointed at a 2026 shortlist: those models beat its expectations on exactly the sharp
+items maximum-information selection prefers. Rankings survive it, because a monotone bias does
+not reorder anything, but at the top it compresses four models into the last tenth of the scale,
+which is one reason the own-run curve plateaus. **Treat an estimate within half a point of the
+grid edge as unmeasured**, and for a frontier-against-frontier comparison bring harder items.
+[adaptive.peterparker.ca](https://adaptive.peterparker.ca) draws that edge and names it, because
+a curve flattened against a wall otherwise reads as precision.
+
 Three more limits worth stating before the method is used for anything:
 
 - Every item is binary-scored, so this measures capability, knowledge and instruction

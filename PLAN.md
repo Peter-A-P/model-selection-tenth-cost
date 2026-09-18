@@ -998,6 +998,49 @@ exists to check.
 It is worth noting that `anthropic-haiku` is the one Anthropic route carrying a dated
 identifier, and the one that works.
 
+### 15.40 The scale runs out before the panel does, 2026-09-18
+
+Found by Peter within an hour of the page going up, by choosing the two models the README would
+have told him not to bother with: `anthropic-sonnet` against `openai-frontier`, half an accuracy
+point apart. Both posteriors ran to the end of the ability grid and stopped there, which looks
+like a drawing defect and is not one.
+
+It reproduces in the repository's own code, so the browser port is faithful and the behaviour is
+the method's:
+
+| model | adaptive at 300 items | scoring the whole suite |
+|---|---:|---:|
+| `anthropic-sonnet` | +4.37 | +3.73 |
+| `openai-frontier` | +4.47 | +3.19 |
+| `openai-mid` | +2.41 | +1.80 |
+| `local-mid-a` | +0.02 | -0.20 |
+
+**The bias is everywhere and only clipped at the top.** Maximum-information selection asks for
+items it believes are a coin flip at the current estimate; this panel gets 85 to 92 percent of
+them right. The bank was fitted on 150 models evaluated between 2023 and 2025, and the 2026 panel
+beats its expectations on exactly the high-discrimination items the selector prefers, so every
+answer pushes the estimate up. Lower down the panel it is a bias of about +0.2; at the top the
+grid ends at +4.5 and the estimate simply stops, with an interval that is narrow because of the
+wall rather than because of evidence.
+
+**The suite cannot fix it.** Only 253 of the 2,816 items have a difficulty above +3, and only 90
+of those discriminate above 0.3; the rest are the `-d/a` artefact of a near-zero slope, one of
+them at a difficulty of 76. There are no questions here hard enough to separate two frontier
+models, and no number of them would help.
+
+Three consequences, none of which move a published number. Rankings are unaffected, because a
+monotone bias does not reorder anything, but the compression of four models into the last tenth
+of the scale is part of why the own-run curve plateaus at 0.879 and why adaptive selection stops
+beating a random sample above 200 items on that panel: at the top it has stopped measuring. The
+README's limitation section now says this, with the figures above. And the page draws the edge of
+the scale and names it whenever an estimate reaches it, because the honest version of this is a
+sentence rather than a shape a reader has to interpret.
+
+What it is not is a reason to change the estimator. The grid is the prior the fit itself used,
+and widening it here would put the adaptive scale and the bank's scale on different axes. The
+fix, when this matters, is harder items, which is a statement about the suite that this project
+can make because it measured the items rather than counted them.
+
 ### 15.39 The page runs the method rather than describing it, 2026-09-18
 
 Every result in this repository is a number in a table, and a table is the right form for a

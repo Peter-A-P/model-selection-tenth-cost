@@ -77,6 +77,23 @@ export function drawPosteriors(svg, series, options = {}) {
       "ability, on the bank's scale")
   );
 
+  // The ends of the scale, drawn rather than left implicit. The prior this estimator carries
+  // is a grid from -4.5 to +4.5, so a model the bank cannot place inside that range piles up
+  // against the edge and gets an interval that looks tight because it has a wall on one side.
+  // Two frontier models do exactly that on this suite, and a chart that does not show the wall
+  // makes it look like precision.
+  for (const edge of domain) {
+    svg.appendChild(
+      svgEl("line", {
+        class: "edge", x1: x(edge), x2: x(edge), y1: top, y2: floor - barBand,
+      })
+    );
+  }
+  svg.appendChild(
+    svgEl("text", { class: "tick edge-label", x: x(domain[1]) - 4, y: top + 10, "text-anchor": "end" },
+      "edge of the scale")
+  );
+
   series.forEach((item, index) => {
     const nodes = item.nodes;
     let path = "";

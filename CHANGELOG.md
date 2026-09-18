@@ -3,6 +3,19 @@
 Versions follow semantic versioning on a 0.x line: the interface re-exported from `mselect`
 itself is stable within a minor version, and everything else in the package is internal.
 
+## v0.3.3 - 2026-09-18
+
+### The adaptive estimate saturates at the top of the panel, and the page now says so
+
+Nothing in the package changed. What changed is that a limit which was always there is written
+down: on this bank the adaptive estimate runs about two tenths high for a laptop model and more
+than a point high for a frontier one, and for the two strongest models it reaches the end of the
+ability grid and stops, so the pairwise rule cannot separate them and the narrow interval is a
+boundary rather than evidence. Only 90 of the 2,816 suite items are both harder than +3 and
+discriminating enough to measure with. The README's limitation section carries the figures and
+PLAN.md section 15.40 the reasoning; the page draws the edge of the scale and names it whenever
+an estimate arrives there. No published number moves: a monotone bias does not reorder a ranking.
+
 ## v0.3.2 - 2026-09-18
 
 A page that runs the method, and one stale count corrected. Nothing re-exported from `mselect`

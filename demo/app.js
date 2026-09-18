@@ -8,6 +8,22 @@ import { drawPosteriors, drawTauCurve, drawItemCloud, drawBars, clear, svgEl } f
 
 const MAX_QUESTIONS = 300;
 
+// Said whenever an estimate reaches the end of the scale, which is a property of the suite
+// rather than of the run: the questions stop before these models do.
+function ceilingNote(arena) {
+  const named = arena.models
+    .filter((_, side) => Math.abs(arena.posteriors[side].theta) > 4.0)
+    .map((model) => model.alias);
+  const subject = named.length > 1 ? "Both estimates have" : `<code>${named[0]}</code> has`;
+  return (
+    `<strong>${subject} run off the end of the bank's scale.</strong> The selector asks for ` +
+    "questions it believes are a coin flip at this level, and this panel's strongest models get " +
+    "about nine in ten of those right, so the estimate climbs until the scale stops it. Only 253 " +
+    "of the 2,816 questions are harder than +3. The suite has run out of questions hard enough, " +
+    "and an interval measured against that wall is not precision."
+  );
+};
+
 const state = { panel: null, curves: null, items: null, experiments: null, power: null, run: null };
 
 const colour = (name) => getComputedStyle(document.body).getPropertyValue(name).trim();
@@ -102,6 +118,15 @@ class Arena {
       })
     );
   }
+
+  // Is either estimate pressed against the end of the bank's scale? The estimator carries a
+  // grid from -4.5 to +4.5, so a model the bank cannot place inside that range stops there and
+  // its interval gets narrow for the wrong reason: it has a wall on one side rather than
+  // evidence. It happens to the two strongest models on this suite, and an interval measured
+  // against a wall should not be read as precision.
+  atTheEdge() {
+    return this.posteriors.some((p) => Math.abs(p.theta) > 4.0);
+  }
 }
 
 function drawArena(arena) {
@@ -153,16 +178,20 @@ function drawArena(arena) {
           `other way round, by ` +
           `${(Math.abs(leader.accuracy - other.accuracy) * 100).toFixed(1)} of a point. Ability ` +
           `and a count of correct answers are not the same quantity, and at a gap this small ` +
-          `they can disagree.`);
+          `they can disagree.`) +
+      (arena.atTheEdge() ? ` ${ceilingNote(arena)}` : "");
   } else if (arena.asked >= MAX_QUESTIONS) {
     target.className = "verdict warn";
     target.innerHTML =
       `<strong>Not separated after ${MAX_QUESTIONS} questions</strong>, for ${money(arena.usd)}. ` +
       `That is an answer: these two are indistinguishable at this budget. It is never reported ` +
-      `as "the same", because the evidence does not support that.`;
+      `as "the same", because the evidence does not support that.` +
+      (arena.atTheEdge() ? ` ${ceilingNote(arena)}` : "");
   } else if (arena.asked > 0) {
     target.className = "verdict";
-    target.textContent = `${arena.asked} questions in, the intervals still overlap.`;
+    target.innerHTML =
+      `${arena.asked} questions in, the intervals still overlap.` +
+      (arena.atTheEdge() ? ` ${ceilingNote(arena)}` : "");
   } else {
     target.className = "verdict";
     target.textContent = "Not started.";
