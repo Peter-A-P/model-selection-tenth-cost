@@ -371,7 +371,7 @@ the size of the file it was taken from.
 
 ## Status
 
-Built out of its November slot, ahead of schedule, and nearly finished.
+The build is nearly finished.
 
 **Measured from public per-item data**: everything in both tables above, on two independent
 banks, at no cost to anyone.
