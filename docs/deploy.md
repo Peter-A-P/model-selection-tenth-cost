@@ -47,21 +47,91 @@ disk: `fetch` and ES modules both refuse a `file://` origin. The page says so if
 script, stylesheet, fonts and JSON and nothing else, so the deployment cannot quietly start
 loading anything off-origin.
 
-Azure Static Web Apps on the free tier, which is what `targeting.peterparker.ca` uses for
-project 01, and the two routes are the same:
+Azure Static Web Apps on the free tier, in the personal `PAP-POCs` subscription, resource group
+`rg-portfolio`, East US 2: the same place `peterparker-ca`, `targeting-peterparker-ca` and
+`capacity-peterparker-ca` already live. One Static Web App serves one set of files to every
+hostname attached to it and does not route by host, so this page needs its own app rather than a
+second hostname on the portfolio site's.
 
-**From this machine, putting nothing in the repository.** Create the Static Web App with
-deployment source **Other**, copy its deployment token from the Overview blade, and deploy with
-`npx @azure/static-web-apps-cli deploy ./demo --deployment-token <token> --env production`. The
-token is enough on its own to publish to that site: it does not go in this repository, in
-`CLAUDE.local.md`, or in a shell history that is kept.
+**The subscription is the step to get right.** The Azure CLI on this machine defaults to a
+government work subscription, and nothing in a portfolio belongs there. Every command below
+names the subscription, and the first one changes the default.
 
-**From GitHub, redeploying on every push.** Connect the repository and the `main` branch, choose
-the **Custom** build preset, set the app location to `demo`, leave the API and output locations
-empty. The output location matters: the page is already built, and pointing the deployment at a
-build directory that does not exist is the usual way this fails.
+```powershell
+az account set --subscription "PAP-POCs"
+az account show --query name -o tsv          # must print PAP-POCs before anything is created
 
-Then add `adaptive.peterparker.ca` as a custom domain on that Static Web App and point a
-Cloudflare `CNAME` at the app's default hostname, DNS only rather than proxied. One Static Web
-App serves one set of files to every hostname attached to it, so this subdomain needs its own
-resource rather than sharing the portfolio site's.
+az staticwebapp create `
+  --name adaptive-peterparker-ca `
+  --resource-group rg-portfolio `
+  --location "East US 2" `
+  --sku Free `
+  --subscription "PAP-POCs"
+```
+
+No repository is connected, so no workflow file and no Azure credential go into a repository
+that is public. The deployment token is enough on its own to publish to that site: it is read
+from the CLI straight into the environment of one shell, so it never appears on a command line
+or in a shell history that is kept.
+
+```powershell
+$env:SWA_CLI_DEPLOYMENT_TOKEN = az staticwebapp secrets list `
+  --name adaptive-peterparker-ca --resource-group rg-portfolio `
+  --subscription "PAP-POCs" --query properties.apiKey -o tsv
+
+npx --yes @azure/static-web-apps-cli deploy ./demo --env production
+```
+
+Run that from the repository root, after `uv run mselect demo build`, whenever `demo/data/` has
+been rewritten. It needs Node and nothing else.
+
+## The custom domain
+
+A subdomain takes one CNAME. Only an apex needs the TXT validation, and this is a subdomain.
+
+1. At Cloudflare, on the `peterparker.ca` zone, add:
+
+   | Type | Name | Target | Proxy | TTL |
+   |---|---|---|---|---|
+   | CNAME | `adaptive` | the app's `<name>.azurestaticapps.net` hostname | **DNS only** | Auto |
+
+   Proxied would block validation and the managed certificate. `targeting.peterparker.ca` is
+   DNS only for that reason and this is the same.
+
+2. Then, and not before, attach it. Azure validates by the CNAME alone, and issues and renews
+   the certificate itself; there is nothing to buy or install.
+
+   ```powershell
+   az staticwebapp hostname set `
+     --name adaptive-peterparker-ca --resource-group rg-portfolio `
+     --hostname adaptive.peterparker.ca --subscription "PAP-POCs"
+   ```
+
+3. Check what the live host actually sends, which is the whole reason the policy is committed:
+
+   ```powershell
+   curl.exe -sI https://adaptive.peterparker.ca | Select-String "content-security-policy"
+   curl.exe -s https://adaptive.peterparker.ca/data/index.json
+   ```
+
+   The first must print the policy from `staticwebapp.config.json`. The second must list six
+   files. Then open the page and press **Run the test**: if the two charts stay empty, the data
+   files did not deploy, and the page says so rather than showing an empty frame.
+
+## Order of operations
+
+The README and the project's card on peterparker.ca both link to `adaptive.peterparker.ca`, so
+the page goes up before those are pushed. A dead link in a public README is worse than a missing
+one.
+
+## If the free tier changes: GitHub Pages
+
+Pages serves a subdirectory only from a branch root, so `demo/` has to become the root of a
+published branch:
+
+```bash
+git subtree push --prefix demo origin gh-pages
+```
+
+Two things are worse that way: `staticwebapp.config.json` is ignored, so the content security
+policy is lost, and the fallback rewrite goes with it.
