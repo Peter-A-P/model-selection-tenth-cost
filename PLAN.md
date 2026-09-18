@@ -3,8 +3,7 @@
 **Written:** 2026-09-06. **Amended:** 2026-09-10, section 13.
 **Status:** the public-data half is built, measured and public (2026-09-11, MIT, three tags);
 the own-run panel is not started and waits on project 04's `v0.2.0` tag.
-**Build window:** planned 4 weeks, 2026-11-02 to 2026-11-29; started early on 2026-09-10
-because the work needs no vendor spend until section 3.3. Standard practitioner version; a
+**Build:** started 2026-09-10, because the work needs no vendor spend until section 3.3. Standard practitioner version; a
 publishable version is a deferred extension (section 12).
 **Feeds:** the AI Release Gate (project 03) takes this project's item bank, reliability
 estimates and power function as its statistical core from December 2026.
@@ -74,7 +73,7 @@ Out of scope, on purpose:
 
 | Source | What it gives | Notes |
 |---|---|---|
-| ~~Open LLM Leaderboard "details" datasets on Hugging Face~~ **gated, see section 13.1** | Per-sample outputs and correctness for hundreds of models on MMLU-Pro, GPQA, MATH (levels 5), BBH, IFEval, MuSR | The leaderboard itself was frozen in 2025 but the per-sample datasets remain published. **Verify availability and format in week 1** before anything depends on it |
+| ~~Open LLM Leaderboard "details" datasets on Hugging Face~~ **gated, see section 13.1** | Per-sample outputs and correctness for hundreds of models on MMLU-Pro, GPQA, MATH (levels 5), BBH, IFEval, MuSR | The leaderboard itself was frozen in 2025 but the per-sample datasets remain published. **Verify availability and format first**, before anything depends on it |
 | HELM per-instance predictions | Per-instance results across many scenarios and models | Downloadable from the HELM release buckets; formats differ by release. Use one release consistently |
 | Own runs | Correctness per item for the validation panel | Section 3.3 |
 
@@ -231,17 +230,17 @@ group differences; answer parsers survive markdown, whitespace, and "The answer 
 Stack: Python 3.13, `uv`, `polars`, `py-irt`, `pymc`, `numpy`, `scipy`, `httpx`,
 `typer`, `matplotlib`. Typed, `ruff` and `mypy --strict` clean.
 
-## 6. Week by week
+## 6. Stage by stage
 
-| Week | Dates | Build | Done when |
-|---|---|---|---|
-| 1 | Nov 2 - 8 | Repo scaffold; public per-item loaders; response matrix for four benchmarks; item bank v1 frozen; dimensionality check; first 2PL fit; item parameter plots | Matrix of 100+ models by 3,000+ items; 2PL parameters with a sanity check against classical item difficulty |
-| 2 | Nov 9 - 15 | 3PL for multiple choice; fit statistics; Q3; DIF by family and release month; broken-item report drafted; own-run harness with cache and batch calls; full-suite runs on the own-run panel started | `docs/items-that-measure-nothing.md` with evidence; own-run matrix filling |
-| 3 | Nov 16 - 22 | CAT estimator, selection, stopping; leave-one-model-out simulation; random and stratified baselines; headline curve; live adaptive runs against the own-run panel; cost-per-decision table | Headline chart with intervals; validation on unseen models reported |
-| 4 | Nov 23 - 29 | Three experiments; power function and its validation; README to Rule A shape; `docs/rejected.md`; write-up; package tagged and handed to project 03 | Definition of done all checked; 03 can `import mselect` |
+| Stage | Build | Done when |
+|---|---|---|
+| 1 | Repo scaffold; public per-item loaders; response matrix for four benchmarks; item bank v1 frozen; dimensionality check; first 2PL fit; item parameter plots | Matrix of 100+ models by 3,000+ items; 2PL parameters with a sanity check against classical item difficulty |
+| 2 | 3PL for multiple choice; fit statistics; Q3; DIF by family and release month; broken-item report drafted; own-run harness with cache and batch calls; full-suite runs on the own-run panel started | `docs/items-that-measure-nothing.md` with evidence; own-run matrix filling |
+| 3 | CAT estimator, selection, stopping; leave-one-model-out simulation; random and stratified baselines; headline curve; live adaptive runs against the own-run panel; cost-per-decision table | Headline chart with intervals; validation on unseen models reported |
+| 4 | Three experiments; power function and its validation; README to Rule A shape; `docs/rejected.md`; write-up; package tagged and handed to project 03 | Definition of done all checked; 03 can `import mselect` |
 
-Slack: the Bayesian fit in week 2 and the framing experiment in week 4 are the first
-things to drop if behind. Neither is in the definition of done.
+Slack: the Bayesian fit and the framing experiment are the first things to drop if
+behind. Neither is in the definition of done.
 
 ## 7. Cost
 
@@ -324,14 +323,14 @@ ever, picks its items from this bank by discrimination.
 
 | Risk | Handling |
 |---|---|
-| Public per-item datasets moved, renamed, or in an awkward format | Week 1 verifies before anything depends on them. Fallback: own runs on a 1,000-item bank across the open-weights and local models, a smaller but still real matrix |
+| Public per-item datasets moved, renamed, or in an awkward format | Verified first, before anything depends on them. Fallback: own runs on a 1,000-item bank across the open-weights and local models, a smaller but still real matrix |
 | Local independence violated | Measured with Q3 and reported. Robustness check: refit per benchmark and compare rankings. The write-up treats this as the interesting section, not a footnote |
-| Benchmarks are not one dimension | Dimensionality check in week 1; report composite and per-benchmark abilities. Full multidimensional IRT is deferred (section 12) |
+| Benchmarks are not one dimension | Dimensionality check first; report composite and per-benchmark abilities. Full multidimensional IRT is deferred (section 12) |
 | Panel ability range too narrow for stable item parameters | The public matrix includes small and old models; local small models extend the low end |
 | Answer parsing errors masquerade as item misfit | Parsers tested against adversarial fixtures; a sample of flagged items is hand-checked before it goes in the broken-item report |
 | The tenth-of-the-cost ratio is not reached | Report the ratio actually achieved. A defensible seventh is worth more than an indefensible tenth |
 | Scope creep toward a paper | Deferred by decision. Section 12 lists what is kept so the door stays open at no cost |
-| November has four weekends and a holiday | The 03 drift job is already running by then and needs nothing. Week 4 is the only tight one |
+| The build lands across holidays and weekends | The 03 drift job is already running and needs nothing. The last stage is the only tight one |
 
 ## 10. Rule C candidates: what is expected not to work
 
@@ -417,7 +416,7 @@ What the publishable version would add: a multidimensional or bifactor IRT fit w
 formal treatment of local dependence, a wider own-run panel, uncertainty on every item
 parameter from the Bayesian fit across the whole bank, and a comparison against the
 existing literature on efficient benchmarking (tinyBenchmarks and IRT-based leaderboard
-work). Six to eight weeks, and a venue with a deadline. Not now.
+work). Months of work, and a venue with a deadline. Not now.
 
 ---
 
