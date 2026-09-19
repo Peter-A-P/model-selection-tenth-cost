@@ -296,7 +296,11 @@ export function drawItemCloud(canvas, groups, options = {}) {
 export function drawBars(svg, rows, options = {}) {
   const width = 640;
   const rowHeight = 26;
-  const pad = { top: 8, right: 60, bottom: 26, left: 132 };
+  // The gutter is sized to the longest name rather than fixed. These rows used to be aliases,
+  // all of a similar length; a model identifier is not, and a fixed gutter either clipped
+  // "Llama-3.3-70B-Instruct-Turbo" or wasted a third of the width on "qwen2.5:3b".
+  const longest = rows.reduce((most, row) => Math.max(most, row.label.length), 0);
+  const pad = { top: 8, right: 60, bottom: 26, left: Math.min(232, Math.max(110, longest * 6.6 + 14)) };
   const height = pad.top + pad.bottom + rows.length * rowHeight;
   clear(svg);
   svg.setAttribute("viewBox", `0 0 ${width} ${height}`);

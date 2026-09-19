@@ -413,7 +413,7 @@ figcaption {
 .edge { stroke: var(--warn); stroke-width: 1.5; stroke-dasharray: 2 3; opacity: 0.55; }
 .edge-label { fill: var(--warn); font-size: 10px; opacity: 0.8; }
 .density-fill { opacity: 0.14; }
-.row-label { fill: var(--ink-soft); font-size: 11.5px; font-family: var(--mono); }
+.row-label { fill: var(--ink-soft); font-size: 11px; font-family: var(--mono); }
 .row-value { fill: var(--ink); font-size: 11.5px; font-weight: 600; font-variant-numeric: tabular-nums; }
 
 .legend { display: flex; flex-wrap: wrap; gap: 0.45rem; margin: 0.25rem 0 1.1rem; }

@@ -109,6 +109,13 @@ rather than from the configuration that asked for it.
 | `local-small-b` | `qwen2.5:3b` | a laptop, through ollama | 54.1% | US$0.00, and 3.4 hours of laptop |
 <!-- mselect:panel:end -->
 
+These are the identifiers as the vendors returned them, dated snapshot and hosting prefix
+included, because this table is a record of which model answered.
+[adaptive.peterparker.ca](https://adaptive.peterparker.ca) drops both when it shows a name: the
+date on `claude-haiku-4-5-20251001` is evidence in a record and noise in a comparison, and
+`meta-llama/` in front of `Llama-3.3` is how the model is addressed on the host that serves it
+rather than part of its name.
+
 The last column is two currencies on purpose. Three of these models cost nothing in dollars and
 hours of a laptop that could do nothing else while they ran, and a table that prints US$0.00 and
 stops tells a team with its own hardware that evaluation is free. It is not: it is paid in a

@@ -138,6 +138,33 @@ def test_the_readme_names_the_same_models_the_page_does() -> None:
         assert f"`{model['model']}`" in row[0]
 
 
+def test_a_display_name_drops_the_host_prefix_and_the_dated_snapshot() -> None:
+    """What a reader is shown, against what the record keeps. Both matter: the page is a
+    comparison and wants the name, the panel table is a record and wants the identifier."""
+    cases = {
+        "meta-llama/Llama-3.3-70B-Instruct-Turbo": "Llama-3.3-70B-Instruct-Turbo",
+        "openai/gpt-oss-120b": "gpt-oss-120b",
+        "claude-haiku-4-5-20251001": "claude-haiku-4-5",
+        "gpt-5.4-mini-2026-03-17": "gpt-5.4-mini",
+        # Left alone: a version is not a date, and a local tag is not a host prefix.
+        "claude-opus-5": "claude-opus-5",
+        "gemini-3.5-flash-lite": "gemini-3.5-flash-lite",
+        "qwen2.5:7b": "qwen2.5:7b",
+    }
+    for identifier, shown in cases.items():
+        assert build.display_name(identifier) == shown
+
+
+def test_the_page_shows_a_name_and_the_readme_keeps_the_identifier() -> None:
+    """The date on `claude-haiku-4-5-20251001` is noise in a comparison and evidence in a run
+    record, so it is dropped in one place and kept in the other."""
+    panel = _read("panel.json")
+    readme = (paths.ROOT / "README.md").read_text(encoding="utf-8")
+    for model in panel["models"]:
+        assert model["label"] == build.display_name(model["model"])
+        assert f"`{model['model']}`" in readme
+
+
 def test_machine_time_is_measured_or_absent_and_never_zero() -> None:
     """A model with no recorded latency must say so rather than read as instant. The three
     Anthropic models have none: they go through the Message Batches endpoint at half price, and

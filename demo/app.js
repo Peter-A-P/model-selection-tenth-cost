@@ -36,7 +36,7 @@ function comparedToEverything(arena) {
 function ceilingNote(arena) {
   const named = arena.models
     .filter((_, side) => Math.abs(arena.posteriors[side].theta) > 4.0)
-    .map((model) => model.model);
+    .map((model) => model.label);
   const subject = named.length > 1 ? "Both estimates have" : `<code>${named[0]}</code> has`;
   return (
     `<strong>${subject} run off the end of the bank's scale.</strong> The selector asks for ` +
@@ -88,7 +88,7 @@ async function load(name, build) {
 // catches is not a missing file: it is a file that parses, looks right, and is a version
 // behind, which otherwise surfaces as a null dereference somewhere far from the cause.
 const REQUIRED = {
-  panel: (data) => data.models?.[0]?.model && data.items?.a?.length,
+  panel: (data) => data.models?.[0]?.label && data.items?.a?.length,
   curves: (data) => data.panels?.length,
   items: (data) => data.benchmarks?.length,
   experiments: (data) => data.order?.length,
@@ -220,7 +220,7 @@ function drawArena(arena) {
     .map(
       (model, index) =>
         `<span class="pair-key"><span class="pair-swatch ${index === 0 ? "first" : "second"}">` +
-        `</span>${model.model}</span>`
+        `</span>${model.label}</span>`
     )
     .join("");
 
@@ -248,7 +248,7 @@ function drawArena(arena) {
     const agrees = leader.accuracy > other.accuracy;
     target.className = `verdict ${agrees ? "good" : "warn"}`;
     target.innerHTML =
-      `<strong>${leader.model} is ahead, decided after ${arena.decidedAt} questions</strong> ` +
+      `<strong>${leader.label} is ahead, decided after ${arena.decidedAt} questions</strong> ` +
       `for ${money(arena.usd)}. Their intervals no longer overlap, so nothing further is bought ` +
       `by asking again. ` +
       `${comparedToEverything(arena)} ` +
@@ -324,7 +324,7 @@ function setupRace() {
       for (const model of ordered.filter((m) => m.hosted === hosted)) {
         const option = document.createElement("option");
         option.value = model.alias;
-        option.textContent = `${model.model} - ${(model.accuracy * 100).toFixed(1)}%`;
+        option.textContent = `${model.label} - ${(model.accuracy * 100).toFixed(1)}%`;
         group.appendChild(option);
       }
       select.appendChild(group);
@@ -360,8 +360,8 @@ function setupRace() {
       adaptive: new Arena("adaptive", "adaptive", prepared, a, b, seed),
       random: new Arena("random", "random", prepared, a, b, seed),
     };
-    document.getElementById("log-a").textContent = a.model;
-    document.getElementById("log-b").textContent = b.model;
+    document.getElementById("log-a").textContent = a.label;
+    document.getElementById("log-b").textContent = b.label;
     drawArena(state.run.adaptive);
     drawArena(state.run.random);
     drawLog(state.run.adaptive);
@@ -736,6 +736,12 @@ function setupHidden() {
   const experiments = state.experiments;
   let current = "noise";
 
+  // The experiments are recorded against the alias, which is how a run addresses a model. The
+  // panel is where an alias becomes a name, so the charts look it up rather than carrying a
+  // second copy of the mapping that could drift from the first.
+  const named = new Map(state.panel.models.map((model) => [model.alias, model.label]));
+  const labelOf = (alias) => named.get(alias) || alias;
+
   const views = {
     noise: {
       label: "Noise",
@@ -745,7 +751,7 @@ function setupHidden() {
         "is the floor under every claim that a new version dropped two points.",
       rows: () =>
         Object.entries(experiments.retest.agreement)
-          .map(([alias, agreement]) => ({ label: alias, value: 1 - agreement }))
+          .map(([alias, agreement]) => ({ label: labelOf(alias), value: 1 - agreement }))
           .sort((x, y) => y.value - x.value),
       format: (v) => `${(v * 100).toFixed(1)}%`,
       caption: "Share of answers that changed between two identical administrations.",
@@ -765,7 +771,12 @@ function setupHidden() {
         "capability. The bars are net of each model's own instability, measured above.",
       rows: () =>
         experiments.order
-          .map((model) => ({ label: model.alias, value: model.net, lo: model.lo, hi: model.hi }))
+          .map((model) => ({
+            label: labelOf(model.alias),
+            value: model.net,
+            lo: model.lo,
+            hi: model.hi,
+          }))
           .sort((x, y) => y.value - x.value),
       format: (v) => `${(v * 100).toFixed(1)}%`,
       caption:
@@ -786,7 +797,12 @@ function setupHidden() {
         "format costs, which is the honest way to report a design decision made to save money.",
       rows: () =>
         experiments.framing.models
-          .map((model) => ({ label: model.alias, value: model.cost, lo: model.lo, hi: model.hi }))
+          .map((model) => ({
+            label: labelOf(model.alias),
+            value: model.cost,
+            lo: model.lo,
+            hi: model.hi,
+          }))
           .sort((x, y) => y.value - x.value),
       format: (v) => `${(v * 100).toFixed(1)}%`,
       caption:

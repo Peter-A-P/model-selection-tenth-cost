@@ -3,6 +3,20 @@
 Versions follow semantic versioning on a 0.x line: the interface re-exported from `mselect`
 itself is stable within a minor version, and everything else in the package is internal.
 
+## v0.3.6 - 2026-09-19
+
+### The three experiments name their models too, and a name stops carrying a date
+
+The bar charts under "three things a single score cannot tell you" were still labelled by alias,
+because those experiments are recorded against the alias and the mapping only reached the
+picker. They now look the name up in the panel rather than carrying a second copy of it.
+
+And a shown name is no longer the raw identifier. A hosting prefix (`meta-llama/` in front of
+`Llama-3.3`, which reads as a repetition) and a dated snapshot (`claude-haiku-4-5-20251001`) are
+both true and neither belongs in a comparison, so `display_name` drops them for the page while
+the README's panel table keeps the identifier exactly as the vendor returned it. One is a
+comparison, the other is a record.
+
 ## v0.3.5 - 2026-09-19
 
 ### A deploy served new code against a cached old payload, and the page broke for an hour

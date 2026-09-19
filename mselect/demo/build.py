@@ -20,10 +20,11 @@ from __future__ import annotations
 import base64
 import hashlib
 import json
+import re
 import sqlite3
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any
+from typing import Any, Final
 
 import numpy as np
 import polars as pl
@@ -98,6 +99,25 @@ def _bits(flags: NDArray[np.bool_]) -> str:
 def _read_json(path: Path) -> dict[str, Any]:
     parsed: dict[str, Any] = json.loads(path.read_text(encoding="utf-8"))
     return parsed
+
+
+#: A snapshot suffix a vendor appends to a model identifier: `-20251001` or `-2026-03-17`.
+_SNAPSHOT: Final = re.compile(r"-(?:\d{8}|\d{4}-\d{2}-\d{2})$")
+
+
+def display_name(model: str) -> str:
+    """The identifier with the parts that are true and not worth a reader's attention removed.
+
+    Two of them. A hosting organisation prefix, which is how a model is addressed on the host
+    that serves it rather than part of its name, and which reads as a repetition in
+    `meta-llama/Llama-3.3-70B-Instruct-Turbo`. And a dated snapshot suffix, which matters to a
+    run record and not to a comparison: `claude-haiku-4-5-20251001` is a date stamp on a name
+    everyone already knows.
+
+    The exact identifier is not lost. It is what the README's panel table prints, because that
+    table is the record of which model actually answered, and a record keeps the date.
+    """
+    return _SNAPSHOT.sub("", model.rsplit("/", 1)[-1])
 
 
 @dataclass(frozen=True, slots=True)
@@ -184,6 +204,7 @@ def panel_payload(version: str = "v1", kind: str = "2pl") -> dict[str, Any]:
             {
                 "alias": alias,
                 "model": extras.model_of.get(alias, alias),
+                "label": display_name(extras.model_of.get(alias, alias)),
                 "hosted": not alias.startswith("local-"),
                 "accuracy": round(float(accuracy[row]), 4),
                 "ability": round(ability.theta, 4),
