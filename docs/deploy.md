@@ -118,6 +118,23 @@ A subdomain takes one CNAME. Only an apex needs the TXT validation, and this is 
    files. Then open the page and press **Run the test**: if the two charts stay empty, the data
    files did not deploy, and the page says so rather than showing an empty frame.
 
+## The data files are stamped, and that is not decoration
+
+`index.json` carries a hash of the bytes of every other payload, and the page reads that file
+first and asks for the rest at `?v=<stamp>`. The hosting config tells the host not to cache
+`index.json` and to cache everything else for an hour.
+
+Without that pair, a deploy that changes the *shape* of a payload is served to browsers still
+holding the previous one, and the page runs new code against an old file. That shipped on
+2026-09-19: `panel.json` gained the fields naming each model, the page filtered on one of them,
+both option groups came out empty, and every visitor from the previous hour got
+"Cannot read properties of undefined" where the page should have been. A first load was fine,
+which is why deploying and then checking the page did not catch it.
+
+Two things to keep doing because of it. Rebuild the data whenever the page changes what it reads,
+so the stamp moves with it. And when a deploy changes a payload's shape, check it in a browser
+that already has the old one, not only in a fresh window.
+
 ## Order of operations
 
 The README and the project's card on peterparker.ca both link to `adaptive.peterparker.ca`, so

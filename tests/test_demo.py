@@ -13,6 +13,7 @@ this repository produced, and that is testable here.
 from __future__ import annotations
 
 import base64
+import hashlib
 import json
 import re
 from pathlib import Path
@@ -195,6 +196,45 @@ def test_more_questions_are_needed_to_catch_a_smaller_drop() -> None:
         rows.sort(key=lambda row: float(row["effect"]))
         counts = [int(row["items"]) for row in rows]
         assert counts == sorted(counts, reverse=True)
+
+
+def test_the_data_files_are_stamped_and_the_page_asks_for_them_by_stamp() -> None:
+    """A payload that gains a field is served to browsers still holding the previous one, and
+    the page then reads new code against an old file. That shipped once: the fix is that the
+    index carries a hash of every payload and the page requests the others at that hash, so the
+    two can never be mixed. The index itself is the one file the host is told not to cache."""
+    index = _read("index.json")
+    assert len(str(index["build"])) >= 8
+    page = (DEMO / "app.js").read_text(encoding="utf-8")
+    assert "?v=${encodeURIComponent(build)}" in page
+    assert 'load("index")' in page
+
+    config = json.loads((DEMO / "staticwebapp.config.json").read_text(encoding="utf-8"))
+    routes = {route["route"]: route["headers"]["Cache-Control"] for route in config["routes"]}
+    assert routes["/data/index.json"] == "no-cache"
+
+
+def test_the_stamp_changes_when_a_payload_changes(tmp_path: Path) -> None:
+    """A stamp that did not move with the bytes would be worse than none: it would pin a stale
+    payload in every cache rather than let it expire."""
+    build.build_all(tmp_path)
+    first = json.loads((tmp_path / "index.json").read_text(encoding="utf-8"))["build"]
+    panel = tmp_path / "panel.json"
+    edited = json.loads(panel.read_text(encoding="utf-8"))
+    edited["n_items"] = int(edited["n_items"]) + 1
+    panel.write_text(json.dumps(edited, separators=(",", ":")), encoding="utf-8")
+    second = hashlib.sha256()
+    for name in ("panel", "curves", "items", "experiments", "power"):
+        second.update((tmp_path / f"{name}.json").read_text(encoding="utf-8").encode("utf-8"))
+    assert second.hexdigest()[:12] != first
+
+
+def test_every_payload_the_page_checks_on_arrival_is_one_it_is_sent() -> None:
+    """The page refuses a payload missing the fields it needs, which is only a safety net if the
+    names it checks are the names the builder writes."""
+    page = (DEMO / "app.js").read_text(encoding="utf-8")
+    checked = set(re.findall(r"^  (\w+): \(data\)", page, flags=re.MULTILINE))
+    assert checked == {"panel", "curves", "items", "experiments", "power"}
 
 
 def test_the_hosting_policy_lets_the_page_load_itself_and_nothing_else() -> None:

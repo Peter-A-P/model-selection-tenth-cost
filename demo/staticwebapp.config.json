@@ -14,6 +14,12 @@
   },
   "routes": [
     {
+      "route": "/data/index.json",
+      "headers": {
+        "Cache-Control": "no-cache"
+      }
+    },
+    {
       "route": "/data/*",
       "headers": {
         "Cache-Control": "public, max-age=3600"

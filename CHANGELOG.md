@@ -3,6 +3,22 @@
 Versions follow semantic versioning on a 0.x line: the interface re-exported from `mselect`
 itself is stable within a minor version, and everything else in the package is internal.
 
+## v0.3.5 - 2026-09-19
+
+### A deploy served new code against a cached old payload, and the page broke for an hour
+
+v0.3.4 added fields to `panel.json`. The hosting config caches data files for an hour, so every
+visitor who had been to the page in the previous hour was handed the new page and the old
+payload: both model groups in the picker came out empty and the page showed
+"Cannot read properties of undefined (reading 'alias')" instead of anything. A first load was
+fine, which is why deploying and then checking it did not catch it.
+
+`index.json` now carries a hash of the bytes of every payload, the page reads it first and asks
+for the rest at `?v=<stamp>`, and the host is told not to cache that one file. A payload and the
+code that reads it can no longer be a version apart. The page also checks each payload for the
+fields it needs on arrival and, if they are missing, says which file is stale and that a reload
+with the cache cleared will fix it, rather than failing somewhere far from the cause.
+
 ## v0.3.4 - 2026-09-19
 
 ### The panel is named, and a free model is priced in the currency it is actually paid in

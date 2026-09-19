@@ -18,6 +18,7 @@ actually paid for.
 from __future__ import annotations
 
 import base64
+import hashlib
 import json
 import sqlite3
 from dataclasses import dataclass
@@ -512,13 +513,21 @@ def build_all(out_dir: Path | None = None) -> list[Written]:
         "power.json": power_payload(),
     }
     written: list[Written] = []
+    digest = hashlib.sha256()
     for name, payload in payloads.items():
         path = directory / name
         text = _json(payload)
         path.write_text(text, encoding="utf-8")
+        digest.update(text.encode("utf-8"))
         written.append(Written(path, len(text.encode("utf-8"))))
     index = directory / "index.json"
     manifest = {
+        # A stamp over the bytes of every payload. The page reads this file first and asks for
+        # the others at `?v=<build>`, so a change to what a payload contains can never be served
+        # to a browser holding the previous one. It was served exactly once: the page gained a
+        # field, the hosting config caches data for an hour, and every visitor from that hour
+        # got new code against an old payload and an error message instead of a page.
+        "build": digest.hexdigest()[:12],
         "files": [{"name": item.path.name, "bytes": item.bytes} for item in written],
     }
     index.write_text(_json(manifest), encoding="utf-8")

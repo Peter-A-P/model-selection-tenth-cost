@@ -72,10 +72,37 @@ function duration(seconds) {
   return `${(seconds / 3600).toFixed(1)} h`;
 }
 
-async function load(name) {
-  const response = await fetch(`data/${name}.json`);
+// The index carries a stamp over the bytes of every other payload, and is the one file the
+// host is told not to cache. Everything else is asked for at that stamp, so a browser holding
+// yesterday's payload cannot be handed today's code to read it with. That combination shipped
+// broken once: the payload gained a field, the data files were cached for an hour, and every
+// visitor inside that hour got new code against an old file and an error instead of a page.
+async function load(name, build) {
+  const query = build ? `?v=${encodeURIComponent(build)}` : "";
+  const response = await fetch(`data/${name}.json${query}`);
   if (!response.ok) throw new Error(`${name}: ${response.status}`);
   return response.json();
+}
+
+// What the page needs each payload to carry. Checked on arrival, because the failure this
+// catches is not a missing file: it is a file that parses, looks right, and is a version
+// behind, which otherwise surfaces as a null dereference somewhere far from the cause.
+const REQUIRED = {
+  panel: (data) => data.models?.[0]?.model && data.items?.a?.length,
+  curves: (data) => data.panels?.length,
+  items: (data) => data.benchmarks?.length,
+  experiments: (data) => data.order?.length,
+  power: (data) => data.grid?.length,
+};
+
+function check(name, data) {
+  if (!REQUIRED[name](data)) {
+    throw new Error(
+      `the ${name} data is an older version than this page expects. A reload with the cache ` +
+        "cleared (ctrl-shift-R, or cmd-shift-R) will fix it"
+    );
+  }
+  return data;
 }
 
 // ------------------------------------------------------------------ the live adaptive test
@@ -802,10 +829,12 @@ function setupHidden() {
 // ------------------------------------------------------------------ start
 
 async function start() {
-  const [panel, curves, items, experiments, power, index] = await Promise.all(
-    ["panel", "curves", "items", "experiments", "power", "index"].map(load)
+  const index = await load("index");
+  const names = ["panel", "curves", "items", "experiments", "power"];
+  const loaded = await Promise.all(
+    names.map((name) => load(name, index.build).then((data) => check(name, data)))
   );
-  Object.assign(state, { panel, curves, items, experiments, power });
+  Object.assign(state, Object.fromEntries(names.map((name, at) => [name, loaded[at]])));
   state.sizes = index.files.reduce((total, file) => total + file.bytes, 0);
   setupHero();
   setupRace();
@@ -818,6 +847,8 @@ async function start() {
 start().catch((error) => {
   const note = document.createElement("p");
   note.className = "verdict warn";
-  note.textContent = `The data files did not load: ${error.message}. This page reads them with fetch, so it needs to be served rather than opened from disk: "uv run mselect demo serve".`;
+  note.textContent =
+    `This page could not start: ${error.message}. It reads its data with fetch, so it also ` +
+    'needs to be served rather than opened from disk: "uv run mselect demo serve".';
   document.querySelector("main").prepend(note);
 });
