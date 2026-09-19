@@ -29,6 +29,9 @@ END = "<!-- mselect:results:end -->"
 # Bank v1 keeps the unsuffixed names it has always had, so its links and figures do not move.
 # Any other bank gets its version appended to every file it writes and its own pair of README
 # markers, because two banks writing to one filename is two banks describing each other.
+LINE_BREAK = chr(10)
+PANEL_START = "<!-- mselect:panel:start -->"
+PANEL_END = "<!-- mselect:panel:end -->"
 BENCH_START = "<!-- mselect:benchmarks:start -->"
 BENCH_END = "<!-- mselect:benchmarks:end -->"
 HEADLINE_VERSION = "v1"
@@ -96,6 +99,9 @@ def write_all(
     progress(f"README results table for {version} regenerated")
     _replace_between(readme, benchmark_table(bank, item_diagnostics), _bench_markers(version))
     progress(f"README per-benchmark table for {version} regenerated")
+    if version == HEADLINE_VERSION and own_run is not None:
+        _replace_between(readme, panel_table(version, kind), (PANEL_START, PANEL_END))
+        progress("README panel table regenerated")
 
     broken = broken_items_doc(bank, item_diagnostics, diagnostics)
     broken_path = paths.ROOT / "docs" / f"items-that-measure-nothing{tag}.md"
@@ -105,6 +111,58 @@ def write_all(
     diagnostics_path.write_text(diagnostics_doc, encoding="utf-8")
     progress(f"{broken_path.name} and {diagnostics_path.name} regenerated")
     return "report complete"
+
+
+def panel_table(version: str = "v1", kind: str = "2pl") -> str:
+    """Which model each alias was, where it ran, and what its full suite cost in both currencies.
+
+    The panel is addressed by alias everywhere else, for the reason `boundary.yaml` gives: a
+    vendor renaming a model must not break the code. That is right for the code and unhelpful to
+    a reader, who cannot tell from `local-small-a` whether it is a frontier model or a 3B on a
+    laptop, so the mapping is published once, here, from the run records themselves rather than
+    from the configuration: the identifier is the one the vendor returned on the call.
+
+    The second currency is the point of the last column. Three of these models cost nothing in
+    dollars and took hours of a laptop that could do nothing else meanwhile, and a table that
+    prints US$0.00 and stops is telling a team with its own hardware that evaluation is free.
+    """
+    from mselect.demo.build import PANEL_RECORDS, _extras
+    from mselect.experiments import ownrun
+
+    records = paths.out_for(version) / PANEL_RECORDS
+    panel = ownrun.load(records, version=version, kind=kind).dense()
+    extras = _extras(records)
+    accuracy = panel.accuracy()
+    spend = panel.spend()
+
+    rows = [
+        "| Alias | The model that answered | Where it ran | Accuracy | The full suite cost |",
+        "|---|---|---|---:|---|",
+    ]
+    order = sorted(range(panel.n_models), key=lambda row: -float(accuracy[row]))
+    for row in order:
+        alias = panel.aliases[row]
+        local = alias.startswith("local-")
+        seconds = (
+            sum(
+                extras.latency_ms[(alias, item)]
+                for item in panel.item_ids
+                if (alias, item) in extras.latency_ms
+            )
+            / 1000.0
+        )
+        if local:
+            cost = f"US$0.00, and {seconds / 3600:.1f} hours of laptop"
+        elif seconds > 0:
+            cost = f"US${spend[row]:.2f}, {seconds / 3600:.1f} hours"
+        else:
+            cost = f"US${spend[row]:.2f}, as a batch, so untimed"
+        rows.append(
+            f"| `{alias}` | `{extras.model_of.get(alias, alias)}` | "
+            f"{'a laptop, through ollama' if local else 'hosted, through the gateway'} | "
+            f"{accuracy[row]:.1%} | {cost} |"
+        )
+    return LINE_BREAK.join(rows)
 
 
 def _markers(version: str) -> tuple[str, str]:

@@ -8,12 +8,35 @@ import { drawPosteriors, drawTauCurve, drawItemCloud, drawBars, clear, svgEl } f
 
 const MAX_QUESTIONS = 300;
 
+// What the same two models cost when every question was put to them, which is the comparison
+// the short test exists to beat. Both currencies, because one of them is zero for a model on a
+// laptop and that is the case where a dollar figure undersells the method rather than proving
+// it: the laptop's bill is hours of a machine nobody else can use while it runs.
+function comparedToEverything(arena) {
+  const usd = arena.models.reduce((total, model) => total + model.full_usd, 0);
+  const seconds = arena.models.reduce((total, model) => total + (model.full_seconds || 0), 0);
+  const everything = `all ${state.panel.n_items.toLocaleString("en-CA")} questions of both`;
+  if (usd < 0.0005) {
+    return (
+      `Nothing in dollars, because these run on a laptop: what a short test saves here is the ` +
+      `machine. It took <strong>${duration(arena.seconds)}</strong> against ` +
+      `<strong>${duration(seconds)}</strong> to ask ${everything}.`
+    );
+  }
+  const timed = arena.timed === 2 && seconds > 0;
+  return (
+    `Asking ${everything} cost <strong>${money(usd)}</strong>` +
+    (timed ? ` and took <strong>${duration(seconds)}</strong>` : "") +
+    ` when it was run.`
+  );
+}
+
 // Said whenever an estimate reaches the end of the scale, which is a property of the suite
 // rather than of the run: the questions stop before these models do.
 function ceilingNote(arena) {
   const named = arena.models
     .filter((_, side) => Math.abs(arena.posteriors[side].theta) > 4.0)
-    .map((model) => model.alias);
+    .map((model) => model.model);
   const subject = named.length > 1 ? "Both estimates have" : `<code>${named[0]}</code> has`;
   return (
     `<strong>${subject} run off the end of the bank's scale.</strong> The selector asks for ` +
@@ -31,7 +54,23 @@ const colour = (name) => getComputedStyle(document.body).getPropertyValue(name).
 // Dollars, to as many places as the number deserves and no more. A page about measurement
 // error should not print four decimal places on a figure whose third one is noise.
 const money = (usd) =>
-  usd >= 0.1 ? `$${usd.toFixed(2)}` : usd >= 0.01 ? `$${usd.toFixed(3)}` : `$${usd.toFixed(4)}`;
+  usd === 0
+    ? "$0"
+    : usd >= 0.1
+      ? `$${usd.toFixed(2)}`
+      : usd >= 0.01
+        ? `$${usd.toFixed(3)}`
+        : `$${usd.toFixed(4)}`;
+
+// The other currency. A model on a laptop costs nothing in dollars and hours of a machine
+// nobody else can use while it runs, which is the cost a team with its own hardware actually
+// pays. Both come from the same run: the ledger recorded a price and a latency per call.
+function duration(seconds) {
+  if (seconds === null || seconds === undefined) return "not recorded";
+  if (seconds < 90) return `${seconds.toFixed(0)}s`;
+  if (seconds < 5400) return `${Math.floor(seconds / 60)}m ${Math.round(seconds % 60)}s`;
+  return `${(seconds / 3600).toFixed(1)} h`;
+}
 
 async function load(name) {
   const response = await fetch(`data/${name}.json`);
@@ -72,6 +111,8 @@ class Arena {
     this.draw = rng(seed);
     this.asked = 0;
     this.usd = 0;
+    this.seconds = 0;
+    this.timed = this.models.filter((model) => model.latency_ms).length;
     this.decidedAt = null;
     this.decision = null;
     this.trail = [];
@@ -93,6 +134,9 @@ class Arena {
         correct
       );
       this.usd += model.cost_micro[item] / 1e6;
+      if (model.latency_ms && model.latency_ms[item] !== null) {
+        this.seconds += model.latency_ms[item] / 1000;
+      }
       chosen.push({ item, correct });
     }
     this.asked += 1;
@@ -149,12 +193,20 @@ function drawArena(arena) {
     .map(
       (model, index) =>
         `<span class="pair-key"><span class="pair-swatch ${index === 0 ? "first" : "second"}">` +
-        `</span>${model.alias}</span>`
+        `</span>${model.model}</span>`
     )
     .join("");
 
   document.getElementById(`${arena.key}-items`).textContent = String(arena.asked);
   document.getElementById(`${arena.key}-cost`).textContent = money(arena.usd);
+  document.getElementById(`${arena.key}-time`).textContent =
+    arena.timed === 0 ? "-" : duration(arena.seconds);
+  document.getElementById(`${arena.key}-time-note`).textContent =
+    arena.timed === 0
+      ? "both ran as a batch, so no call was timed"
+      : arena.timed === 1
+        ? "of machine time; one ran as a batch and is not counted"
+        : "of machine time these calls took";
   document.getElementById(`${arena.key}-width`).textContent =
     arena.asked === 0 ? "-" : arena.widest().toFixed(2);
 
@@ -169,9 +221,10 @@ function drawArena(arena) {
     const agrees = leader.accuracy > other.accuracy;
     target.className = `verdict ${agrees ? "good" : "warn"}`;
     target.innerHTML =
-      `<strong>${leader.alias} is ahead, decided after ${arena.decidedAt} questions</strong> ` +
+      `<strong>${leader.model} is ahead, decided after ${arena.decidedAt} questions</strong> ` +
       `for ${money(arena.usd)}. Their intervals no longer overlap, so nothing further is bought ` +
       `by asking again. ` +
+      `${comparedToEverything(arena)} ` +
       (agrees
         ? `Asking all ${state.panel.n_items.toLocaleString("en-CA")} questions ranks them the same way.`
         : `Asking all ${state.panel.n_items.toLocaleString("en-CA")} questions ranks them the ` +
@@ -185,7 +238,7 @@ function drawArena(arena) {
     target.innerHTML =
       `<strong>Not separated after ${MAX_QUESTIONS} questions</strong>, for ${money(arena.usd)}. ` +
       `That is an answer: these two are indistinguishable at this budget. It is never reported ` +
-      `as "the same", because the evidence does not support that.` +
+      `as "the same", because the evidence does not support that. ${comparedToEverything(arena)}` +
       (arena.atTheEdge() ? ` ${ceilingNote(arena)}` : "");
   } else if (arena.asked > 0) {
     target.className = "verdict";
@@ -232,12 +285,22 @@ function setupRace() {
   const selectA = document.getElementById("model-a");
   const selectB = document.getElementById("model-b");
   const ordered = [...state.panel.models].sort((x, y) => y.accuracy - x.accuracy);
+  // Named, and grouped by where they ran. The panel is addressed by alias in the code so that
+  // a vendor renaming a model cannot break anything, and an alias is the wrong thing to show a
+  // reader: "local-small-a against local-small-b" is two strings, where "llama3.2:3b against
+  // qwen2.5:3b" is a comparison somebody might actually want the answer to. These are the
+  // identifiers the vendors themselves returned on the call, out of the run records.
   for (const select of [selectA, selectB]) {
-    for (const model of ordered) {
-      const option = document.createElement("option");
-      option.value = model.alias;
-      option.textContent = `${model.alias} (${(model.accuracy * 100).toFixed(1)}% over the whole suite)`;
-      select.appendChild(option);
+    for (const hosted of [true, false]) {
+      const group = document.createElement("optgroup");
+      group.label = hosted ? "Hosted, billed by the token" : "On a laptop, billed in hours";
+      for (const model of ordered.filter((m) => m.hosted === hosted)) {
+        const option = document.createElement("option");
+        option.value = model.alias;
+        option.textContent = `${model.model} - ${(model.accuracy * 100).toFixed(1)}%`;
+        group.appendChild(option);
+      }
+      select.appendChild(group);
     }
   }
   // Four accuracy points apart, which is the case the method is for: close enough that a
@@ -270,8 +333,8 @@ function setupRace() {
       adaptive: new Arena("adaptive", "adaptive", prepared, a, b, seed),
       random: new Arena("random", "random", prepared, a, b, seed),
     };
-    document.getElementById("log-a").textContent = a.alias;
-    document.getElementById("log-b").textContent = b.alias;
+    document.getElementById("log-a").textContent = a.model;
+    document.getElementById("log-b").textContent = b.model;
     drawArena(state.run.adaptive);
     drawArena(state.run.random);
     drawLog(state.run.adaptive);
@@ -445,6 +508,13 @@ function setupHero() {
   document.getElementById("hero-dead").textContent = `${(share * 100).toFixed(0)}%`;
   document.getElementById("hero-suite").textContent = own.n_items.toLocaleString("en-CA");
   document.getElementById("hero-spend").textContent = money(own.full_suite_usd);
+  const laptop = state.panel.models
+    .filter((model) => !model.hosted && model.full_seconds)
+    .sort((x, y) => y.full_seconds - x.full_seconds)[0];
+  if (laptop) {
+    document.getElementById("local-hours").textContent =
+      `${(laptop.full_seconds / 3600).toFixed(1)} hours`;
+  }
   document.getElementById("footer-provenance").textContent =
     `Item bank ${state.items.bank_version} (${state.items.bank_hash}): ` +
     `${state.items.n_models} models by ${state.items.n_items.toLocaleString("en-CA")} questions, ` +

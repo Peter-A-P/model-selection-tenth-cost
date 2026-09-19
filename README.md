@@ -87,6 +87,35 @@ suite average, and those two rankings agree only at tau 0.92 even with every ite
 you want the benchmark's own average, sample randomly and score it directly. If you want to know
 which model is better, ask ten well-chosen questions.
 
+**The twelve models, named.** Everything else in this repository addresses the panel by alias,
+because a vendor renaming a model must not break the code. That is the wrong unit for a reader,
+so the mapping is published here, taken from the identifier each vendor returned on the call
+rather than from the configuration that asked for it.
+
+<!-- mselect:panel:start -->
+| Alias | The model that answered | Where it ran | Accuracy | The full suite cost |
+|---|---|---|---:|---|
+| `google-frontier` | `gemini-3.8-flash` | hosted, through the gateway | 93.6% | US$2.59, 1.3 hours |
+| `anthropic-opus` | `claude-opus-5` | hosted, through the gateway | 92.1% | US$4.30, as a batch, so untimed |
+| `anthropic-sonnet` | `claude-sonnet-5` | hosted, through the gateway | 89.9% | US$1.26, as a batch, so untimed |
+| `openai-frontier` | `gpt-5.6-sol` | hosted, through the gateway | 89.4% | US$4.24, 1.3 hours |
+| `google-mid` | `gemini-3.5-flash-lite` | hosted, through the gateway | 88.7% | US$1.19, 0.8 hours |
+| `together-open-b` | `openai/gpt-oss-120b` | hosted, through the gateway | 85.7% | US$0.36, 0.7 hours |
+| `anthropic-haiku` | `claude-haiku-4-5-20251001` | hosted, through the gateway | 84.7% | US$0.59, as a batch, so untimed |
+| `together-open-a` | `meta-llama/Llama-3.3-70B-Instruct-Turbo` | hosted, through the gateway | 82.8% | US$0.95, 1.7 hours |
+| `openai-mid` | `gpt-5.4-mini-2026-03-17` | hosted, through the gateway | 79.5% | US$0.50, 0.5 hours |
+| `local-mid-a` | `qwen2.5:7b` | a laptop, through ollama | 64.5% | US$0.00, and 8.7 hours of laptop |
+| `local-small-a` | `llama3.2:3b` | a laptop, through ollama | 54.2% | US$0.00, and 5.0 hours of laptop |
+| `local-small-b` | `qwen2.5:3b` | a laptop, through ollama | 54.1% | US$0.00, and 3.4 hours of laptop |
+<!-- mselect:panel:end -->
+
+The last column is two currencies on purpose. Three of these models cost nothing in dollars and
+hours of a laptop that could do nothing else while they ran, and a table that prints US$0.00 and
+stops tells a team with its own hardware that evaluation is free. It is not: it is paid in a
+machine rather than an invoice, and a short test saves that just as surely. The three Anthropic
+models have no time at all, because this project sends them through the Message Batches endpoint
+at half price and a call inside a batch has no latency worth reporting.
+
 **The own-run panel reproduces that ceiling on models the bank never saw, which is the version
 of the result that counts.** Twelve current models from four vendors, 2,816 items each, asked
 through this repository's own prompts and parser; the item parameters were read from the bank

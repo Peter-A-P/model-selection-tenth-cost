@@ -95,7 +95,7 @@
 
     <div class="controls">
       <div class="control">
-        <label for="model-a">First model<span class="hint">an alias: the vendor mapping lives in the gateway, not here</span></label>
+        <label for="model-a">First model<span class="hint">the identifier the vendor itself returned on the call</span></label>
         <select id="model-a"></select>
       </div>
       <div class="control">
@@ -130,6 +130,7 @@
         <div class="arena-stats">
           <div><span class="figure" id="adaptive-items">0</span><span class="caption">questions asked, each</span></div>
           <div><span class="figure" id="adaptive-cost">$0.00</span><span class="caption">spent, at the price these calls cost</span></div>
+          <div><span class="figure" id="adaptive-time">&ndash;</span><span class="caption" id="adaptive-time-note">of machine time these calls took</span></div>
           <div><span class="figure" id="adaptive-width">&ndash;</span><span class="caption">width of the wider interval</span></div>
         </div>
         <p class="verdict" id="adaptive-verdict">Not started.</p>
@@ -145,6 +146,7 @@
         <div class="arena-stats">
           <div><span class="figure" id="random-items">0</span><span class="caption">questions asked, each</span></div>
           <div><span class="figure" id="random-cost">$0.00</span><span class="caption">spent, at the price these calls cost</span></div>
+          <div><span class="figure" id="random-time">&ndash;</span><span class="caption" id="random-time-note">of machine time these calls took</span></div>
           <div><span class="figure" id="random-width">&ndash;</span><span class="caption">width of the wider interval</span></div>
         </div>
         <p class="verdict" id="random-verdict">Not started.</p>
@@ -171,6 +173,17 @@
       </p>
     </details>
 
+    <p class="note">
+      <strong>Two of the twelve cost nothing in dollars and are not free.</strong> The three
+      models on a laptop were billed in hours rather than tokens: the full suite took
+      <span id="local-hours">nine hours</span> of laptop CPU for the 7B, against about an hour
+      for a hosted model over the network, and that machine can do nothing else meanwhile. Both
+      figures come from the same ledger, which recorded a price and a latency for every call, so
+      a short test is priced in whichever currency the model is actually paid for. The three
+      Anthropic models have no per-call time at all, because this project sends them through the
+      Message Batches endpoint at half price and a call inside a batch has no latency worth
+      reporting; the page says so rather than showing a zero.
+    </p>
     <p class="note">
       Nothing here is simulated. The answers are the ones the twelve models gave when they were
       administered the frozen suite in September 2026, one bit per cell, and the dollars are the

@@ -355,10 +355,12 @@ button.primary:hover { background: var(--accent-ink); border-color: var(--accent
 .pair-swatch.first { background: var(--accent); }
 .pair-swatch.second { background: var(--sim); }
 
+/* Four figures now, two across: questions and dollars on one line, machine time and the
+   interval under them. Three across put "of machine time" on four lines at this width. */
 .arena-stats {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 0.6rem;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.6rem 0.9rem;
   margin: 0.7rem 0 0.2rem;
 }
 
@@ -591,7 +593,7 @@ footer { padding: 2.25rem 0 0; }
   main { padding: 0 1.1rem 3.5rem; }
   .top-nav { display: none; }
   th, td { padding: 0.45rem 0.6rem; }
-  .arena-stats { grid-template-columns: 1fr 1fr; }
+  .arena-stats { grid-template-columns: 1fr; }
 }
 
 @media (prefers-reduced-motion: reduce) {

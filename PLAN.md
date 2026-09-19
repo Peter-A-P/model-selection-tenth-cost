@@ -998,6 +998,37 @@ exists to check.
 It is worth noting that `anthropic-haiku` is the one Anthropic route carrying a dated
 identifier, and the one that works.
 
+### 15.41 An alias is not a model, and a free model is not free, 2026-09-19
+
+Two objections to the page, both from Peter and both right, and both answerable from records
+this repository already had.
+
+**The aliases were inconsistent and uninformative.** `anthropic-haiku` carries a vendor's own
+product name, `openai-mid` carries a guess at a tier, and `local-small-a` against
+`local-small-b` is two strings with no content: a reader cannot tell whether either is a
+frontier model or a 3B on a laptop. The run records hold `model_returned`, the identifier the
+vendor itself put on the reply, and `boundary.yaml` has been in the public repository since the
+first commit, so the mapping was never secret, only inconvenient. It is now published as a
+generated table in the README and led with on the page. Aliases stay in the code and in every
+other table: the reason for them is that a vendor renaming a model must not break a run, and
+that reason still holds.
+
+**A model that costs nothing still costs something.** The page priced a short test in dollars,
+so two laptop models compared for US$0.00 against US$0.00, which reads as a method that saves
+nothing exactly where a reader with their own hardware is standing. Compute is the scarce
+resource there. The gateway's ledger has a latency for every call, so the page now carries
+machine time beside money, and the comparison it had been failing to make is stark:
+`qwen2.5:7b` against `llama3.2:3b` is settled in 21 questions and 9m 53s adaptively, 238
+questions and 67m 9s at random, against 13.7 hours to ask both models everything.
+
+Three details that keep the second honest. A call the development cache answered is recorded at
+zero latency because the model was never asked, so it is left out of the total rather than
+counted as instant, which costs at most 2% of any model's calls. The three Anthropic models have
+no per-call latency at all, because this project sends them through the Message Batches endpoint
+at half price, and the page says that rather than showing a zero. And the full-suite hours are a
+sum of per-call latencies, which is what those calls took as they were run, not a claim about
+what they would take in parallel.
+
 ### 15.40 The scale runs out before the panel does, 2026-09-18
 
 Found by Peter within an hour of the page going up, by choosing the two models the README would

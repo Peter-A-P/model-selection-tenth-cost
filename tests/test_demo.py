@@ -103,6 +103,76 @@ def test_the_cost_of_a_subset_never_exceeds_the_cost_of_the_whole_run() -> None:
         assert total == pytest.approx(float(model["full_usd"]), abs=0.002)
 
 
+def test_every_model_is_named_by_the_identifier_the_vendor_returned() -> None:
+    """The page shows the model, not the alias. An alias is a handle the code needs so a vendor
+    renaming a model cannot break it; a reader comparing `local-small-a` with `local-small-b`
+    learns nothing, and comparing `llama3.2:3b` with `qwen2.5:3b` learns the whole point."""
+    panel = _read("panel.json")
+    records = paths.out_for("v1") / build.PANEL_RECORDS
+    returned: dict[str, set[str]] = {}
+    with records.open("r", encoding="utf-8") as handle:
+        for line in handle:
+            row = json.loads(line)
+            name = row.get("model_returned")
+            if isinstance(name, str) and name:
+                returned.setdefault(str(row["alias"]), set()).add(name)
+    for model in panel["models"]:
+        # One alias answered by two different models would mean the run spans a vendor's
+        # rename, and naming it on the page would then be a claim about the wrong thing.
+        assert len(returned[model["alias"]]) == 1, model["alias"]
+        assert model["model"] == next(iter(returned[model["alias"]]))
+        assert model["hosted"] is not model["alias"].startswith("local-")
+
+
+def test_the_readme_names_the_same_models_the_page_does() -> None:
+    """`mselect report` writes that table and `mselect demo build` writes the page's, from the
+    same records. Running one and not the other is the way they drift apart."""
+    readme = (paths.ROOT / "README.md").read_text(encoding="utf-8")
+    block = readme.split("<!-- mselect:panel:start -->", 1)[1].split("<!-- mselect:panel:end -->")[
+        0
+    ]
+    for model in _read("panel.json")["models"]:
+        row = [line for line in block.splitlines() if f"`{model['alias']}`" in line]
+        assert len(row) == 1, model["alias"]
+        assert f"`{model['model']}`" in row[0]
+
+
+def test_machine_time_is_measured_or_absent_and_never_zero() -> None:
+    """A model with no recorded latency must say so rather than read as instant. The three
+    Anthropic models have none: they go through the Message Batches endpoint at half price, and
+    a call inside a batch has no latency worth reporting."""
+    panel = _read("panel.json")
+    n_items = int(panel["n_items"])
+    silent = []
+    for model in panel["models"]:
+        timing = model["latency_ms"]
+        if timing is None:
+            assert model["full_seconds"] is None
+            silent.append(model["alias"])
+            continue
+        assert len(timing) == n_items
+        measured = [ms for ms in timing if ms is not None]
+        # A cache hit during the run is recorded at zero latency, because the model was never
+        # asked. Those cells carry no time rather than no elapsed time, and there are few of
+        # them: every model that was timed at all was timed on at least 97% of its calls.
+        assert all(ms > 0 for ms in measured)
+        assert len(measured) == model["timed_calls"] >= 0.97 * n_items
+        assert model["full_seconds"] == pytest.approx(sum(measured) / 1000.0, abs=0.2)
+    assert all(alias.startswith("anthropic-") for alias in silent)
+
+
+def test_a_laptop_model_costs_nothing_and_still_costs_hours() -> None:
+    """The figure the page exists to correct: free is not the same as cheap. If a local model
+    ever reported both zero dollars and no time, the page would be saying a full suite on your
+    own hardware is free, which is the claim a reader would rightly not believe."""
+    panel = _read("panel.json")
+    local = [model for model in panel["models"] if not model["hosted"]]
+    assert local
+    for model in local:
+        assert model["full_usd"] == 0.0
+        assert model["full_seconds"] and model["full_seconds"] > 3600
+
+
 def test_the_curves_carry_an_interval_on_every_point() -> None:
     """A bare tau is a defect in this repository. It is a defect on its web page too."""
     curves = _read("curves.json")

@@ -3,6 +3,28 @@
 Versions follow semantic versioning on a 0.x line: the interface re-exported from `mselect`
 itself is stable within a minor version, and everything else in the package is internal.
 
+## v0.3.4 - 2026-09-19
+
+### The panel is named, and a free model is priced in the currency it is actually paid in
+
+Two things a reader could not get from an alias, both already in the run records and neither
+published until now.
+
+**Which model answered.** `mselect report` writes a new table into the README mapping every alias
+to the identifier the vendor returned on the call, where it ran, and what its full suite cost.
+The page leads with those identifiers and groups the picker by hosted against laptop, because
+`local-small-a` against `local-small-b` is two strings where `llama3.2:3b` against `qwen2.5:3b`
+is a comparison somebody might want the answer to. Aliases stay everywhere else: a vendor
+renaming a model must not break the code.
+
+**What a model with no bill costs.** The three models on a laptop cost US$0.00 and between 3.4
+and 8.7 hours of a machine that could do nothing else while they ran, so the page now carries
+machine time beside dollars, per call, out of the same ledger. Choosing the two laptop models
+settles the comparison in 21 questions and ten minutes against 238 questions and over an hour,
+where before it read as nothing saved against nothing. A call the development cache answered is
+left out rather than counted as instant, and the three Anthropic models have no time at all
+because the Message Batches endpoint does not record one.
+
 ## v0.3.3 - 2026-09-18
 
 ### The adaptive estimate saturates at the top of the panel, and the page now says so

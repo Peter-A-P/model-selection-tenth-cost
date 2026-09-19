@@ -19,6 +19,7 @@ from __future__ import annotations
 
 import base64
 import json
+import sqlite3
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -98,13 +99,71 @@ def _read_json(path: Path) -> dict[str, Any]:
     return parsed
 
 
+@dataclass(frozen=True, slots=True)
+class Extras:
+    """What the record file and the ledger know about a run that the response matrix does not.
+
+    Two things, and both are answers to the same objection. The first is which model actually
+    answered: the panel is addressed by alias so that a vendor renaming a model cannot break the
+    code, which is right for the code and useless to a reader, who wants to know whether this is
+    a frontier model or a 3B on a laptop. The second is how long each call took, because a model
+    running on a laptop costs nothing in dollars and the saving a short test buys there is real
+    anyway: it is hours of a machine nobody else can use while it runs.
+    """
+
+    model_of: dict[str, str]  # alias -> the model identifier the vendor returned
+    latency_ms: dict[tuple[str, str], int]  # (alias, item id) -> milliseconds
+
+
+def _extras(path: Path) -> Extras:
+    """Read the record file once more for the model identifiers, and the ledger for latency.
+
+    Latency is per call and lives in the gateway's ledger rather than in the record, joined on
+    the ledger row id the record carries. The three Anthropic models have none: this project
+    sends them through the Message Batches endpoint at half price, and a call inside a batch has
+    no latency that means anything. That is reported as missing rather than filled in.
+    """
+    model_of: dict[str, str] = {}
+    latency: dict[tuple[str, str], int] = {}
+    ledger = paths.OUT / "own-run-ledger.sqlite"
+    rows: dict[int, int | None] = {}
+    if ledger.is_file():
+        with sqlite3.connect(ledger) as connection:
+            rows = {int(i): ms for i, ms in connection.execute("select id, latency_ms from ledger")}
+
+    with path.open("r", encoding="utf-8") as handle:
+        for line in handle:
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                record: dict[str, Any] = json.loads(line)
+            except json.JSONDecodeError:
+                continue
+            alias = str(record.get("alias"))
+            returned = record.get("model_returned")
+            if isinstance(returned, str) and returned:
+                model_of.setdefault(alias, returned)
+            ledger_id = record.get("ledger_id")
+            if isinstance(ledger_id, int):
+                ms = rows.get(ledger_id)
+                # A zero is a cache hit: the reply came from the development cache and the
+                # model was never asked, so it is not a measurement of how long that model
+                # takes. Left out rather than counted as instant.
+                if ms is not None and ms > 0:
+                    latency[(alias, str(record.get("item_id")))] = int(ms)
+    return Extras(model_of=model_of, latency_ms=latency)
+
+
 def panel_payload(version: str = "v1", kind: str = "2pl") -> dict[str, Any]:
     """The twelve own-run models, the items they were asked, and what each answer cost.
 
     Restricted to the common frame, the items every model answered, for the reason
     `Panel.dense` gives: a ranking is a comparison, and a comparison needs one item set.
     """
-    panel = ownrun.load(paths.out_for(version) / PANEL_RECORDS, version=version, kind=kind).dense()
+    records = paths.out_for(version) / PANEL_RECORDS
+    panel = ownrun.load(records, version=version, kind=kind).dense()
+    extras = _extras(records)
     strata, weights, names = benchmark_strata(panel.benchmarks)
     accuracy = panel.accuracy()
     spend = panel.spend()
@@ -118,9 +177,13 @@ def panel_payload(version: str = "v1", kind: str = "2pl") -> dict[str, Any]:
                 ability.update(column, int(panel.responses[row, column]), panel.items)
         lo, hi = ability.interval()
         cost = np.nan_to_num(panel.cost_usd[row], nan=0.0)
+        timing = [extras.latency_ms.get((alias, item)) for item in panel.item_ids]
+        measured = [ms for ms in timing if ms is not None]
         models.append(
             {
                 "alias": alias,
+                "model": extras.model_of.get(alias, alias),
+                "hosted": not alias.startswith("local-"),
                 "accuracy": round(float(accuracy[row]), 4),
                 "ability": round(ability.theta, 4),
                 "ability_lo": round(lo, 4),
@@ -130,6 +193,12 @@ def panel_payload(version: str = "v1", kind: str = "2pl") -> dict[str, Any]:
                 # anything the page says, and an integer array is a third the size of the
                 # float one.
                 "cost_micro": [round(value * 1e6) for value in cost.tolist()],
+                # Milliseconds per call, or null where the vendor route records none. A model
+                # with no timings at all is reported as such rather than given a zero, which
+                # would read as instant.
+                "latency_ms": timing if measured else None,
+                "full_seconds": round(sum(measured) / 1000.0, 1) if measured else None,
+                "timed_calls": len(measured),
                 "correct": _bits(correct),
             }
         )
