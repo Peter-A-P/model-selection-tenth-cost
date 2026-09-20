@@ -3,6 +3,21 @@
 Versions follow semantic versioning on a 0.x line: the interface re-exported from `mselect`
 itself is stable within a minor version, and everything else in the package is internal.
 
+## v0.3.7 - 2026-09-19
+
+### CI had been red since the page arrived, and nobody was reading it
+
+Four of the demo tests go behind the committed payloads in `demo/data` to the administration
+they were built from, under `out/`. That directory is run output and is not in the tree, so on
+the runner those four could only ever fail, and they had failed on every push since the page
+landed on 2026-09-18. The rest of the job, format, lint and types, was green throughout, which
+is how a red badge went unnoticed.
+
+They are worth keeping: on a machine that has the run they are the tests that catch a payload
+drifting from the run it claims to come from. So they are skipped when the records are absent,
+the same way the bank tests already skip without the HELM cache. A skipped test says it was
+skipped; a missing one says nothing.
+
 ## v0.3.6 - 2026-09-19
 
 ### The three experiments name their models too, and a name stops carrying a date

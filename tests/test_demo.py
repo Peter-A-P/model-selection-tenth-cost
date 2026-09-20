@@ -29,6 +29,16 @@ from mselect.demo.serve import declared_headers
 DEMO = paths.ROOT / "demo"
 DATA = DEMO / "data"
 
+# The committed payloads in `demo/data` are enough for almost everything here. Four tests go
+# behind them to the administration they were built from, and `out/` is not in the tree: it is
+# run output, gigabytes of it, written by `mselect own-run`. On a machine that has it these
+# tests are the ones that catch a payload drifting from its run, so they are worth keeping;
+# in CI, which has the repository and nothing else, they can only be skipped.
+RUN_PRESENT = (paths.out_for("v1") / build.PANEL_RECORDS).exists()
+needs_the_run = pytest.mark.skipif(
+    not RUN_PRESENT, reason="needs the own-run records from `mselect own-run`"
+)
+
 
 def _read(name: str) -> Any:
     """The payloads are JSON written by this repository for a browser to read, so they are
@@ -65,6 +75,7 @@ def test_the_response_matrix_survives_being_packed_into_bits() -> None:
         assert float(correct.mean()) == pytest.approx(float(model["accuracy"]), abs=0.001)
 
 
+@needs_the_run
 def test_the_panel_matches_the_validation_it_claims_to_come_from() -> None:
     """The page and the README's own-run table have to be describing one administration."""
     panel = _read("panel.json")
@@ -104,6 +115,7 @@ def test_the_cost_of_a_subset_never_exceeds_the_cost_of_the_whole_run() -> None:
         assert total == pytest.approx(float(model["full_usd"]), abs=0.002)
 
 
+@needs_the_run
 def test_every_model_is_named_by_the_identifier_the_vendor_returned() -> None:
     """The page shows the model, not the alias. An alias is a handle the code needs so a vendor
     renaming a model cannot break it; a reader comparing `local-small-a` with `local-small-b`
@@ -241,6 +253,7 @@ def test_the_data_files_are_stamped_and_the_page_asks_for_them_by_stamp() -> Non
     assert routes["/data/index.json"] == "no-cache"
 
 
+@needs_the_run
 def test_the_stamp_changes_when_a_payload_changes(tmp_path: Path) -> None:
     """A stamp that did not move with the bytes would be worse than none: it would pin a stale
     payload in every cache rather than let it expire."""
@@ -298,6 +311,7 @@ def test_the_page_carries_no_inline_style_attribute() -> None:
         assert not re.search(r'\bstyle\s*=\s*["\']', text), name
 
 
+@needs_the_run
 def test_the_builder_writes_every_file_the_page_needs(tmp_path: Path) -> None:
     """The one test that runs the builder end to end, into a directory of its own."""
     written = build.build_all(tmp_path)

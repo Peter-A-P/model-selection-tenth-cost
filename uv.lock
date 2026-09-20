@@ -267,7 +267,7 @@ wheels = [
 
 [[package]]
 name = "mselect"
-version = "0.3.6"
+version = "0.3.7"
 source = { editable = "." }
 dependencies = [
     { name = "boundary" },
