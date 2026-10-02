@@ -20,6 +20,11 @@ spend caps before a request leaves. Both scripts pass `--yes`, so read
 [`mselect/config/caps.yaml`](../mselect/config/caps.yaml) before running one against the hosted
 panel. The laptop aliases cost nothing and need no key.
 
+Each `mselect run` step that writes to the ledger pushes it to the portfolio dashboard as it
+ends, so a long script keeps the dashboard current arm by arm. A failed push is a warning in the
+log and does not change the step's exit code. See "A vendor call is possible" in the
+[README](../README.md).
+
 On Windows, launch a long run detached rather than from a terminal or tool that owns the process.
 A nineteen-hour run died three times because its parent went away:
 

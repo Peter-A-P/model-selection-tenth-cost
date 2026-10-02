@@ -508,6 +508,19 @@ A vendor call is possible from this repository now, and it is gated. `mselect ru
 explicit `--yes`, and both print what they would ask first. Every other command reads what is
 already recorded.
 
+Both push the ledger to the portfolio dashboard at
+[gateway.peterparker.ca](https://gateway.peterparker.ca) when they finish, so its record of this
+project's calls is as of the last run rather than the last time the gateway's own repository
+pushed. The push happens only when the run wrote to `out/own-run-ledger.sqlite`, runs on the way
+out of a failed run too (a run stopped by a spend cap has still spent up to it), and uses a
+current `boundary` as a tool beside this project's pin, as project 04's `docs/central.md`
+describes. The source is always `model-selection-tenth-cost:out/own-run-ledger.sqlite`, the name
+the first push used, so each push adds to that source rather than starting another. The ingest
+key is read from `BOUNDARY_INGEST_KEY`, or from that line of `.env`, never from a flag, and is
+never printed. A push that fails prints a warning and leaves the run's exit code alone;
+`mselect push-ledger` repeats it on its own, and a push that succeeds ends "the central ledger
+holds N of this source's N".
+
 ## How it is built
 
 `mselect` is a typed Python package: `data/` fetches and freezes the bank, `irt/` fits and

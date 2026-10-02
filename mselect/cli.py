@@ -12,6 +12,7 @@ from typing import TYPE_CHECKING
 import typer
 
 from mselect import paths
+from mselect.runner.central import push_after
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -458,6 +459,7 @@ def models(
 
 
 @app.command("smoke")
+@push_after
 def smoke(
     alias: str = typer.Option(
         "", "--alias", help="Comma-separated aliases. Default: the price-zero local ones only."
@@ -608,6 +610,7 @@ def smoke(
 
 
 @app.command("run")
+@push_after
 def run(
     version: str = typer.Option("v1", help="Which bank the suite and items come from."),
     alias: str = typer.Option("", "--alias", help="Comma-separated. Default: the whole panel."),
@@ -790,6 +793,19 @@ def run(
             "so re-asking those items buys the same answers twice. Either raise --batch-wait "
             "and run again, or collect them from the ledger once they end."
         )
+
+
+@app.command("push-ledger")
+def push_ledger() -> None:
+    """Push the own-run ledger to the portfolio dashboard. `run` and `smoke` do this themselves.
+
+    Reads BOUNDARY_INGEST_KEY from the environment, or from `.env`, and never from a flag. Safe
+    to repeat: the same source name adds to the same source, so a second push adds nothing.
+    """
+    from mselect.runner import central
+
+    if not central.push(say=_say):
+        raise typer.Exit(code=1)
 
 
 @app.command("rescore")

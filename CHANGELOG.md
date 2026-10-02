@@ -3,6 +3,23 @@
 Versions follow semantic versioning on a 0.x line: the interface re-exported from `mselect`
 itself is stable within a minor version, and everything else in the package is internal.
 
+## v0.3.8 - 2026-10-02
+
+### The dashboard's record of this project is as of the last run
+
+`mselect run` and `mselect smoke` now push `out/own-run-ledger.sqlite` to the portfolio
+dashboard at gateway.peterparker.ca when they end, if they wrote to it. Until now the dashboard
+showed this project's calls as of the gateway repository's last push from the laptop, which
+could be days behind a run. `mselect push-ledger` does the same push on its own.
+
+The push runs `boundary ledger push` from the v0.34.1 tag through `uvx`, beside the pinned
+v0.2.0 library the runner calls through, so the pin does not move. The source name is the one
+the first push used on 2026-09-30, `model-selection-tenth-cost:out/own-run-ledger.sqlite`, and
+is a constant: a name derived from a path that moved would start a second source and count every
+row twice. The ingest key comes from `BOUNDARY_INGEST_KEY` or that one line of `.env`, reaches
+the tool through its environment and never its arguments, and is scrubbed from anything the
+tool prints. A failed push is a warning and never fails the run that has already spent.
+
 ## v0.3.7 - 2026-09-19
 
 ### CI had been red since the page arrived, and nobody was reading it
