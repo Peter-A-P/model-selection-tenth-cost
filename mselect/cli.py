@@ -223,13 +223,12 @@ def routes() -> None:
     config = gateway.load_config()
     all_routes = gateway.routes_of(config)
     providers = config.get("providers", {})
-    prices = suite_mod.load_prices(
-        suite_mod.latest_price_file(gateway.CONFIG.parent / str(config.get("prices", "prices")))
-    )
+    price_file = suite_mod.latest_price_file(gateway.price_directory(config))
+    prices = suite_mod.load_prices(price_file)
     listed = prices.get("per_million_tokens", {})
 
     _say(f"panel of {len(prompts.PANEL)}, from {gateway.CONFIG.name}")
-    _say(f"prices from {suite_mod.latest_price_file(gateway.CONFIG.parent / 'prices').name}")
+    _say(f"prices from {price_file.name}")
     _say("")
     problems: list[str] = []
     for entry in prompts.PANEL:
@@ -324,9 +323,7 @@ def suite(
     _say(f"  {counts}")
 
     config = gateway.load_config()
-    prices = suite_mod.load_prices(
-        suite_mod.latest_price_file(gateway.CONFIG.parent / str(config.get("prices", "prices")))
-    )
+    prices = suite_mod.load_prices(suite_mod.latest_price_file(gateway.price_directory(config)))
     routes = gateway.routes_of(config)
     # What the models actually generated. Without this the output figure is the token cap,
     # which since the cap became big enough for reasoning is a worst case rather than an

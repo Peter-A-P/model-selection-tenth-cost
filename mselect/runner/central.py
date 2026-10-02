@@ -37,7 +37,8 @@ from mselect import paths
 
 URL: Final = "https://gateway.peterparker.ca"
 # The released tool, not the pin this project calls through. `push` reads every ledger schema
-# from v1 on (04 docs/central.md), so the pinned v0.2.0 ledger is readable by it as it is.
+# from v1 on (04 docs/central.md), so it reads this ledger whichever pin last wrote it, and the
+# two move independently.
 TOOL: Final = "git+https://github.com/Peter-A-P/compliant-ai-gateway@v0.34.1"
 PROJECT: Final = "model-selection-tenth-cost"
 SOURCE: Final = f"{PROJECT}:out/own-run-ledger.sqlite"

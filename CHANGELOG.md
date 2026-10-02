@@ -3,6 +3,43 @@
 Versions follow semantic versioning on a 0.x line: the interface re-exported from `mselect`
 itself is stable within a minor version, and everything else in the package is internal.
 
+## v0.3.9 - 2026-10-02
+
+### Three batches collected, and the gateway pin moves to v0.35.0
+
+04's September invoice check found five Anthropic batches it believed were never collected.
+Two of them, the smoke batches of 2026-09-12 on sonnet-5 and opus-5, had been: every request
+errored, the six rows were completed as `batch_errored` at the time, and Anthropic does not bill
+an errored request. The other three were still in flight at the budget's worst-case estimate,
+US$2.04 across 350 rows. They were collected with `Gateway.batch_results` under the pin that
+submitted them, before the bump, and every row completed from returned usage at the batch rate:
+
+| batch | submitted | model | rows | cost |
+|---|---|---|---|---|
+| `msgbatch_01WpF9fbZCHheD3bHG8bz8W7` | 2026-09-14 | claude-haiku-4-5 | 250 | US$0.0574 |
+| `msgbatch_01R4BwrDdusjS78cXeAVatBn` | 2026-09-18 | claude-opus-5 | 50 | US$0.0831 |
+| `msgbatch_0136E3gWr6NkdoaGQXm4TDc7` | 2026-09-18 | claude-opus-5 | 50 | US$0.0819 |
+
+US$0.2224 in all, against the US$0.22 Anthropic billed. None had expired. Nine standard (not
+batch) rows are still in flight, from calls that never returned a reply between 09-15 and
+09-18, most likely a process stopped mid-request. There is no batch to collect for those, and
+they are left as written.
+
+`boundary` moves from v0.2.0 to v0.35.0. v0.35.0 prices GPT-5.6 cache writes at 1.25x input
+rather than as plain input, which under-costed September's gpt-5.6-sol rows by about US$0.13;
+those rows stay as written and 04's invoice check records the shortfall. Prices now come from
+the library (`prices: builtin`), and `mselect/config/prices/` is gone, because the library
+carries the same 2026-09-12 rates and the pin should decide the costing. `mselect routes`,
+`mselect suite` and the panel price test read the packaged files through
+`gateway.price_directory`, rather than a folder beside the configuration that no longer exists.
+
+One change in that range would have altered the method silently, so it is undone: from 0.2.1
+the library sends Gemini requests as batches by default. A batch never reads the response
+cache, so a rerun of a Google alias would be billed again, and every Google reply recorded so
+far came from standard calls. `batches: false` under `google` keeps it that way. The first
+gateway opened under v0.35.0 upgrades `out/own-run-ledger.sqlite` from schema 3 in place, after
+which v0.2.0 cannot write it; a copy of the schema-3 file is beside it.
+
 ## v0.3.8 - 2026-10-02
 
 ### The dashboard's record of this project is as of the last run

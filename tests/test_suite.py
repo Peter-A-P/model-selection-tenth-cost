@@ -300,7 +300,7 @@ def test_every_panel_alias_has_a_route_and_a_price() -> None:
     config = gateway.load_config()
     routes = gateway.routes_of(config)
     providers = config.get("providers", {})
-    prices = suite.load_prices(suite.latest_price_file(gateway.CONFIG.parent / "prices"))
+    prices = suite.load_prices(suite.latest_price_file(gateway.price_directory(config)))
     listed = prices.get("per_million_tokens", {})
 
     for entry in prompts.PANEL:

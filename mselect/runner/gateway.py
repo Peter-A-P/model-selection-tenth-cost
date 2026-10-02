@@ -41,6 +41,7 @@ from boundary import (
     SpendCapExceeded,
 )
 from boundary.cache import ExactMatchCache
+from boundary.config import BUILTIN_PRICES, PACKAGED_PRICES
 
 from mselect.runner.administer import Prompt, Reply
 
@@ -117,6 +118,20 @@ def load_config(path: Path = CONFIG) -> dict[str, Any]:
     """
     loaded = yaml.safe_load(path.read_text(encoding="utf-8"))
     return dict(loaded) if isinstance(loaded, dict) else {}
+
+
+def price_directory(config: Mapping[str, Any]) -> Path:
+    """The directory of dated price files the gateway costs calls from.
+
+    `prices: builtin` means the files that ship inside the pinned `boundary`, so the pin decides
+    the rates and a cost table is reproducible from this checkout alone. Pricing a run before
+    making one has to read the same files the gateway will, or the estimate and the ledger
+    disagree about which list applies. A directory path still resolves against this file.
+    """
+    named = str(config.get("prices", BUILTIN_PRICES))
+    if named == BUILTIN_PRICES:
+        return PACKAGED_PRICES
+    return (CONFIG.parent / named).resolve()
 
 
 def routes_of(config: dict[str, Any]) -> dict[str, dict[str, str]]:

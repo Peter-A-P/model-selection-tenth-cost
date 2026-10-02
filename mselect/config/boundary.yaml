@@ -31,6 +31,11 @@ providers:
     base_url: https://generativelanguage.googleapis.com
     api_key_env: GOOGLE_API_KEY
     api_version: v1beta
+    # boundary 0.2.1 serves Gemini batches by default. Off here: a batch never reads the
+    # response cache, so a rerun of a Google alias would be billed again, and every Google
+    # reply on the panel so far came from standard calls. Turning it on is a method change,
+    # with BATCHING_PROVIDERS in runner/suite.py, not a side effect of a version bump.
+    batches: false
   openweights:
     kind: openai_compat
     base_url: https://api.together.xyz/v1
@@ -145,7 +150,10 @@ routes:
   local-mid-a:
     provider: local
     model: qwen2.5:7b
-prices: prices
+# The dated price files that ship inside the pinned boundary (04 docs/prices.md), so the pin
+# decides the rates and September's costing is reproducible from this checkout alone. The copy
+# that lived in mselect/config/prices/ moved into the library as 2026-09-12.yaml.
+prices: builtin
 caps: caps.yaml
 
 defaults:
