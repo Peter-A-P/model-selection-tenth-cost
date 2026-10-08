@@ -148,7 +148,7 @@ code { font-family: var(--mono); font-size: 0.9em; }
 
 /* ---------------------------------------------------------------- hero */
 
-.hero { padding: 3.25rem 0 2.25rem; border-bottom: 1px solid var(--line); }
+.hero { padding: 2.25rem 0 2.25rem; border-bottom: 1px solid var(--line); }
 
 .eyebrow {
   text-transform: uppercase;
