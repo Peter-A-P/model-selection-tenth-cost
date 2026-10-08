@@ -9,7 +9,7 @@ file copy and a DNS record.
 | File | What it is |
 |---|---|
 | `index.html` | The page and all of its prose. |
-| `style.css` | peterparker.ca's palette and type, no framework. |
+| `style.css` | peterparker.ca's palette and type, and the hero, headline cards, section tabs and footer of project 03's dashboard, no framework. |
 | `irt.js` | The adaptive test: the response model, the running posterior, the selector and the stopping rule, ported from `mselect/irt/model.py`, `mselect/cat/estimate.py` and `mselect/cat/select.py`. |
 | `charts.js` | Every chart, drawn by hand into SVG and one canvas. No chart library. |
 | `app.js` | Loading the data, the five controls, and the copy that changes with them. |

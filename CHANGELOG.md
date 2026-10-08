@@ -3,6 +3,17 @@
 Versions follow semantic versioning on a 0.x line: the interface re-exported from `mselect`
 itself is stable within a minor version, and everything else in the package is internal.
 
+## v0.3.10 - 2026-10-08
+
+### The page looks like project 03's dashboard
+
+The two project sites shared a palette and two typefaces and still read as different sites. The
+page now takes the rest of its look from 03's dashboard at gate.peterparker.ca: the accent wash
+behind the opening and the highlighted phrase in the headline, headline figures in cards with a
+3px rule over them in the colour the figure is printed in (teal, green, violet, in 03's order),
+a row of pill links to the page's sections under the header, and 03's footer. The idea table
+stacks into one labelled block per row on a phone instead of scrolling sideways. No figure,
+payload or piece of prose changed.
 ## v0.3.9 - 2026-10-02
 
 ### Three batches collected, and the gateway pin moves to v0.35.0

@@ -14,11 +14,22 @@
     <p class="top-nav"><a href="https://peterparker.ca/projects/model-selection/">Project 02: Model Selection at a Tenth of the Cost</a></p>
   </div>
 </header>
+<nav class="tabs" aria-label="On this page">
+  <div class="tabs-inner">
+    <a href="#idea">The idea</a>
+    <a href="#run">Run the test</a>
+    <a href="#curve">Where it wins</a>
+    <a href="#power">How many questions</a>
+    <a href="#dead">Dead questions</a>
+    <a href="#hidden">What a score hides</a>
+    <a href="#limits">Limits</a>
+  </div>
+</nav>
 <main>
 
   <header class="hero">
     <p class="eyebrow">Measured results, reproducible from one command</p>
-    <h1>Most benchmark questions are not worth asking. These are.</h1>
+    <h1>Most benchmark questions are not worth asking. <span class="hl">These are.</span></h1>
     <p class="lead">
       Choosing between AI models means running a benchmark: a few thousand questions, put to every
       model on the shortlist, counted up into a percentage. Twenty models is sixty thousand paid
@@ -33,12 +44,12 @@
         <span class="point-unit">questions</span>
         <span class="point-label" id="hero-items-label">rank a shortlist as well as 127 chosen at random</span>
       </div>
-      <div class="point">
+      <div class="point good">
         <span class="point-figure" id="hero-cost">&ndash;</span>
         <span class="point-unit">to rank twelve models</span>
         <span class="point-label" id="hero-cost-label">against the price of asking all of them everything</span>
       </div>
-      <div class="point">
+      <div class="point violet">
         <span class="point-figure" id="hero-dead">1 in 5</span>
         <span class="point-unit">of the bank measures nothing</span>
         <span class="point-label">and every published benchmark score counts them at full weight</span>
@@ -64,11 +75,11 @@
           <tr><th>What a question does</th><th>What it tells you about which model to buy</th><th>What a percentage does with it</th></tr>
         </thead>
         <tbody>
-          <tr><td><strong>Every model gets it right</strong></td><td>Nothing. It separates nobody</td><td>Counts it, at full weight</td></tr>
-          <tr><td><strong>Every model gets it wrong</strong></td><td>Nothing. It separates nobody</td><td>Counts it, at full weight</td></tr>
-          <tr class="bad"><td><strong>Its stored answer key is wrong</strong></td><td>Worse than nothing: it penalises the models that were right</td><td>Counts it, at full weight</td></tr>
-          <tr><td><strong>It leaked into training data</strong></td><td>Measures memory, not capability</td><td>Counts it, at full weight</td></tr>
-          <tr class="good"><td><strong>It cleanly separates stronger models from weaker ones</strong></td><td>This is the entire signal you are paying for</td><td>Counts it, at full weight</td></tr>
+          <tr><td><strong>Every model gets it right</strong></td><td data-label="What it tells you">Nothing. It separates nobody</td><td data-label="What a percentage does">Counts it, at full weight</td></tr>
+          <tr><td><strong>Every model gets it wrong</strong></td><td data-label="What it tells you">Nothing. It separates nobody</td><td data-label="What a percentage does">Counts it, at full weight</td></tr>
+          <tr class="bad"><td><strong>Its stored answer key is wrong</strong></td><td data-label="What it tells you">Worse than nothing: it penalises the models that were right</td><td data-label="What a percentage does">Counts it, at full weight</td></tr>
+          <tr><td><strong>It leaked into training data</strong></td><td data-label="What it tells you">Measures memory, not capability</td><td data-label="What a percentage does">Counts it, at full weight</td></tr>
+          <tr class="good"><td><strong>It cleanly separates stronger models from weaker ones</strong></td><td data-label="What it tells you">This is the entire signal you are paying for</td><td data-label="What a percentage does">Counts it, at full weight</td></tr>
         </tbody>
       </table>
     </div>
@@ -385,7 +396,8 @@
     </div>
   </section>
 
-  <footer>
+</main>
+<footer>
     <p class="footer-lead">Every number on this page is reproducible from the repository with one command.</p>
     <p class="footer-back">
       <a href="https://github.com/Peter-A-P/model-selection-tenth-cost">The repository, the method and the write-up</a>
@@ -395,9 +407,7 @@
       <a href="https://peterparker.ca">The rest of the portfolio</a>
     </p>
     <p class="note" id="footer-provenance"></p>
-  </footer>
-
-</main>
+</footer>
 <script type="module" src="app.js"></script>
 </body>
 </html>

@@ -4,7 +4,10 @@
    The palette, the type and the 3px rule over the page are peterparker.ca's, because this page
    is part of that site even though a separate host serves it. The two fonts are copied into
    this folder rather than linked from there: the page makes no off-origin request, and a font
-   is a request. Both are SIL Open Font License; fonts/LICENSE.txt says where they came from. */
+   is a request. Both are SIL Open Font License; fonts/LICENSE.txt says where they came from.
+
+   The hero wash, the coloured rule over each headline figure, the tab bar and the footer follow
+   project 03's dashboard (gate.peterparker.ca), so the two project sites read as one family. */
 
 @font-face {
   font-family: "Newsreader";
@@ -72,6 +75,7 @@
 html { font-size: 18px; scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
 
 body {
+  overflow-x: clip;
   margin: 0;
   background: var(--paper);
   color: var(--ink);
@@ -85,7 +89,7 @@ body {
 main {
   max-width: var(--column);
   margin: 0 auto;
-  padding: 0 1.5rem 5rem;
+  padding: 0 1.5rem 4rem;
 }
 
 /* ---------------------------------------------------------------- the way back */
@@ -134,6 +138,28 @@ main {
 .top-nav a { color: var(--ink-soft); }
 .top-nav a:hover { color: var(--accent-ink); }
 
+/* The sections of this page as pills, the way 03 lists its pages. */
+.tabs { border-bottom: 1px solid var(--line); background: var(--paper-soft); }
+
+.tabs-inner {
+  max-width: var(--column);
+  margin: 0 auto;
+  padding: 0.55rem 1.5rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.tabs a {
+  font-size: 0.85rem;
+  padding: 0.2rem 0.75rem;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  color: var(--ink-soft);
+}
+
+.tabs a:hover { text-decoration: none; border-color: var(--line-2); color: var(--accent-ink); }
+
 h1, h2, h3 { font-family: var(--serif); font-weight: 500; letter-spacing: -0.012em; }
 h1 { font-size: clamp(2.1rem, 4.6vw, 3rem); line-height: 1.1; margin: 0 0 1rem; }
 h2 { font-size: clamp(1.55rem, 2.6vw, 2rem); line-height: 1.2; margin: 0 0 0.7rem; }
@@ -148,7 +174,26 @@ code { font-family: var(--mono); font-size: 0.9em; }
 
 /* ---------------------------------------------------------------- hero */
 
-.hero { padding: 2.25rem 0 2.25rem; border-bottom: 1px solid var(--line); }
+.hero { position: relative; padding: 2.25rem 0; border-bottom: 1px solid var(--line); }
+
+/* A wash of the accent behind the first screen, full width, fading into the page: the one place
+   colour is used for its own sake, so the opening is not black on white alone. */
+.hero::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 100vw;
+  margin-left: -50vw;
+  background:
+    radial-gradient(60rem 22rem at 85% 0%, color-mix(in srgb, var(--sim) 14%, transparent), transparent 70%),
+    linear-gradient(180deg, var(--accent-soft), var(--paper) 85%);
+}
+
+.hero h1 .hl { color: var(--accent); }
+.hero .eyebrow { color: var(--accent-ink); }
 
 .eyebrow {
   text-transform: uppercase;
@@ -163,17 +208,24 @@ code { font-family: var(--mono); font-size: 0.9em; }
 
 .hero-points {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
   gap: 0.9rem;
   margin: 1.75rem 0 1.1rem;
 }
 
-.point {
+/* A headline figure: a card with a 3px rule over it in the colour its figure is printed in. */
+.point, .headline .stat {
   background: var(--paper-soft);
   border: 1px solid var(--line);
+  border-top: 3px solid var(--accent);
   border-radius: var(--radius);
+  box-shadow: var(--shadow);
   padding: 1rem 1.1rem;
+  min-width: 0;
 }
+
+.point.good { border-top-color: var(--good); }
+.point.violet { border-top-color: var(--sim); }
 
 .point-figure {
   display: block;
@@ -183,8 +235,11 @@ code { font-family: var(--mono); font-size: 0.9em; }
   font-variant-numeric: tabular-nums;
   letter-spacing: -0.02em;
   line-height: 1.15;
-  color: var(--ink);
+  color: var(--accent-ink);
 }
+
+.point.good .point-figure { color: var(--good); }
+.point.violet .point-figure { color: var(--sim); }
 
 .point-unit {
   display: block;
@@ -465,6 +520,8 @@ figcaption {
   padding: 1rem 1.1rem;
 }
 
+.headline .stat .figure { color: var(--accent-ink); }
+
 .figure {
   display: block;
   font-family: var(--serif);
@@ -574,8 +631,16 @@ figcaption {
 
 /* ---------------------------------------------------------------- footer */
 
-footer { padding: 2.25rem 0 0; }
-.footer-lead { font-weight: 600; }
+footer {
+  max-width: var(--column);
+  margin: 0 auto;
+  padding: 2rem 1.5rem 3rem;
+  font-size: 0.86rem;
+  color: var(--ink-faint);
+  border-top: 1px solid var(--line);
+}
+
+.footer-lead { color: var(--ink); font-weight: 600; font-size: 0.95rem; }
 .footer-back { margin-bottom: 1rem; }
 
 /* ---------------------------------------------------------------- narrow screens */
@@ -592,7 +657,14 @@ footer { padding: 2.25rem 0 0; }
   .section { padding: 2rem 0; }
   main { padding: 0 1.1rem 3.5rem; }
   .top-nav { display: none; }
+  .tabs-inner { padding: 0.5rem 1.1rem; }
+  footer { padding: 2rem 1.1rem 3rem; }
   th, td { padding: 0.45rem 0.6rem; }
+  /* The idea table stacks into one block per row, each cell named, rather than scrolling. */
+  .five-types thead { display: none; }
+  .five-types tr { display: block; padding: 0.6rem 0.2rem; border-bottom: 1px solid var(--line); }
+  .five-types td { display: block; border: 0; padding: 0.1rem 0.55rem; white-space: normal !important; }
+  .five-types td[data-label]::before { content: attr(data-label) ": "; color: var(--ink-faint); }
   .arena-stats { grid-template-columns: 1fr; }
 }
 
