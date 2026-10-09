@@ -330,12 +330,13 @@ function setupRace() {
       select.appendChild(group);
     }
   }
-  // Four accuracy points apart, which is the case the method is for: close enough that a
-  // leaderboard reader would call it too close to call, far enough that it is really there.
-  // Adaptive selection settles this pair in about a hundred questions; random selection does
-  // not settle it at all inside three hundred.
-  selectA.value = "anthropic-haiku";
-  selectB.value = "google-mid";
+  // A flagship's fast tier against another vendor's small model, nine accuracy points apart:
+  // the comparison a team choosing a cheap default actually makes. Adaptive selection settles it
+  // in 42 questions; random selection does not settle it inside three hundred. The Gemini
+  // estimate ends past +4, so the first run a visitor sees also shows the ceiling note, which
+  // is the bank's real limit and better met on the default pair than discovered later.
+  selectA.value = "google-frontier";
+  selectB.value = "anthropic-haiku";
 
   const runButton = document.getElementById("run-test");
   const resetButton = document.getElementById("reset");

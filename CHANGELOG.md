@@ -3,6 +3,16 @@
 Versions follow semantic versioning on a 0.x line: the interface re-exported from `mselect`
 itself is stable within a minor version, and everything else in the package is internal.
 
+## v0.3.11 - 2026-10-08
+
+### The page opens on gemini-3.8-flash against claude-haiku-4-5
+
+The default pair was claude-haiku-4-5 against gemini-3.5-flash-lite, four points apart, which
+adaptive selection settles in 103 questions. It is now gemini-3.8-flash against claude-haiku-4-5,
+nine points apart: settled in 42 questions adaptively, not settled in 300 at random. The Gemini
+estimate ends past +4, so the first run now also shows the note that the bank's scale has run
+out, which is the bank's real limit rather than a defect of the run.
+
 ## v0.3.10 - 2026-10-08
 
 ### The page looks like project 03's dashboard
