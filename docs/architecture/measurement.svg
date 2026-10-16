@@ -79,25 +79,25 @@
 <text x="1120.0" y="311.0" font-size="13" font-weight="500" text-anchor="middle" fill="#14201E">README tables and</text>
 <text x="1120.0" y="327.0" font-size="13" font-weight="500" text-anchor="middle" fill="#14201E">demo/data</text>
 <text x="1120.0" y="344.0" font-size="11" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" text-anchor="middle" fill="#5C6B67">mselect report, demo build</text>
-<rect x="270.5" y="88.0" width="59.0" height="20.0" rx="3" fill="#FFFFFF"/>
+<rect x="273.0" y="88.0" width="54.0" height="20.0" rx="3" fill="#FFFFFF"/>
 <text x="300.0" y="100.0" font-size="12" text-anchor="middle" fill="#14201E">matrices</text>
-<rect x="604.4" y="88.0" width="47.3" height="20.0" rx="3" fill="#FFFFFF"/>
+<rect x="608.3" y="88.0" width="39.3" height="20.0" rx="3" fill="#FFFFFF"/>
 <text x="628.0" y="100.0" font-size="12" text-anchor="middle" fill="#14201E">writes</text>
-<rect x="267.5" y="200.0" width="64.9" height="20.0" rx="3" fill="#FFFFFF"/>
+<rect x="276.0" y="200.0" width="48.0" height="20.0" rx="3" fill="#FFFFFF"/>
 <text x="300.0" y="212.0" font-size="12" text-anchor="middle" fill="#14201E">abilities</text>
-<rect x="604.4" y="200.0" width="47.3" height="20.0" rx="3" fill="#FFFFFF"/>
+<rect x="608.3" y="200.0" width="39.3" height="20.0" rx="3" fill="#FFFFFF"/>
 <text x="628.0" y="212.0" font-size="12" text-anchor="middle" fill="#14201E">writes</text>
-<rect x="270.5" y="312.0" width="59.0" height="20.0" rx="3" fill="#FFFFFF"/>
+<rect x="269.0" y="312.0" width="62.0" height="20.0" rx="3" fill="#FFFFFF"/>
 <text x="300.0" y="324.0" font-size="12" text-anchor="middle" fill="#14201E">US$18.25</text>
-<rect x="604.4" y="312.0" width="47.3" height="20.0" rx="3" fill="#FFFFFF"/>
+<rect x="608.3" y="312.0" width="39.3" height="20.0" rx="3" fill="#FFFFFF"/>
 <text x="628.0" y="324.0" font-size="12" text-anchor="middle" fill="#14201E">writes</text>
-<rect x="273.4" y="424.0" width="53.2" height="20.0" rx="3" fill="#FFFFFF"/>
+<rect x="272.3" y="424.0" width="55.4" height="20.0" rx="3" fill="#FFFFFF"/>
 <text x="300.0" y="436.0" font-size="12" text-anchor="middle" fill="#14201E">US$3.38</text>
-<rect x="604.4" y="424.0" width="47.3" height="20.0" rx="3" fill="#FFFFFF"/>
+<rect x="608.3" y="424.0" width="39.3" height="20.0" rx="3" fill="#FFFFFF"/>
 <text x="628.0" y="436.0" font-size="12" text-anchor="middle" fill="#14201E">writes</text>
-<rect x="267.5" y="536.0" width="64.9" height="20.0" rx="3" fill="#FFFFFF"/>
+<rect x="275.0" y="536.0" width="50.0" height="20.0" rx="3" fill="#FFFFFF"/>
 <text x="300.0" y="548.0" font-size="12" text-anchor="middle" fill="#14201E">both fits</text>
-<rect x="604.4" y="536.0" width="47.3" height="20.0" rx="3" fill="#FFFFFF"/>
+<rect x="608.3" y="536.0" width="39.3" height="20.0" rx="3" fill="#FFFFFF"/>
 <text x="628.0" y="548.0" font-size="12" text-anchor="middle" fill="#14201E">writes</text>
 <text x="1120.0" y="478.8" font-size="11" text-anchor="middle" fill="#5C6B67" font-style="italic">every number with a 95% interval;</text>
 <text x="1120.0" y="493.8" font-size="11" text-anchor="middle" fill="#5C6B67" font-style="italic">nothing on the page the</text>
