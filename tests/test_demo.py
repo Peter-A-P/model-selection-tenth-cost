@@ -306,9 +306,28 @@ def test_the_page_carries_no_inline_style_attribute() -> None:
     """`style-src 'self'` blocks a style attribute in markup, and the failure is silent: the
     element simply renders unstyled on the live site and correctly in any local check that
     sends no headers. Project 01 shipped exactly that defect for two weeks."""
-    for name in ("index.html", "app.js", "charts.js", "irt.js"):
+    for name in ("index.html", "architecture.html", "app.js", "charts.js", "irt.js"):
         text = (DEMO / name).read_text(encoding="utf-8")
         assert not re.search(r'\bstyle\s*=\s*["\']', text), name
+
+
+def test_the_architecture_page_is_reachable_from_the_menu_and_the_top() -> None:
+    """From the menu, and from a text link in the hero for a reader who never looks up."""
+    page = (DEMO / "index.html").read_text(encoding="utf-8")
+    menu, _, rest = page.partition("</nav>")
+    assert 'href="architecture.html"' in menu
+    assert 'href="architecture.html"' in rest.partition('id="idea"')[0]
+
+
+def test_the_diagrams_it_shows_are_the_ones_in_docs() -> None:
+    """demo/ is deployed on its own, so the diagrams are copied into it. A copy that drifted
+    from docs/architecture/ would show a stale system to every visitor."""
+    page = (DEMO / "architecture.html").read_text(encoding="utf-8")
+    shown = set(re.findall(r"""<img\b[^>]*\ssrc\s*=\s*["']([^"']+)""", page))
+    docs = DEMO.parent / "docs"
+    assert shown == {f"architecture/{p.name}" for p in (docs / "architecture").glob("*.svg")}
+    for target in shown:
+        assert (DEMO / target).read_bytes() == (docs / target).read_bytes(), target
 
 
 @needs_the_run
