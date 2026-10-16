@@ -446,6 +446,9 @@ items and not portable enough to use as constants.
   the caveats attached rather than left in a document. [CHANGELOG.md](CHANGELOG.md) says what
   v0.2.0 contains and, as plainly, what it does not.
 
+Three architecture diagrams, the system, the adaptive loop and how the numbers are produced, are in
+[docs/architecture.md](docs/architecture.md).
+
 ## Reproduce it
 
 ```bash

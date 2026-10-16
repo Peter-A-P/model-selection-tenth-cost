@@ -1,0 +1,116 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1140" height="758" viewBox="0 0 1140 758" role="img" aria-label="Public per-item results are frozen into two banks and fitted by item response theory; the diagnostics name the items that measure nothing; the adaptive test runs against twelve current models&#x27; recorded answers and against simulation; the report and the demo are written from the same artefacts, and the power function is what project 03 imports." font-family="'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif">
+<defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M 1 1 L 9 5 L 1 9 z" fill="#14201E"/></marker><marker id="arrow-accent" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M 1 1 L 9 5 L 1 9 z" fill="#0E6E60"/></marker><marker id="arrow-signal" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M 1 1 L 9 5 L 1 9 z" fill="#A64C1C"/></marker><marker id="arrow-muted" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M 1 1 L 9 5 L 1 9 z" fill="#5C6B67"/></marker></defs>
+<rect width="1140" height="758" fill="#FFFFFF"/>
+<text x="28" y="42" font-size="16" font-weight="700" fill="#14201E">The system: two public item banks, one adaptive test, a power function handed on</text>
+<path d="M 162.0 130.0 L 162.0 175.0" fill="none" stroke="#14201E" stroke-width="1.4" marker-end="url(#arrow)"/>
+<path d="M 162.0 249.0 L 162.0 294.0" fill="none" stroke="#14201E" stroke-width="1.4" marker-end="url(#arrow)"/>
+<path d="M 162.0 358.0 L 162.0 408.0" fill="none" stroke="#14201E" stroke-width="1.4" marker-end="url(#arrow)"/>
+<path d="M 162.0 472.0 L 162.0 522.0" fill="none" stroke="#14201E" stroke-width="1.4" marker-end="url(#arrow)"/>
+<path d="M 296.0 326.0 L 436.0 326.0" fill="none" stroke="#14201E" stroke-width="1.4" marker-end="url(#arrow)"/>
+<path d="M 570.0 130.0 L 570.0 180.0" fill="none" stroke="#14201E" stroke-width="1.4" marker-end="url(#arrow)"/>
+<path d="M 570.0 244.0 L 570.0 294.0" fill="none" stroke="#14201E" stroke-width="1.4" marker-end="url(#arrow)"/>
+<path d="M 704.0 326.0 L 844.0 326.0" fill="none" stroke="#14201E" stroke-width="1.4" marker-end="url(#arrow)"/>
+<path d="M 570.0 358.0 L 570.0 408.0" fill="none" stroke="#14201E" stroke-width="1.4" marker-end="url(#arrow)"/>
+<path d="M 978.0 358.0 L 978.0 408.0" fill="none" stroke="#14201E" stroke-width="1.4" marker-end="url(#arrow)"/>
+<path d="M 704.0 440.0 L 844.0 440.0" fill="none" stroke="#14201E" stroke-width="1.4" marker-end="url(#arrow)"/>
+<path d="M 570.0 472.0 L 570.0 522.0" fill="none" stroke="#14201E" stroke-width="1.4" marker-end="url(#arrow)"/>
+<path d="M 978.0 472.0 L 978.0 522.0" fill="none" stroke="#14201E" stroke-width="1.4" marker-end="url(#arrow)"/>
+<path d="M 570.0 586.0 L 570.0 662.0 Q 570.0 668.0 576.0 668.0 L 844.0 668.0" fill="none" stroke="#14201E" stroke-width="1.4" marker-end="url(#arrow)"/>
+<rect x="28.0" y="66.0" width="268.0" height="64.0" rx="4" fill="#F2F4F3" stroke="#5C6B67" stroke-width="1.1" stroke-dasharray="5 3"/>
+<text x="162.0" y="87.0" font-size="13" font-weight="500" text-anchor="middle" fill="#14201E">Public per-item results</text>
+<text x="162.0" y="103.0" font-size="13" font-weight="500" text-anchor="middle" fill="#14201E">HELM; Open LLM Leaderboard</text>
+<text x="162.0" y="120.0" font-size="11" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" text-anchor="middle" fill="#5C6B67">mselect.data.helm, ollm</text>
+<path d="M 28.0 182.0 a 134.0 7 0 0 1 268.0 0 L 296.0 242.0 a 134.0 7 0 0 1 -268.0 0 Z" fill="#FFFFFF" stroke="#14201E" stroke-width="1.1"/><path d="M 28.0 182.0 a 134.0 7 0 0 0 268.0 0" fill="none" stroke="#14201E" stroke-width="1.1"/>
+<text x="162.0" y="205.0" font-size="13" font-weight="500" text-anchor="middle" fill="#14201E">Frozen banks v1 and v2</text>
+<text x="162.0" y="221.0" font-size="13" font-weight="500" text-anchor="middle" fill="#14201E">150 x 20,365 and 400 x 20,323</text>
+<text x="162.0" y="238.0" font-size="11" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" text-anchor="middle" fill="#5C6B67">mselect/bank, MANIFEST.json</text>
+<rect x="28.0" y="294.0" width="268.0" height="64.0" rx="4" fill="#FFFFFF" stroke="#0E6E60" stroke-width="1.6"/>
+<rect x="28.0" y="294.0" width="5" height="64.0" rx="2" fill="#0E6E60"/>
+<text x="162.0" y="315.0" font-size="13" font-weight="500" text-anchor="middle" fill="#14201E">IRT fit, 2PL and 3PL</text>
+<text x="162.0" y="331.0" font-size="13" font-weight="500" text-anchor="middle" fill="#14201E">marginal maximum likelihood by EM</text>
+<text x="162.0" y="348.0" font-size="11" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" text-anchor="middle" fill="#5C6B67">mselect.irt.fit</text>
+<rect x="28.0" y="408.0" width="268.0" height="64.0" rx="4" fill="#FFFFFF" stroke="#14201E" stroke-width="1.1"/>
+<text x="162.0" y="429.0" font-size="13" font-weight="500" text-anchor="middle" fill="#14201E">Diagnostics</text>
+<text x="162.0" y="445.0" font-size="13" font-weight="500" text-anchor="middle" fill="#14201E">item fit, DIF, local dependence</text>
+<text x="162.0" y="462.0" font-size="11" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" text-anchor="middle" fill="#5C6B67">mselect.irt.dif, q3, dimensionality</text>
+<rect x="28.0" y="522.0" width="268.0" height="64.0" rx="4" fill="#FFFFFF" stroke="#A64C1C" stroke-width="1.6"/>
+<rect x="28.0" y="522.0" width="5" height="64.0" rx="2" fill="#A64C1C"/>
+<text x="162.0" y="543.0" font-size="13" font-weight="500" text-anchor="middle" fill="#14201E">Items that measure nothing</text>
+<text x="162.0" y="559.0" font-size="13" font-weight="500" text-anchor="middle" fill="#14201E">one in five, with the evidence</text>
+<text x="162.0" y="576.0" font-size="11" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" text-anchor="middle" fill="#5C6B67">docs/items-that-measure-nothing.md</text>
+<rect x="436.0" y="66.0" width="268.0" height="64.0" rx="4" fill="#F2F4F3" stroke="#5C6B67" stroke-width="1.1" stroke-dasharray="5 3"/>
+<text x="570.0" y="87.0" font-size="13" font-weight="500" text-anchor="middle" fill="#14201E">The gateway, project 04</text>
+<text x="570.0" y="103.0" font-size="13" font-weight="500" text-anchor="middle" fill="#14201E">caps, ledger pushed to the dashboard</text>
+<text x="570.0" y="120.0" font-size="11" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" text-anchor="middle" fill="#5C6B67">boundary</text>
+<rect x="436.0" y="180.0" width="268.0" height="64.0" rx="4" fill="#FFFFFF" stroke="#14201E" stroke-width="1.1"/>
+<text x="570.0" y="201.0" font-size="13" font-weight="500" text-anchor="middle" fill="#14201E">Own-run panel, twelve current models</text>
+<text x="570.0" y="217.0" font-size="13" font-weight="500" text-anchor="middle" fill="#14201E">the frozen 3,000-item suite, recorded</text>
+<text x="570.0" y="234.0" font-size="11" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" text-anchor="middle" fill="#5C6B67">mselect.runner, experiments.ownrun</text>
+<rect x="436.0" y="294.0" width="268.0" height="64.0" rx="4" fill="#FFFFFF" stroke="#0E6E60" stroke-width="1.6"/>
+<rect x="436.0" y="294.0" width="5" height="64.0" rx="2" fill="#0E6E60"/>
+<text x="570.0" y="315.0" font-size="13" font-weight="500" text-anchor="middle" fill="#14201E">The adaptive test</text>
+<text x="570.0" y="331.0" font-size="13" font-weight="500" text-anchor="middle" fill="#14201E">Fisher information, EAP, two stop rules</text>
+<text x="570.0" y="348.0" font-size="11" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" text-anchor="middle" fill="#5C6B67">mselect.cat</text>
+<rect x="436.0" y="408.0" width="268.0" height="64.0" rx="4" fill="#FFFFFF" stroke="#A64C1C" stroke-width="1.6"/>
+<rect x="436.0" y="408.0" width="5" height="64.0" rx="2" fill="#A64C1C"/>
+<text x="570.0" y="429.0" font-size="13" font-weight="500" text-anchor="middle" fill="#14201E">Transfer and the three experiments</text>
+<text x="570.0" y="445.0" font-size="13" font-weight="500" text-anchor="middle" fill="#14201E">test-retest, option order, framing</text>
+<text x="570.0" y="462.0" font-size="11" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" text-anchor="middle" fill="#5C6B67">mselect.experiments</text>
+<rect x="436.0" y="522.0" width="268.0" height="64.0" rx="4" fill="#FFFFFF" stroke="#0E6E60" stroke-width="1.6"/>
+<rect x="436.0" y="522.0" width="5" height="64.0" rx="2" fill="#0E6E60"/>
+<text x="570.0" y="543.0" font-size="13" font-weight="500" text-anchor="middle" fill="#14201E">Power function and handover</text>
+<text x="570.0" y="559.0" font-size="13" font-weight="500" text-anchor="middle" fill="#14201E">items_needed, dependence, separated</text>
+<text x="570.0" y="576.0" font-size="11" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" text-anchor="middle" fill="#5C6B67">mselect.power, mselect.handover</text>
+<rect x="844.0" y="294.0" width="268.0" height="64.0" rx="4" fill="#FFFFFF" stroke="#14201E" stroke-width="1.1"/>
+<text x="978.0" y="315.0" font-size="13" font-weight="500" text-anchor="middle" fill="#14201E">Simulation</text>
+<text x="978.0" y="331.0" font-size="13" font-weight="500" text-anchor="middle" fill="#14201E">adaptive against random subsampling</text>
+<text x="978.0" y="348.0" font-size="11" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" text-anchor="middle" fill="#5C6B67">mselect.cat.simulate, run_sim</text>
+<rect x="844.0" y="408.0" width="268.0" height="64.0" rx="4" fill="#FFFFFF" stroke="#A64C1C" stroke-width="1.6"/>
+<rect x="844.0" y="408.0" width="5" height="64.0" rx="2" fill="#A64C1C"/>
+<text x="978.0" y="429.0" font-size="13" font-weight="500" text-anchor="middle" fill="#14201E">The report</text>
+<text x="978.0" y="445.0" font-size="13" font-weight="500" text-anchor="middle" fill="#14201E">README tables and figures</text>
+<text x="978.0" y="462.0" font-size="11" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" text-anchor="middle" fill="#5C6B67">mselect.report</text>
+<rect x="844.0" y="522.0" width="268.0" height="64.0" rx="4" fill="#FFFFFF" stroke="#14201E" stroke-width="1.1"/>
+<text x="978.0" y="543.0" font-size="13" font-weight="500" text-anchor="middle" fill="#14201E">adaptive.peterparker.ca</text>
+<text x="978.0" y="559.0" font-size="13" font-weight="500" text-anchor="middle" fill="#14201E">static, built by mselect demo build</text>
+<text x="978.0" y="576.0" font-size="11" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" text-anchor="middle" fill="#5C6B67">mselect.demo, demo/</text>
+<rect x="844.0" y="636.0" width="268.0" height="64.0" rx="4" fill="#F2F4F3" stroke="#5C6B67" stroke-width="1.1" stroke-dasharray="5 3"/>
+<text x="978.0" y="664.0" font-size="13" font-weight="500" text-anchor="middle" fill="#14201E">Project 03</text>
+<text x="978.0" y="680.0" font-size="13" font-weight="500" text-anchor="middle" fill="#14201E">import mselect</text>
+<rect x="88.4" y="142.5" width="147.2" height="20.0" rx="3" fill="#FFFFFF"/>
+<text x="162.0" y="154.5" font-size="12" text-anchor="middle" fill="#14201E">fetched, frozen, hashed</text>
+<rect x="111.9" y="261.5" width="100.2" height="20.0" rx="3" fill="#FFFFFF"/>
+<text x="162.0" y="273.5" font-size="12" text-anchor="middle" fill="#14201E">response matrix</text>
+<rect x="64.9" y="373.0" width="194.3" height="20.0" rx="3" fill="#FFFFFF"/>
+<text x="162.0" y="385.0" font-size="12" text-anchor="middle" fill="#14201E">parameters with standard errors</text>
+<rect x="117.8" y="487.0" width="88.4" height="20.0" rx="3" fill="#FFFFFF"/>
+<text x="162.0" y="499.0" font-size="12" text-anchor="middle" fill="#14201E">flagged items</text>
+<rect x="313.0" y="316.0" width="106.1" height="20.0" rx="3" fill="#FFFFFF"/>
+<text x="366.0" y="328.0" font-size="12" text-anchor="middle" fill="#14201E">calibrated items</text>
+<rect x="517.0" y="145.0" width="106.1" height="20.0" rx="3" fill="#FFFFFF"/>
+<text x="570.0" y="157.0" font-size="12" text-anchor="middle" fill="#14201E">recorded answers</text>
+<rect x="493.4" y="259.0" width="153.1" height="20.0" rx="3" fill="#FFFFFF"/>
+<text x="570.0" y="271.0" font-size="12" text-anchor="middle" fill="#14201E">models the fit never saw</text>
+<rect x="756.2" y="316.0" width="35.5" height="20.0" rx="3" fill="#FFFFFF"/>
+<text x="774.0" y="328.0" font-size="12" text-anchor="middle" fill="#14201E">runs</text>
+<rect x="493.4" y="373.0" width="153.1" height="20.0" rx="3" fill="#FFFFFF"/>
+<text x="570.0" y="385.0" font-size="12" text-anchor="middle" fill="#14201E">abilities with intervals</text>
+<rect x="907.3" y="373.0" width="141.4" height="20.0" rx="3" fill="#FFFFFF"/>
+<text x="978.0" y="385.0" font-size="12" text-anchor="middle" fill="#14201E">tau against items used</text>
+<rect x="732.7" y="430.0" width="82.6" height="20.0" rx="3" fill="#FFFFFF"/>
+<text x="774.0" y="442.0" font-size="12" text-anchor="middle" fill="#14201E">every number</text>
+<rect x="490.5" y="487.0" width="159.0" height="20.0" rx="3" fill="#FFFFFF"/>
+<text x="570.0" y="499.0" font-size="12" text-anchor="middle" fill="#14201E">checked against the panel</text>
+<rect x="925.0" y="487.0" width="106.1" height="20.0" rx="3" fill="#FFFFFF"/>
+<text x="978.0" y="499.0" font-size="12" text-anchor="middle" fill="#14201E">demo/data/*.json</text>
+<rect x="648.1" y="658.0" width="117.8" height="20.0" rx="3" fill="#FFFFFF"/>
+<text x="707.0" y="670.0" font-size="12" text-anchor="middle" fill="#14201E">the power function</text>
+<rect x="28" y="722" width="26" height="16" rx="3" fill="#FFFFFF" stroke="#0E6E60" stroke-width="1.6"/>
+<text x="62" y="734" font-size="11" fill="#5C6B67">built here</text>
+<rect x="141.9" y="722" width="26" height="16" rx="3" fill="#FFFFFF" stroke="#A64C1C" stroke-width="1.6"/>
+<text x="175.9" y="734" font-size="11" fill="#5C6B67">the measurement</text>
+<rect x="282.75" y="722" width="26" height="16" rx="3" fill="#F2F4F3" stroke="#5C6B67" stroke-dasharray="4 3"/>
+<text x="316.75" y="734" font-size="11" fill="#5C6B67">outside the repository</text>
+<path d="M 461.3 729.0 a 13.0 7 0 0 1 26.0 0 L 487.3 731.0 a 13.0 7 0 0 1 -26.0 0 Z" fill="#FFFFFF" stroke="#14201E" stroke-width="1.1"/><path d="M 461.3 729.0 a 13.0 7 0 0 0 26.0 0" fill="none" stroke="#14201E" stroke-width="1.1"/>
+<text x="495.33" y="734" font-size="11" fill="#5C6B67">data at rest</text>
+</svg>
