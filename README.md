@@ -574,7 +574,12 @@ its power function to say how many eval items a regression test actually needs.
 
 ## How this was built
 
-Design, methodology, evaluation choices and judgement are Peter Parker's. AI coding assistants
-(Claude Code) were used for implementation and drafting, the way a senior engineer uses them in
-2026. Every number in the results table is reproducible from this repository with one command,
-and that reproducibility is the evidence that matters.
+The design, the methods, the evaluation and the judgement calls are mine. The one I would
+defend hardest is the second bank. A result measured on one panel of models is a result about
+that panel, so I ran the whole method again on questions from a different source, a different
+harness and a different kind of model, and used the 998 questions the two banks share to put a
+number on whether question difficulty carries over.
+
+I used AI coding assistants (Claude Code) for implementation and drafting, the way a senior
+engineer uses them in 2026. Every number in the results table is reproducible from this
+repository with one command, and that reproducibility is the evidence that matters.
