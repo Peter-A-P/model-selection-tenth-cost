@@ -689,3 +689,179 @@ footer {
   html { scroll-behavior: auto; }
   * { transition: none !important; }
 }
+
+/* ---------------------------------------------------------------- shared components
+
+   Brought across from the portfolio's shared stylesheet (project 12 is the reference) so this
+   page carries the same blocks as the newer sites: the button, the table of contents, the part
+   header, the pipeline, the cards for what did not work, the readout under each chart, the
+   warning, the assumption, the chips, the glossary and the footer. */
+
+/* Three figures, always three, so they sit in one row or one column and never wrap two and
+   one. */
+.hero-points { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+
+/* The one way straight to the result, for a reader who came for that and not the method. */
+.hero-cta { margin: 0 0 0.7rem; }
+
+.button {
+  display: inline-block;
+  padding: 0.6rem 1.1rem;
+  border-radius: var(--radius);
+  background: var(--accent);
+  color: var(--paper);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.button:hover, .button:focus-visible { background: var(--accent-ink); color: var(--paper); text-decoration: none; }
+section[id] { scroll-margin-top: 1rem; }
+
+.warning {
+  margin: 1.25rem 0;
+  padding: 0.9rem 1.1rem;
+  border-left: 3px solid var(--warn);
+  border-radius: 0 var(--radius) var(--radius) 0;
+  background: color-mix(in srgb, var(--warn) 9%, transparent);
+}
+
+.assumption {
+  margin: 1.1rem 0 0;
+  padding: 0.9rem 1.1rem;
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--line-2);
+  border-radius: 0 var(--radius) var(--radius) 0;
+  background: var(--paper-soft);
+  font-size: 0.88rem;
+  color: var(--ink-soft);
+}
+
+.assumption p:last-child { margin-bottom: 0; }
+
+/* The hover readout under a chart. */
+.readout {
+  min-height: 1.6rem;
+  margin: 0.3rem 0 0.4rem;
+  font-size: 0.84rem;
+  color: var(--ink-soft);
+  font-variant-numeric: tabular-nums;
+}
+
+.readout .when { font-weight: 600; color: var(--ink); margin-right: 0.6rem; }
+.readout .pair { margin-right: 0.9rem; white-space: nowrap; }
+.readout .key { color: var(--ink-faint); }
+
+/* A chart a keyboard can reach. */
+svg[tabindex]:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border-radius: 4px; }
+
+/* A label a line runs through gets a halo in the page colour, so it stays readable. */
+.halo { paint-order: stroke; stroke: var(--paper); stroke-width: 4px; stroke-linejoin: round; }
+
+/* On this page. */
+.toc { padding: 1.5rem 0 1.75rem; border-bottom: 1px solid var(--line); }
+.toc ol {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: toc;
+  columns: 2 16rem;
+  column-gap: 2rem;
+}
+.toc li { counter-increment: toc; margin: 0 0 0.3rem; break-inside: avoid; font-size: 0.93rem; }
+.toc li::before {
+  content: counter(toc, decimal-leading-zero);
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-faint);
+  font-size: 0.78rem;
+  margin-right: 0.6rem;
+}
+
+.part { padding: 3.5rem 0 0.5rem; }
+.part-title { font-size: clamp(1.75rem, 3.4vw, 2.4rem); line-height: 1.15; margin-bottom: 0.9rem; }
+
+/* The whole idea in one picture. */
+.pipeline {
+  list-style: none;
+  margin: 1.5rem 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(var(--steps, 7), minmax(0, 1fr));
+  gap: 0.6rem;
+}
+.pipeline.steps-5 { --steps: 5; }
+.pipeline.steps-6 { --steps: 6; }
+@media (max-width: 60rem) {
+  .pipeline { grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr)); }
+}
+.pipeline li {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.8rem 0.75rem 0.9rem;
+  background: var(--paper-soft);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  font-size: 0.82rem;
+  color: var(--ink-soft);
+  line-height: 1.45;
+}
+.pipeline li strong { font-family: var(--serif); font-size: 1.15rem; font-weight: 500; color: var(--ink); }
+.pipeline li.key { border-color: var(--accent); background: var(--accent-soft); }
+.step {
+  width: 1.6rem;
+  height: 1.6rem;
+  border-radius: 50%;
+  background: var(--accent);
+  color: var(--paper-soft);
+  font-size: 0.8rem;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 0.2rem;
+}
+
+/* What did not work: one card each, a red rule across the top. */
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr)); gap: 0.9rem; margin: 1.25rem 0; }
+.card-note { padding: 1rem 1.1rem; background: var(--paper-soft); border: 1px solid var(--line); border-top: 3px solid var(--warn); border-radius: var(--radius); }
+.card-note h3 { font-size: 1.08rem; }
+.card-note p { font-size: 0.9rem; color: var(--ink-soft); margin: 0; }
+
+.chips { list-style: none; padding: 0; margin: 1.25rem 0; display: flex; flex-wrap: wrap; gap: 0.45rem; }
+.chips li { padding: 0.25rem 0.75rem; border: 1px solid var(--line-2); border-radius: 999px; font-size: 0.82rem; background: var(--paper-soft); color: var(--ink-soft); }
+
+.glossary { margin: 0 0 0.9rem; }
+.glossary dt { font-weight: 600; margin-top: 0.7rem; }
+.glossary dd { margin: 0.15rem 0 0; color: var(--ink-soft); font-size: 0.92rem; }
+
+.disclose ul { padding-left: 1.2rem; }
+.disclose li { margin-bottom: 0.5rem; }
+
+/* The footer, as on the other project sites. */
+footer.foot {
+  max-width: none;
+  padding: 0;
+  border-top: 1px solid var(--line);
+  background: var(--paper-soft);
+  margin-top: 2rem;
+}
+
+.foot-inner {
+  max-width: var(--column);
+  margin: 0 auto;
+  padding: 2rem 1.5rem 2.5rem;
+  font-size: 0.88rem;
+  color: var(--ink-faint);
+}
+
+.foot-inner p { margin: 0 0 0.5rem; }
+.foot-inner ul { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 0.5rem 1.5rem; }
+
+@media (max-width: 46rem) {
+  .hero-points { grid-template-columns: 1fr; }
+  .toc ol { columns: 1; }
+  footer.foot { padding: 0; }
+  .foot-inner { padding: 1.5rem 1.1rem 2rem; }
+}
+
+.arch-back { margin: 1.5rem 0 0; font-size: 0.95rem; }

@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Model Selection at a Tenth of the Cost: ask ten questions, not three thousand</title>
 <meta name="description" content="Run an adaptive test against twelve real language models, question by question, on the recorded answers of a benchmark run. Ten well-chosen questions rank a shortlist as well as 127 random ones. Every number is reproducible from the repository.">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon.png">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Peter Parker">
 <meta property="og:url" content="https://adaptive.peterparker.ca/">
@@ -21,17 +23,17 @@
 <header class="top">
   <div class="top-inner">
     <a class="brand" href="https://peterparker.ca"><span class="mono-mark" aria-hidden="true">P</span>Peter Parker</a>
-    <p class="top-nav"><a href="https://peterparker.ca/projects/model-selection/">Project 02: Model Selection at a Tenth of the Cost</a></p>
+    <p class="top-nav"><a href="https://github.com/Peter-A-P/model-selection-tenth-cost">Project 02: Model Selection at a Tenth of the Cost</a></p>
   </div>
 </header>
-<nav class="tabs" aria-label="On this page">
+<nav class="tabs" aria-label="This site">
   <div class="tabs-inner">
-    <a href="#idea">The idea</a>
+    <a href="index.html" aria-current="page">Overview</a>
     <a href="#run">Run the test</a>
     <a href="#curve">Where it wins</a>
     <a href="#power">How many questions</a>
     <a href="#dead">Dead questions</a>
-    <a href="#hidden">What a score hides</a>
+    <a href="#refuted">What did not work</a>
     <a href="#limits">Limits</a>
     <a href="architecture.html">How it's built</a>
   </div>
@@ -39,7 +41,7 @@
 <main>
 
   <header class="hero">
-    <p class="eyebrow">Measured results, reproducible from one command</p>
+    <p class="eyebrow">Real models, real recorded answers, every number reproducible</p>
     <h1>Most benchmark questions are not worth asking. <span class="hl">These are.</span></h1>
     <p class="lead">
       Choosing between AI models means running a benchmark: a few thousand questions, put to every
@@ -49,31 +51,60 @@
       stopped handing everybody the same fixed paper. This page does the same thing to a language
       model benchmark, on real recorded answers, and lets you watch it happen.
     </p>
+    <p class="hero-cta"><a class="button" href="#run">Run the test on two real models</a></p>
     <div class="hero-points">
       <div class="point">
-        <span class="point-figure" id="hero-items">10</span>
+        <span class="point-figure" id="hero-items">...</span>
         <span class="point-unit">questions</span>
-        <span class="point-label" id="hero-items-label">rank a shortlist as well as 127 chosen at random</span>
+        <span class="point-label" id="hero-items-label">rank a shortlist as well as a larger random sample</span>
       </div>
       <div class="point good">
-        <span class="point-figure" id="hero-cost">&ndash;</span>
+        <span class="point-figure" id="hero-cost">...</span>
         <span class="point-unit">to rank twelve models</span>
         <span class="point-label" id="hero-cost-label">against the price of asking all of them everything</span>
       </div>
       <div class="point violet">
-        <span class="point-figure" id="hero-dead">1 in 5</span>
+        <span class="point-figure" id="hero-dead">...</span>
         <span class="point-unit">of the bank measures nothing</span>
         <span class="point-label">and every published benchmark score counts them at full weight</span>
       </div>
     </div>
     <p class="hero-note">
-      Twelve current models from four vendors and a laptop, <span id="hero-suite">2,816</span> real
-      questions, and the answers they actually gave, recorded in September 2026 for
-      <span id="hero-spend">US$16</span>. The adaptive test runs in your browser against those
-      answers; it can only replay what was asked and paid for, and it never invents a response.
+      Twelve current models from four vendors and a laptop, <span id="hero-suite">2,816</span>
+      scored questions, and the answers the models actually gave, recorded in September 2026 by
+      putting the 3,000-question suite to them for US$18.25. The adaptive test runs in your
+      browser against those answers; it can only replay what was asked and paid for, and it never
+      invents a response. Every number can be reproduced from
+      <a href="https://github.com/Peter-A-P/model-selection-tenth-cost">the public repository</a>.
       <a href="architecture.html">See how it's built</a>, in three diagrams.
     </p>
   </header>
+
+  <nav class="toc" aria-label="On this page">
+    <p class="eyebrow">On this page</p>
+    <ol>
+      <li><a href="#idea">The idea in one table</a></li>
+      <li><a href="#run">Run the test yourself</a></li>
+      <li><a href="#picture">The whole idea in one picture</a></li>
+      <li><a href="#curve">Where it wins, and where it stops winning</a></li>
+      <li><a href="#power">How many questions does your decision need?</a></li>
+      <li><a href="#dead">One question in five is measuring nothing</a></li>
+      <li><a href="#hidden">Three things a single score cannot tell you</a></li>
+      <li><a href="#refuted">What the data proved wrong</a></li>
+      <li><a href="#limits">What this does not do</a></li>
+      <li><a href="#engineering">How it is engineered</a></li>
+      <li><a href="#built">How this was built</a></li>
+    </ol>
+  </nav>
+
+  <noscript>
+    <p class="warning">
+      The adaptive test runs in your browser, so this page needs JavaScript. Every number on it
+      is in the repository's README, as tables.
+    </p>
+  </noscript>
+
+  <p class="warning" id="failure" hidden></p>
 
   <section class="section" id="idea">
     <h2>The idea in one table</h2>
@@ -149,12 +180,12 @@
           <span class="tag tag-good">the method</span>
         </div>
         <p class="pair-legend" id="legend-adaptive"></p>
-        <svg class="chart posteriors" id="chart-adaptive" aria-label="Posterior ability for both models under adaptive selection"></svg>
+        <svg class="chart posteriors" id="chart-adaptive" role="img" aria-label="Posterior ability for both models under adaptive selection"></svg>
         <div class="arena-stats">
           <div><span class="figure" id="adaptive-items">0</span><span class="caption">questions asked, each</span></div>
           <div><span class="figure" id="adaptive-cost">$0.00</span><span class="caption">spent, at the price these calls cost</span></div>
-          <div><span class="figure" id="adaptive-time">&ndash;</span><span class="caption" id="adaptive-time-note">of machine time these calls took</span></div>
-          <div><span class="figure" id="adaptive-width">&ndash;</span><span class="caption">width of the wider interval</span></div>
+          <div><span class="figure" id="adaptive-time">...</span><span class="caption" id="adaptive-time-note">of machine time these calls took</span></div>
+          <div><span class="figure" id="adaptive-width">...</span><span class="caption">width of the wider interval</span></div>
         </div>
         <p class="verdict" id="adaptive-verdict">Not started.</p>
       </article>
@@ -165,16 +196,34 @@
           <span class="tag">the baseline</span>
         </div>
         <p class="pair-legend" id="legend-random"></p>
-        <svg class="chart posteriors" id="chart-random" aria-label="Posterior ability for both models under random selection"></svg>
+        <svg class="chart posteriors" id="chart-random" role="img" aria-label="Posterior ability for both models under random selection"></svg>
         <div class="arena-stats">
           <div><span class="figure" id="random-items">0</span><span class="caption">questions asked, each</span></div>
           <div><span class="figure" id="random-cost">$0.00</span><span class="caption">spent, at the price these calls cost</span></div>
-          <div><span class="figure" id="random-time">&ndash;</span><span class="caption" id="random-time-note">of machine time these calls took</span></div>
-          <div><span class="figure" id="random-width">&ndash;</span><span class="caption">width of the wider interval</span></div>
+          <div><span class="figure" id="random-time">...</span><span class="caption" id="random-time-note">of machine time these calls took</span></div>
+          <div><span class="figure" id="random-width">...</span><span class="caption">width of the wider interval</span></div>
         </div>
         <p class="verdict" id="random-verdict">Not started.</p>
       </article>
     </div>
+
+    <div class="assumption">
+      <p>
+        <strong>Try <code>anthropic-sonnet</code> against <code>openai-frontier</code>, which the method cannot settle.</strong>
+        Both estimates run to the end of the bank's ability scale and stop there, because the
+        selector asks for questions it believes are a coin flip at that level and these two get
+        about nine in ten of them right. Only 253 of the 2,816 questions are harder than +3, so the
+        suite has run out of questions that could tell them apart, and the tight-looking interval is
+        a wall rather than evidence. The item parameters were fitted on 150 models evaluated between
+        2023 and 2025; a bank calibrated on that panel measures the top of a 2026 shortlist poorly,
+        which is a limit of this bank rather than of the method, and it is the reason the page draws
+        the edge of the scale instead of leaving you to notice the curve is flattened against it.
+      </p>
+    </div>
+    <p class="note">
+      If two models never separate, that is still an answer: at that budget they are
+      indistinguishable, so choose on price, latency or context window.
+    </p>
 
     <details class="disclose" id="log-wrap">
       <summary>The questions the adaptive test chose, in the order it chose them</summary>
@@ -196,43 +245,28 @@
       </p>
     </details>
 
-    <p class="note">
-      <strong>Two of the twelve cost nothing in dollars and are not free.</strong> The three
-      models on a laptop were billed in hours rather than tokens: the full suite took
-      <span id="local-hours">nine hours</span> of laptop CPU for the 7B, against about an hour
-      for a hosted model over the network, and that machine can do nothing else meanwhile. Both
-      figures come from the same ledger, which recorded a price and a latency for every call, so
-      a short test is priced in whichever currency the model is actually paid for. The three
-      Anthropic models have no per-call time at all, because this project sends them through the
-      Message Batches endpoint at half price and a call inside a batch has no latency worth
-      reporting; the page says so rather than showing a zero.
-    </p>
-    <p class="note">
-      Nothing here is simulated. The answers are the ones the twelve models gave when they were
-      administered the frozen suite in September 2026, one bit per cell, and the dollars are the
-      ones the gateway's ledger recorded for those exact calls. The arithmetic, about two hundred
-      lines, is in <code>irt.js</code> beside this page. The item parameters were fitted to 150
-      other models from a public evaluation archive, and <strong>not one of the twelve models here
-      was in that fit</strong>, which is the only version of the claim worth anything: the
-      questions were measured before these models existed.
-    </p>
-    <p class="note">
-      Two models can also fail to separate, and that is a real answer rather than a failure. It
-      says these two are indistinguishable for what you were willing to spend, so stop paying for
-      evaluations and choose on price, latency or context window instead.
-    </p>
-
-    <p class="note">
-      <strong>Try <code>anthropic-sonnet</code> against <code>openai-frontier</code>, which the method cannot settle.</strong>
-      Both estimates run to the end of the bank's ability scale and stop there, because the
-      selector asks for questions it believes are a coin flip at that level and these two get
-      about nine in ten of them right. Only 253 of the 2,816 questions are harder than +3, so the
-      suite has run out of questions that could tell them apart, and the tight-looking interval is
-      a wall rather than evidence. The item parameters were fitted on 150 models evaluated between
-      2023 and 2025; a bank calibrated on that panel measures the top of a 2026 shortlist poorly,
-      which is a limit of this bank rather than of the method, and it is the reason the page draws
-      the edge of the scale instead of leaving you to notice the curve is flattened against it.
-    </p>
+    <details class="disclose">
+      <summary>For the technical reader: where the answers and the dollars come from</summary>
+      <p>
+        <strong>Three of the twelve cost nothing in dollars, and they are not free.</strong> The
+        three models on a laptop were billed in hours rather than tokens: the full suite took
+        <span id="local-hours">nine hours</span> of laptop CPU for the 7B, against about an hour
+        for a hosted model over the network, and that machine can do nothing else meanwhile. Both
+        figures come from the same ledger, which recorded a price and a latency for every call, so
+        a short test is priced in whichever currency the model is actually paid for. The three
+        Anthropic models have no per-call time at all, because this project sends them through the
+        Message Batches endpoint at half price and a call inside a batch has no latency worth
+        reporting; the page says so rather than showing a zero.
+      </p>
+      <p>
+        Nothing here is simulated. The answers are the ones the twelve models gave when they were
+        administered the frozen suite in September 2026, one bit per cell, and the dollars are the
+        ones the gateway's ledger recorded for those exact calls. The arithmetic, about two hundred
+        lines, is in <code>irt.js</code> beside this page. The item parameters were fitted to 150
+        other models from a public evaluation archive, and <strong>not one of the twelve models here
+        was in that fit</strong>, so the questions were measured before these models existed.
+      </p>
+    </details>
 
     <h3>One pair is an anecdote. Here are all sixty-six.</h3>
     <p>
@@ -245,30 +279,64 @@
     <p class="verdict" id="sweep-verdict" hidden></p>
   </section>
 
+  <div class="part">
+    <p class="eyebrow">How it works</p>
+    <h2 class="part-title">From a public archive of answers to a ten-question test</h2>
+    <p class="lead">
+      The rest of this page is the method and its evidence, in the order it happens. Each part
+      starts in plain language, with a picture. Where there is more to say for someone who builds
+      models for a living, it is folded away under <strong>For the technical reader</strong>, so
+      you can skip it if you only want the idea.
+    </p>
+  </div>
+
+  <section class="section" id="picture">
+    <h2>The whole idea in one picture</h2>
+    <p class="section-lead">
+      Six steps. The order matters: every question is measured on other models first, so the
+      twelve models on this page are tested by a bank that has never seen them.
+    </p>
+    <ol class="pipeline steps-6">
+      <li><span class="step">1</span><strong>Gather</strong><span>Public per-question results from HELM and the Open LLM Leaderboard.</span></li>
+      <li><span class="step">2</span><strong>Freeze</strong><span>Two banks of questions, fetched once and fingerprinted.</span></li>
+      <li><span class="step">3</span><strong>Calibrate</strong><span>Give every question a difficulty and a sharpness, by item response theory.</span></li>
+      <li class="key"><span class="step">4</span><strong>Ask</strong><span>Put the question that tells the most about this model, one at a time.</span></li>
+      <li><span class="step">5</span><strong>Stop</strong><span>When the two models' ranges no longer overlap, or the budget runs out.</span></li>
+      <li><span class="step">6</span><strong>Check</strong><span>Against twelve current models the fit never saw.</span></li>
+    </ol>
+    <div class="verdict">
+      <p>
+        <strong>The questions were measured before the models were.</strong> Not one of the
+        twelve models on this page was in the fit, so the test is judged on models it had never
+        seen.
+      </p>
+    </div>
+  </section>
+
   <section class="section" id="curve">
     <h2>Where it wins, and where it stops winning</h2>
     <p class="section-lead">
-      One run is an anecdote. This is the whole thing: how closely a short test reproduces the
-      ranking a full benchmark produces, against the number of questions it was allowed, with a
-      bootstrap interval on every point. The dashed line is what the same budget buys spent at
-      random.
+      This is the whole result: how closely a short test reproduces the ranking a full benchmark
+      produces, against the number of questions it was allowed, with a bootstrap interval on every
+      point. The dashed line is what the same budget buys spent at random.
     </p>
     <div class="legend" id="curve-switch"></div>
     <figure class="chart-figure">
-      <div class="chart"><svg id="chart-curve" aria-label="Rank agreement against number of questions asked"></svg></div>
+      <div class="chart"><svg id="chart-curve" role="img" tabindex="0" aria-label="Rank agreement against number of questions asked. Use the arrow keys to step through the question counts."></svg></div>
+      <p class="readout" id="curve-readout" aria-live="polite"></p>
       <figcaption id="curve-caption"></figcaption>
     </figure>
     <p class="verdict" id="curve-verdict"></p>
-    <p>
-      <strong>The honest part of this chart is the right-hand end.</strong> Above roughly two
-      hundred questions adaptive selection stops winning and a plain random sample catches it. That
-      is not a broken estimator, it is two different quantities: the adaptive test converges on the
-      bank's ability scale, while a leaderboard reports the suite average, and even with every
-      question in hand those two rankings agree only to about 0.92. If you want the benchmark's own
-      average, sample at random and score it directly. If you want to know which model is better,
-      ask ten well-chosen questions. The project publishes the ceiling rather than cropping the
-      chart before it.
-    </p>
+    <div class="assumption">
+      <p>
+        <strong>Above roughly two hundred questions, adaptive selection stops winning</strong> and
+        a plain random sample catches it. The two are measuring different things: the adaptive test
+        converges on the bank's ability scale, while a leaderboard reports the suite average, and
+        even with every question in hand those two rankings agree only to about 0.92. If you want
+        the benchmark's own average, sample at random and score it directly. If you want to know
+        which model is better, ask ten well-chosen questions.
+      </p>
+    </div>
   </section>
 
   <section class="section" id="power">
@@ -305,7 +373,7 @@
       </div>
       <div class="power-output">
         <div class="power-floor">
-          <span class="figure" id="power-items">&ndash;</span>
+          <span class="figure" id="power-items">...</span>
           <span class="caption">questions per model, chosen adaptively</span>
         </div>
         <p class="power-lead" id="power-sentence"></p>
@@ -336,7 +404,8 @@
     </p>
     <div class="legend" id="cloud-switch"></div>
     <figure class="chart-figure">
-      <div class="chart"><canvas id="chart-cloud" aria-label="Item discrimination against difficulty"></canvas></div>
+      <div class="chart"><canvas id="chart-cloud" role="img" aria-label="Item discrimination against difficulty, one dot per question"></canvas></div>
+      <p class="readout" id="cloud-readout" aria-live="polite"></p>
       <figcaption id="cloud-caption"></figcaption>
     </figure>
     <div class="headline" id="cloud-stats"></div>
@@ -361,10 +430,42 @@
     <div id="hidden-body">
       <p class="lead" id="hidden-lead"></p>
       <figure class="chart-figure">
-        <div class="chart"><svg id="chart-hidden"></svg></div>
+        <div class="chart"><svg id="chart-hidden" role="img" aria-label="One bar per model for the measurement picked above"></svg></div>
         <figcaption id="hidden-caption"></figcaption>
       </figure>
       <p class="verdict" id="hidden-verdict"></p>
+    </div>
+  </section>
+
+  <section class="section" id="refuted">
+    <h2>What the data proved wrong</h2>
+    <p class="section-lead">
+      The first thing the measurements rejected was the project's own headline assumption. Each
+      rejection is in the repository with its evidence. A few of them:
+    </p>
+    <div class="cards">
+      <article class="card-note">
+        <h3>Adaptive testing as a drop-in for the benchmark score</h3>
+        <p>The plan expected random sampling to fail. Above about two hundred questions it catches up: the adaptive test estimates ability, and a leaderboard reports an average.</p>
+      </article>
+      <article class="card-note">
+        <h3>The evaluation software's own hash as a question's ID</h3>
+        <p>It hashes the software's version of the question, so it moves when the software does. On one maths benchmark a quarter of the panel disagreed on all 154 hashes while the question text was identical.</p>
+      </article>
+      <article class="card-note">
+        <h3>A heavyweight fitting library</h3>
+        <p>py-irt and PyMC were planned. Bock-Aitkin EM in NumPy fits the whole matrix exactly in under a minute, without a 1.5 GB PyTorch dependency.</p>
+      </article>
+      <article class="card-note">
+        <h3>"Diagrams sent as drawing code are unanswerable"</h3>
+        <p>They are not. Models scored 0.733 on those 44 MATH items against 0.808 on the rest, with overlapping intervals: they read the code.</p>
+      </article>
+    </div>
+    <div class="assumption">
+      <p>
+        <strong>The project's own headline assumption is written up in full as rejected.</strong>
+        <a href="https://github.com/Peter-A-P/model-selection-tenth-cost/blob/main/docs/rejected.md">Read it here</a>.
+      </p>
     </div>
   </section>
 
@@ -397,28 +498,102 @@
         </p>
       </div>
       <div class="takeaway">
-        <h3>It replicates, which is why there are two banks</h3>
+        <h3>A second bank, from a different source, says the same</h3>
         <p>
           A result measured on one panel is a result about that panel, so the whole method was run
-          again on 400 open-weight models from a different source with a different harness. The
-          shape replicates and so does the ceiling. Item parameters transfer between the two only
-          after the questions that measure nothing are dropped.
+          again on 400 open-weight models from a different source, scored by different evaluation
+          software. The shape replicates and so does the ceiling. Item parameters transfer between
+          the two only after the questions that measure nothing are dropped.
         </p>
       </div>
     </div>
   </section>
 
-</main>
-<footer>
-    <p class="footer-lead">Every number on this page is reproducible from the repository with one command.</p>
-    <p class="footer-back">
-      <a href="https://github.com/Peter-A-P/model-selection-tenth-cost">The repository, the method and the write-up</a>
-      &middot;
-      <a href="https://peterparker.ca/projects/model-selection/">The project page</a>
-      &middot;
-      <a href="https://peterparker.ca">The rest of the portfolio</a>
+  <section class="section" id="engineering">
+    <h2>How it is engineered</h2>
+    <p class="section-lead">
+      The code is typed and tested, and one command writes every table in the README and every
+      figure on this page from the same stored files, so the two cannot disagree.
     </p>
-    <p class="note" id="footer-provenance"></p>
+    <div class="headline">
+      <div class="stat"><span class="figure">280</span><span class="caption">automated tests</span></div>
+      <div class="stat"><span class="figure">13,000</span><span class="caption">lines of typed Python in the package, strict type checking and linting clean in CI</span></div>
+      <div class="stat"><span class="figure">US$18.25</span><span class="caption">to put the 3,000-question suite to the panel, every call capped and logged</span></div>
+      <div class="stat"><span class="figure">&lt;1 min</span><span class="caption">to fit 150 models by 20,365 questions, exactly, in NumPy</span></div>
+    </div>
+    <ul class="chips" aria-label="Tools and techniques">
+      <li>Python 3.13</li><li>NumPy</li><li>SciPy</li><li>Polars</li>
+      <li>Item response theory</li><li>Bock-Aitkin EM</li><li>Computerised adaptive testing</li>
+      <li>Fisher information</li><li>Kendall's tau</li><li>Bootstrap intervals</li><li>Power analysis</li>
+      <li>Local dependence (Q3)</li><li>Differential item functioning</li><li>HELM</li>
+      <li>Open LLM Leaderboard</li><li>Anthropic Message Batches</li><li>ollama</li>
+      <li>mypy --strict</li><li>ruff</li><li>pytest</li><li>uv</li><li>GitHub Actions</li>
+      <li>Azure Static Web Apps</li>
+    </ul>
+    <details class="disclose">
+      <summary>For the technical reader: the choices that are easy to get wrong</summary>
+      <ul>
+        <li><strong>The twelve test models are held out of every fit.</strong> The item parameters come from 150 other models, read and not refitted, so the transfer result is on models the bank had never seen.</li>
+        <li><strong>Two banks, from different sources.</strong> 400 open-weight models from the Open LLM Leaderboard repeat the whole method, and the 998 questions the two banks share put a number on whether difficulty carries over.</li>
+        <li><strong>Questions are not independent, and the correction ships.</strong> Local dependence is measured per benchmark (8% to 31% of pairs above Q3 0.2), and the power calculation treats its answers as a floor.</li>
+        <li><strong>Every paid call goes through one gateway</strong> that caps spend and records a price and latency per call, so a short test is priced from the ledger rather than estimated.</li>
+        <li><strong>The page replays; it never invents.</strong> The adaptive test in the browser can only ask questions whose recorded answers exist.</li>
+      </ul>
+    </details>
+  </section>
+
+  <section class="section" id="built">
+    <h2>How this was built</h2>
+    <p>
+      I designed this project and made the calls in it: what to calibrate on, how to test the
+      method, and what to do when a measurement disagreed with the plan. The call I would defend
+      hardest is the second bank. A result measured on one panel of models is a result about that
+      panel, so I ran the whole method again on questions from a different source, scored by
+      different software, on a different kind of model, and used the 998 questions the two banks
+      share to put a number on whether question difficulty carries over. The other is that I paid
+      to put twelve current models through the suite and kept all twelve out of the fit, so the
+      test is judged on models it had never seen. The first thing the data rejected was my own
+      headline assumption, that adaptive testing could replace the benchmark score at any budget.
+      Past about two hundred questions it cannot, and the chart above shows where.
+    </p>
+    <p>
+      I used an AI coding assistant (Claude Code) for implementation and drafting, which is now
+      standard practice in software, data science and machine learning work. Every number on this
+      page can be reproduced from
+      <a href="https://github.com/Peter-A-P/model-selection-tenth-cost">the repository</a> with one
+      command, and every answer the test replays is one a model actually gave.
+    </p>
+    <details class="disclose">
+      <summary>Glossary</summary>
+      <dl class="glossary">
+        <dt>Item response theory</dt><dd>The statistics behind standardised exams. Each question gets a difficulty and a measure of how sharply it separates stronger test-takers from weaker ones, and each test-taker gets an ability on the same scale.</dd>
+        <dt>Discrimination</dt><dd>How sharply a question separates ability just above its difficulty from ability just below. Near zero, the question tells you almost nothing. Below zero, stronger models get it wrong more often, which is the signature of a wrong answer key.</dd>
+        <dt>Adaptive test</dt><dd>A test that picks each next question from the answers so far, asking whatever will tell it most about this test-taker at their current estimated level.</dd>
+        <dt>Ability scale</dt><dd>The scale item response theory puts every model and every question on. A model's ability is where it has an even chance on a question of that difficulty.</dd>
+        <dt>Kendall's tau</dt><dd>A measure of how far two rankings agree. 1 is the same order and 0 is no relation. Here it compares a short test's ranking of models with the full benchmark's.</dd>
+        <dt>Interval</dt><dd>The range the true value probably sits in. Two models are separated once their intervals stop overlapping.</dd>
+        <dt>Statistical power</dt><dd>How often a test of a given size catches a real difference of a given size. 80% power misses one real drop in five.</dd>
+        <dt>Bank</dt><dd>The set of calibrated questions the test draws from. This project has two, built from different sources.</dd>
+      </dl>
+    </details>
+  </section>
+
+</main>
+<footer class="foot">
+  <div class="foot-inner">
+    <p>
+      Every number on this page is reproducible from the repository with one command. Source,
+      method, both question banks and the write-up:
+      <a href="https://github.com/Peter-A-P/model-selection-tenth-cost">github.com/Peter-A-P/model-selection-tenth-cost</a>.
+      The write-up and the rest of the portfolio:
+      <a href="https://peterparker.ca/projects/model-selection/">peterparker.ca</a>.
+    </p>
+    <ul>
+      <li>Data: the public per-item releases of HELM and the Open LLM Leaderboard; the twelve models' answers recorded by this project in September 2026</li>
+      <li>Type: Newsreader and Inter, SIL Open Font License, served from this host</li>
+      <li id="footer-provenance"></li>
+    </ul>
+  </div>
 </footer>
 <script type="module" src="app.js"></script>
 </body>

@@ -5,23 +5,25 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>How it's built: Model Selection at a Tenth of the Cost</title>
 <meta name="description" content="How the adaptive model-selection test behind this demo is put together, in three diagrams: the whole system, the adaptive test as a loop, and how each published number is produced.">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon.png">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
 <header class="top">
   <div class="top-inner">
     <a class="brand" href="https://peterparker.ca"><span class="mono-mark" aria-hidden="true">P</span>Peter Parker</a>
-    <p class="top-nav"><a href="https://peterparker.ca/projects/model-selection/">Project 02: Model Selection at a Tenth of the Cost</a></p>
+    <p class="top-nav"><a href="https://github.com/Peter-A-P/model-selection-tenth-cost">Project 02: Model Selection at a Tenth of the Cost</a></p>
   </div>
 </header>
-<nav class="tabs" aria-label="Pages and sections">
+<nav class="tabs" aria-label="This site">
   <div class="tabs-inner">
-    <a href="index.html#idea">The idea</a>
+    <a href="index.html">Overview</a>
     <a href="index.html#run">Run the test</a>
     <a href="index.html#curve">Where it wins</a>
     <a href="index.html#power">How many questions</a>
     <a href="index.html#dead">Dead questions</a>
-    <a href="index.html#hidden">What a score hides</a>
+    <a href="index.html#refuted">What did not work</a>
     <a href="index.html#limits">Limits</a>
     <a href="architecture.html" aria-current="page">How it's built</a>
   </div>
@@ -35,7 +37,7 @@
       How the project is put together, in three pictures: the whole system, the adaptive test as
       a loop, and how each published number is produced. Select a diagram to open it full size.
     </p>
-    <p class="hero-note"><a href="index.html">Back to the demo</a></p>
+    <p class="hero-note"><a href="index.html">Back to the results</a></p>
   </header>
 
   <section class="section" id="the-system">
@@ -46,7 +48,7 @@
     <div class="prose">
       <p>The diagram reads left to right: the question bank, the test, and what gets published.</p>
       <p>The bank is built from public results. HELM and the Open LLM Leaderboard publish how each model did on each individual question, and those results are fetched, frozen and fingerprinted into two independent banks. Each bank is fitted with item response theory, the statistics behind standardised exams. That gives every question a difficulty and a measure of how sharply it separates stronger models from weaker ones, each with a standard error. Diagnostics then name the questions that measure nothing, with the evidence for each.</p>
-      <p>The test runs against real answers. Twelve current models were asked the frozen 3,000-question suite through the portfolio's gateway, which capped the spend and recorded every call. The adaptive test asks one question at a time and stops as soon as it knows enough. It runs against those recorded answers, so it is tested on models the fit never saw. Three experiments on the same models measure how much the answers change when you simply ask again, shuffle the options or reword the prompt. The power calculation, how many questions you need to catch a given drop, is the piece project 03 imports.</p>
+      <p>The test runs against real answers. Twelve current models were asked the frozen 3,000-question suite through the portfolio's gateway, which capped the spend and recorded every call. The adaptive test asks one question at a time and stops as soon as it knows enough. It runs against those recorded answers, so it is tested on models the fit never saw. Three experiments on the same models measure how much the answers change when you simply ask again, shuffle the options or reword the prompt. The power calculation, how many questions you need to catch a given drop, is the piece the portfolio's release-gate project (03) imports.</p>
       <p>What gets published comes from the same stored files: the simulation of adaptive testing against random sampling, the report that writes the README's tables and figures, and the page at adaptive.peterparker.ca, which is five static files and a folder of JSON.</p>
       <p class="where">Where it lives: <code>mselect.data</code>, <code>mselect.irt</code>, <code>mselect.runner</code>, <code>mselect.cat</code>, <code>mselect.experiments</code>, <code>mselect.power</code>, <code>mselect.handover</code>, <code>mselect.report</code> and <code>mselect.demo</code>.</p>
     </div>
@@ -80,16 +82,21 @@
     </div>
   </section>
 
+  <p class="arch-back"><a href="index.html">Back to the results</a></p>
 </main>
-<footer>
-    <p class="footer-lead">The same three diagrams are in the repository's docs/architecture.md.</p>
-    <p class="footer-back">
-      <a href="index.html">Back to the demo</a>
-      &middot;
-      <a href="https://github.com/Peter-A-P/model-selection-tenth-cost">The repository, the method and the write-up</a>
-      &middot;
-      <a href="https://peterparker.ca/projects/model-selection/">The project page</a>
+<footer class="foot">
+  <div class="foot-inner">
+    <p>
+      The same three diagrams are in the repository's <code>docs/architecture.md</code>. Source,
+      method and the write-up:
+      <a href="https://github.com/Peter-A-P/model-selection-tenth-cost">github.com/Peter-A-P/model-selection-tenth-cost</a>.
+      The write-up and the rest of the portfolio:
+      <a href="https://peterparker.ca/projects/model-selection/">peterparker.ca</a>.
     </p>
+    <ul>
+      <li>Type: Newsreader and Inter, SIL Open Font License, served from this host</li>
+    </ul>
+  </div>
 </footer>
 </body>
 </html>

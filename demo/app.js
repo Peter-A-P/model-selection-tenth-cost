@@ -227,7 +227,7 @@ function drawArena(arena) {
   document.getElementById(`${arena.key}-items`).textContent = String(arena.asked);
   document.getElementById(`${arena.key}-cost`).textContent = money(arena.usd);
   document.getElementById(`${arena.key}-time`).textContent =
-    arena.timed === 0 ? "-" : duration(arena.seconds);
+    arena.timed === 0 ? "..." : duration(arena.seconds);
   document.getElementById(`${arena.key}-time-note`).textContent =
     arena.timed === 0
       ? "both ran as a batch, so no call was timed"
@@ -235,7 +235,7 @@ function drawArena(arena) {
         ? "of machine time; one ran as a batch and is not counted"
         : "of machine time these calls took";
   document.getElementById(`${arena.key}-width`).textContent =
-    arena.asked === 0 ? "-" : arena.widest().toFixed(2);
+    arena.asked === 0 ? "..." : arena.widest().toFixed(2);
 
   const target = document.getElementById(`${arena.key}-verdict`);
   const [first, second] = arena.models;
@@ -324,7 +324,7 @@ function setupRace() {
       for (const model of ordered.filter((m) => m.hosted === hosted)) {
         const option = document.createElement("option");
         option.value = model.alias;
-        option.textContent = `${model.label} - ${(model.accuracy * 100).toFixed(1)}%`;
+        option.textContent = `${model.label} (${(model.accuracy * 100).toFixed(1)}%)`;
         group.appendChild(option);
       }
       select.appendChild(group);
@@ -523,8 +523,16 @@ function setupHero() {
   const v1 = state.curves.panels.find((p) => p.key === "v1");
   const hundred = own.cost.find((c) => c.items === 100);
   document.getElementById("hero-items").textContent = String(v1.equivalent.adaptive_items);
+  // The interval travels with the figure: the agreement those ten questions reach, from the
+  // same curve the section below draws.
+  const ten = v1.curve.find(
+    (point) => point.method === "adaptive" && point.items === v1.equivalent.adaptive_items
+  );
   document.getElementById("hero-items-label").textContent =
-    `rank a shortlist as well as ${Math.round(v1.equivalent.random_items)} chosen at random`;
+    `rank a shortlist as well as ${Math.round(v1.equivalent.random_items)} chosen at random` +
+    (ten
+      ? ` (agreement ${ten.tau.toFixed(3)}, 95% interval ${ten.lo.toFixed(3)} to ${ten.hi.toFixed(3)})`
+      : "");
   document.getElementById("hero-cost").textContent = money(hundred.usd_adaptive);
   document.getElementById("hero-cost-label").textContent =
     `against ${money(own.full_suite_usd)} to ask all twelve every question`;
@@ -535,7 +543,6 @@ function setupHero() {
   const share = dead / state.items.n_items;
   document.getElementById("hero-dead").textContent = `${(share * 100).toFixed(0)}%`;
   document.getElementById("hero-suite").textContent = own.n_items.toLocaleString("en-CA");
-  document.getElementById("hero-spend").textContent = money(own.full_suite_usd);
   const laptop = state.panel.models
     .filter((model) => !model.hosted && model.full_seconds)
     .sort((x, y) => y.full_seconds - x.full_seconds)[0];
@@ -563,9 +570,59 @@ function setupCurve() {
   };
   let current = state.curves.panels[0].key;
 
+  // The readout: every method's agreement, with its interval, at the question count under the
+  // pointer or the keyboard. The values are the curve's own points; nothing is computed here.
+  const svg = document.getElementById("chart-curve");
+  const readout = document.getElementById("curve-readout");
+  let at = null;
+  function read(index) {
+    const panel = state.curves.panels.find((p) => p.key === current);
+    const hit = svg.hit;
+    if (!hit) return;
+    at = Math.max(0, Math.min(hit.counts.length - 1, index));
+    const count = hit.counts[at];
+    clear(readout);
+    const when = document.createElement("span");
+    when.className = "when";
+    when.textContent = `${count.toLocaleString("en-CA")} questions`;
+    readout.append(when);
+    // The three methods the chart draws, and in the chart's order.
+    const drawn = ["adaptive", "stratified", "random"];
+    const points = panel.curve.filter((p) => p.items === count && drawn.includes(p.method));
+    points.sort((a, b) => drawn.indexOf(a.method) - drawn.indexOf(b.method));
+    for (const point of points) {
+      const pair = document.createElement("span");
+      pair.className = "pair";
+      const key = document.createElement("span");
+      key.className = "key";
+      key.textContent = `${point.method} `;
+      pair.append(key, `${point.tau.toFixed(3)} (${point.lo.toFixed(3)} to ${point.hi.toFixed(3)})`);
+      readout.append(pair, " ");
+    }
+  }
+  function nearest(clientX) {
+    const hit = svg.hit;
+    const box = svg.getBoundingClientRect();
+    const x = ((clientX - box.left) / box.width) * hit.width;
+    let best = 0;
+    hit.xs.forEach((value, index) => {
+      if (Math.abs(value - x) < Math.abs(hit.xs[best] - x)) best = index;
+    });
+    return best;
+  }
+  svg.addEventListener("pointermove", (event) => read(nearest(event.clientX)));
+  svg.addEventListener("pointerdown", (event) => read(nearest(event.clientX)));
+  svg.addEventListener("keydown", (event) => {
+    const step = { ArrowRight: 1, ArrowUp: 1, ArrowLeft: -1, ArrowDown: -1 }[event.key];
+    if (!step) return;
+    event.preventDefault();
+    read((at ?? 0) + step);
+  });
+
   function render() {
     const panel = state.curves.panels.find((p) => p.key === current);
-    drawTauCurve(document.getElementById("chart-curve"), panel, { colours });
+    drawTauCurve(svg, panel, { colours });
+    read(at ?? 0);
     document.getElementById("curve-caption").textContent = panel.note;
     const verdict = document.getElementById("curve-verdict");
     if (panel.equivalent) {
@@ -661,14 +718,17 @@ function setupPower() {
 function setupCloud() {
   const holder = document.getElementById("cloud-switch");
   const canvas = document.getElementById("chart-cloud");
-  const tones = [colour("--accent"), colour("--sim"), colour("--good"), colour("--warn")];
+  // One neutral tone for every benchmark and the accent for the one picked. Cycling four
+  // colours across nine benchmarks named nothing, and painted some of them the colour this
+  // page uses for bad news.
   let current = "all";
 
   function render() {
-    const groups = state.items.benchmarks.map((group, index) => ({
+    const groups = state.items.benchmarks.map((group) => ({
       a: group.a,
       b: group.b,
-      colour: tones[index % tones.length],
+      title: group.title,
+      colour: current === group.name ? colour("--accent") : colour("--ink-soft"),
       dim: current !== "all" && current !== group.name,
     }));
     drawItemCloud(canvas, groups);
@@ -727,6 +787,33 @@ function setupCloud() {
   }
   render();
   window.addEventListener("resize", render);
+
+  // The readout: the question nearest the pointer, or a tap, within a few pixels.
+  const readout = document.getElementById("cloud-readout");
+  readout.textContent = "Point at a dot, or tap one, to read that question's difficulty and discrimination.";
+  const pick = (event) => {
+    const hit = canvas.hit;
+    if (!hit) return;
+    const box = canvas.getBoundingClientRect();
+    const px = event.clientX - box.left;
+    const py = event.clientY - box.top;
+    let best = null;
+    let distance = 64;
+    for (const point of hit.points) {
+      const d = (point.x - px) ** 2 + (point.y - py) ** 2;
+      if (d < distance) {
+        distance = d;
+        best = point;
+      }
+    }
+    if (best) {
+      readout.textContent =
+        `${best.title}: difficulty ${best.b.toFixed(2)}, discrimination ${best.a.toFixed(2)}` +
+        (best.a < 0 ? ", running backwards" : best.a < 0.3 ? ", close to a coin flip for everybody" : "");
+    }
+  };
+  canvas.addEventListener("pointermove", pick);
+  canvas.addEventListener("pointerdown", pick);
 }
 
 // ------------------------------------------------------------------ the three experiments
@@ -795,7 +882,7 @@ function setupHidden() {
       lead:
         "The same questions under three prompt templates: answer only, the letter alone, and a " +
         "short chain of reasoning. This puts a number on what this project's own answer-only " +
-        "format costs, which is the honest way to report a design decision made to save money.",
+        "format costs, a format chosen to save money.",
       rows: () =>
         experiments.framing.models
           .map((model) => ({
@@ -862,10 +949,9 @@ async function start() {
 }
 
 start().catch((error) => {
-  const note = document.createElement("p");
-  note.className = "verdict warn";
+  const note = document.getElementById("failure");
   note.textContent =
     `This page could not start: ${error.message}. It reads its data with fetch, so it also ` +
     'needs to be served rather than opened from disk: "uv run mselect demo serve".';
-  document.querySelector("main").prepend(note);
+  note.hidden = false;
 });

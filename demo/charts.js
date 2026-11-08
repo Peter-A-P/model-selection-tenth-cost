@@ -133,6 +133,8 @@ export function drawTauCurve(svg, panel, options = {}) {
   const x = logScale([counts[0], counts[counts.length - 1]], [pad.left, width - pad.right]);
   const lows = rows.map((r) => r.lo);
   const y = scale([Math.min(0.3, Math.min(...lows) - 0.03), 1], [height - pad.bottom, pad.top]);
+  // Where each question count sits across the chart, in viewBox units, for the readout.
+  svg.hit = { counts, xs: counts.map((count) => x(count)), width };
 
   for (let value = 0.3; value <= 1.0001; value += 0.1) {
     const at = y(value);
@@ -276,6 +278,8 @@ export function drawItemCloud(canvas, groups, options = {}) {
   ctx.fillText("discrimination", 0, 0);
   ctx.restore();
 
+  // Every drawn dot, in CSS pixels, so the page can say which question is under the pointer.
+  const points = [];
   for (const group of groups) {
     ctx.fillStyle = group.colour;
     ctx.globalAlpha = group.dim ? 0.06 : 0.5;
@@ -285,9 +289,11 @@ export function drawItemCloud(canvas, groups, options = {}) {
       ctx.beginPath();
       ctx.arc(x(b), y(group.a[i]), group.dim ? 1.2 : 2, 0, Math.PI * 2);
       ctx.fill();
+      if (!group.dim) points.push({ x: x(b), y: y(group.a[i]), a: group.a[i], b, title: group.title });
     }
   }
   ctx.globalAlpha = 1;
+  canvas.hit = { points };
   return canvas;
 }
 

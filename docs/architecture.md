@@ -25,7 +25,7 @@ adaptive test asks one question at a time and stops as soon as it knows enough. 
 those recorded answers, so it is tested on models the fit never saw. Three experiments on the
 same models measure how much the answers change when you simply ask again, shuffle the options
 or reword the prompt. The power calculation, how many questions you need to catch a given drop,
-is the piece project 03 imports.
+is the piece the portfolio's release-gate project (03) imports.
 
 What gets published comes from the same stored files: the simulation of adaptive testing against
 random sampling, the report that writes the README's tables and figures, and the page at
