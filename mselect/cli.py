@@ -612,7 +612,9 @@ def smoke(
 def run(
     version: str = typer.Option("v1", help="Which bank the suite and items come from."),
     alias: str = typer.Option("", "--alias", help="Comma-separated. Default: the whole panel."),
-    template: str = typer.Option("plain", help="plain, letter_only or brief_reasoning."),
+    template: str = typer.Option(
+        "plain", help="plain, letter_only, brief_reasoning, or decision for a decision model."
+    ),
     rotation: int = typer.Option(0, help="Option rotation, for the position-bias experiment."),
     repeat: int = typer.Option(
         1, help="Administration number, for test-retest. 2 re-asks rather than reading the cache."
@@ -638,6 +640,15 @@ def run(
     index = pool.index()
     chosen = suite_mod.Suite.load(suite_mod.default_path(version))
     ordered = [index[i] for i in chosen.item_ids if i in index]
+    if template == "decision":
+        # A decision model chooses between options, so it is asked the multiple-choice items
+        # only: a free-response item has nothing to choose between. PLAN.md 15.43.
+        choices = [item for item in ordered if not item.free_response]
+        _say(
+            f"decision models: {len(ordered) - len(choices):,} free-response items set aside, "
+            f"{len(choices):,} multiple-choice items remain"
+        )
+        ordered = choices
     if rotation:
         # Rotation moves the correct answer between option positions, which only means anything
         # where there are options. PLAN.md section 4.3 specifies multiple choice for the

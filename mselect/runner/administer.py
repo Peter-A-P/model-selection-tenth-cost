@@ -28,10 +28,13 @@ from collections.abc import Sequence
 from dataclasses import asdict, dataclass, field
 from typing import Any, Protocol
 
-from mselect.runner import parse
+from mselect.runner import decision, parse
 from mselect.runner.prompts import Settings, answer_letter, render, rotate
 
 MULTIPLE_CHOICE = "multiple_choice"
+# A decision request has no token budget; the gateway accepts one and does not send it. Fixed
+# rather than configured so it cannot move the request hash.
+DECISION_MAX_TOKENS = 16
 
 
 @dataclass(frozen=True, slots=True)
@@ -79,6 +82,10 @@ class Prompt:
     # vendor's default sampling and every record of them says so.
     temperature: float | None
     route: str = ""
+    # A decision model's question, as canonical JSON (`decision.canonical`). Empty for a text
+    # model, and then left out of the hash entirely, so every hash written before decision
+    # models existed is unchanged and no record is asked again for their arrival.
+    questions: str = ""
 
     @property
     def cell(self) -> str:
@@ -94,18 +101,17 @@ class Prompt:
         token budget, the temperature, a vendor field or the model an alias points at, and
         those cells are asked again instead of being silently inherited.
         """
-        body = json.dumps(
-            [
-                self.alias,
-                self.route,
-                self.system,
-                self.user,
-                self.max_tokens,
-                None if self.temperature is None else round(self.temperature, 6),
-            ],
-            separators=(",", ":"),
-            ensure_ascii=False,
-        )
+        parts: list[object] = [
+            self.alias,
+            self.route,
+            self.system,
+            self.user,
+            self.max_tokens,
+            None if self.temperature is None else round(self.temperature, 6),
+        ]
+        if self.questions:
+            parts.append(self.questions)
+        body = json.dumps(parts, separators=(",", ":"), ensure_ascii=False)
         return hashlib.sha256(body.encode("utf-8")).hexdigest()
 
 
@@ -211,6 +217,8 @@ def build_prompts(
     record claiming a temperature that was never sent.
     """
     fixed = settings or Settings()
+    if template == decision.DECISION:
+        return _decision_prompts(items, alias, rotation=rotation, route=route)
     out: list[Prompt] = []
     for item in items:
         if item.free_response and rotation:
@@ -240,6 +248,37 @@ def build_prompts(
     return out
 
 
+def _decision_prompts(
+    items: Sequence[Item], alias: str, *, rotation: int, route: str
+) -> list[Prompt]:
+    """The same items for a decision model: the question as the state, the options as one
+    choice. No system prompt and no temperature, which the interface refuses; the token budget
+    is a placeholder the gateway accepts and does not send."""
+    if rotation:
+        raise ValueError("decision models are asked at rotation 0 only")
+    out: list[Prompt] = []
+    for item in items:
+        if item.free_response:
+            raise ValueError(
+                f"item {item.item_id} is free response and has no options to decide between"
+            )
+        out.append(
+            Prompt(
+                item_id=item.item_id,
+                alias=alias,
+                template=decision.DECISION,
+                rotation=0,
+                system="",
+                user=item.question.strip(),
+                max_tokens=DECISION_MAX_TOKENS,
+                temperature=None,
+                route=route,
+                questions=decision.canonical(decision.questions_for(item.options)),
+            )
+        )
+    return out
+
+
 def expected_key(item: Item, *, rotation: int = 0) -> str | None:
     """The answer this item is scored against, or None when it cannot be scored.
 
@@ -256,7 +295,9 @@ def expected_key(item: Item, *, rotation: int = 0) -> str | None:
         return None
 
 
-def score(item: Item, reply: Reply, *, rotation: int = 0) -> tuple[str | None, int | None]:
+def score(
+    item: Item, reply: Reply, *, rotation: int = 0, template: str = "plain"
+) -> tuple[str | None, int | None]:
     """(what the model answered, whether it was right).
 
     A None score is never a zero. It means one of: the call failed, the reply could not be
@@ -269,6 +310,9 @@ def score(item: Item, reply: Reply, *, rotation: int = 0) -> tuple[str | None, i
         return None, None
     if item.free_response:
         return parse.parse_math(reply.text), parse.grade_math(reply.text, key)
+    if template == decision.DECISION:
+        letter = decision.chosen(reply.text, len(item.options))
+        return letter, None if letter is None else int(letter == key)
     n_options = len(item.options)
     # The options as the model saw them, so that a reply naming one maps to the letter it was
     # shown against. The same helper laid them out in the prompt.
@@ -331,7 +375,7 @@ def administer(
     for prompt, reply in zip(prompts, replies, strict=True):
         item = by_id[prompt.item_id]
         key = expected_key(item, rotation=rotation)
-        parsed, correct = score(item, reply, rotation=rotation)
+        parsed, correct = score(item, reply, rotation=rotation, template=template)
         error = reply.error
         if error is None and key is None:
             error = "item has no usable answer key"

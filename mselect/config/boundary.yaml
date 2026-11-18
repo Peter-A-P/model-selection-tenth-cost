@@ -40,6 +40,14 @@ providers:
     kind: openai_compat
     base_url: https://api.together.xyz/v1
     api_key_env: OPENWEIGHTS_API_KEY
+  # Decision models, through OpenRouter's decisions endpoint (boundary 1.5's `decisions` kind,
+  # the entry project 04 ships for project 07). A state and typed questions in, one
+  # probability per option out, no text. PLAN.md 15.43.
+  openrouter:
+    kind: decisions
+    base_url: https://openrouter.ai/api
+    decisions_path: /alpha/decisions
+    api_key_env: OPENROUTER_API_KEY
   # Small models on the laptop. They cost nothing and they spread the ability range
   # downward, which is where item calibration needs points it cannot buy.
   local:
@@ -172,6 +180,51 @@ routes:
   together-open-d:
     provider: openweights
     model: Qwen/Qwen3.8-Flash
+  # The decision-model cohort, added 2026-11-17 (PLAN.md 15.43): the most used on OpenRouter's
+  # weekly decision rankings to 2026-11-16, and the ones Peter named. Asked the suite's
+  # multiple-choice items only, with `mselect run --template decision`. Not in prompts.PANEL.
+  decision-jev-1.13:
+    provider: openrouter
+    model: typesafe/jev-1.13
+  decision-jev-1.14:
+    provider: openrouter
+    model: typesafe/jev-1.14
+  decision-pplx-v1.2:
+    provider: openrouter
+    model: perplexity/pplx-decider-v1.2
+  decision-pplx-flash-v1.2:
+    provider: openrouter
+    model: perplexity/pplx-decider-flash-v1.2
+  decision-pplx-v1.3:
+    provider: openrouter
+    model: perplexity/pplx-decider-v1.3:free
+  decision-liquid-d1.2:
+    provider: openrouter
+    model: liquid/d1.2
+  decision-liquid-d1.2-ultra:
+    provider: openrouter
+    model: liquid/d1.2-ultra
+  decision-drex-max:
+    provider: openrouter
+    model: nace-ai/drex-max
+  decision-drex-v2.0:
+    provider: openrouter
+    model: nace-ai/drex-v2.0
+  decision-luna:
+    provider: openrouter
+    model: openai/gpt-6-luna-decisions
+  decision-gemini:
+    provider: openrouter
+    model: google/gemini-decision-1
+  decision-microsoft-1.1:
+    provider: openrouter
+    model: microsoft/microsoft-decision-1.1
+  decision-joey-1:
+    provider: openrouter
+    model: baseten/joey-1
+  decision-tev1-4b:
+    provider: openrouter
+    model: togethercomputer/tev1-4b-experimental
 # Until 2026-11-17 this read `prices: builtin`, the dated files that ship inside the pinned
 # boundary (04 docs/prices.md), so the pin decided the rates. It points at this project's own
 # directory now because the pinned 0.35.0 prices none of the four November models and an

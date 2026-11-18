@@ -245,6 +245,17 @@ def route_key(
 def _request(prompt: Prompt, extra: Mapping[str, Any] | None = None) -> ChatRequest:
     """One prompt as a vendor-neutral request. The alias goes through unresolved: the
     routes file decides what it means, which is the reason the panel is named by alias."""
+    if prompt.questions:
+        # A decision model: the one user message is the state, the questions ride in `extra`,
+        # and there is no system prompt or temperature, which the interface refuses.
+        return ChatRequest(
+            model=prompt.alias,
+            system=None,
+            messages=[{"role": "user", "content": prompt.user}],
+            max_tokens=prompt.max_tokens,
+            temperature=None,
+            extra={**(dict(extra) if extra else {}), "questions": json.loads(prompt.questions)},
+        )
     return ChatRequest(
         model=prompt.alias,
         system=prompt.system,

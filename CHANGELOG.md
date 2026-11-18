@@ -5,6 +5,10 @@ itself is stable within a minor version, and everything else in the package is i
 
 ## Unreleased
 
+### Decision models, on the same items and the same scale
+
+`mselect run --template decision` asks a decision model the suite's multiple-choice items as one choice question each and scores the option it gives the highest probability, so decision models and text models sit on one ability scale. Fourteen hosted decision models are routed through OpenRouter, priced in the project's price file, and the gateway pin moves to v1.6.1 for its `decisions` provider kind (PLAN.md 15.43).
+
 ### Four current models, and `mselect run` now sends the extras its hash says it sent
 
 `mselect run` had built its caller without the per-model request fields since 2026-09-12, while `mselect smoke` sent them, so gemini-3.8-flash and gpt-oss-120b were run in September with their default reasoning rather than the settings `request-extras.yaml` records. Fixed, tested, and both models are being asked again in every arm, with the old records set aside and kept (PLAN.md 15.42). Four current models are added for the suite only: claude-haiku-5-5, gpt-6-luna, DeepSeek-V4.1-Flash-1017 and Qwen3.8-Flash, with a project price file for the rates the pinned gateway does not carry and streamed requests for the one vendor that refuses anything else.

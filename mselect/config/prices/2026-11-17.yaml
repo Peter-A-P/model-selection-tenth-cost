@@ -351,3 +351,54 @@ per_million_tokens:
       output: 5.00
       cache_read: 0.10
       cache_write: 1.25
+
+  # Decision models through OpenRouter, added 2026-11-17 to this file rather than a new one
+  # because no call has been costed against these entries and nothing above changes. Read from
+  # OpenRouter's own model list (GET /api/v1/models?output_modalities=decisions) that day:
+  # input only, output free for every one. drex-max lists a cache read at its input rate, so
+  # it carries one; the others list none, and a call that used a cache would be uncosted, which
+  # is the right answer for a rate nobody published. The response's own `cost` is not read.
+  openrouter:
+    typesafe/jev-1.13:
+      input: 0.042
+      output: 0.00
+    typesafe/jev-1.14:
+      input: 0.042
+      output: 0.00
+    perplexity/pplx-decider-v1.2:
+      input: 0.02
+      output: 0.00
+    perplexity/pplx-decider-flash-v1.2:
+      input: 0.01
+      output: 0.00
+    perplexity/pplx-decider-v1.3:free:
+      input: 0.0
+      output: 0.00
+    liquid/d1.2:
+      input: 0.02
+      output: 0.00
+    liquid/d1.2-ultra:
+      input: 0.042
+      output: 0.00
+    nace-ai/drex-max:
+      input: 0.06
+      output: 0.00
+      cache_read: 0.06
+    nace-ai/drex-v2.0:
+      input: 0.06
+      output: 0.00
+    openai/gpt-6-luna-decisions:
+      input: 0.1
+      output: 0.00
+    google/gemini-decision-1:
+      input: 0.1
+      output: 0.00
+    microsoft/microsoft-decision-1.1:
+      input: 0.042
+      output: 0.00
+    baseten/joey-1:
+      input: 0.01
+      output: 0.00
+    togethercomputer/tev1-4b-experimental:
+      input: 0.042
+      output: 0.00
