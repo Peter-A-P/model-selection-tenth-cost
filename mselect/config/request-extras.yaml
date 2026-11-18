@@ -32,6 +32,19 @@ aliases:
   together-open-b:
     reasoning_effort: low
 
+  # 2026-11-17: thinks by default. On three smoke items it spent 40, 816 and 1,024 output
+  # tokens, and the third returned no text at all. Together's documented switch for a hybrid
+  # model, https://docs.together.ai/docs/inference/chat/reasoning read the same day.
+  together-open-c:
+    reasoning:
+      enabled: false
+
+  # 2026-11-17: thinks by default as well, and its thinking is not held to the answer budget: one
+  # of three smoke items spent 7,693 output tokens against a cap of 1,024. The same switch.
+  together-open-d:
+    reasoning:
+      enabled: false
+
 
 # Request fields this project must not send to a given model, because the model refuses them.
 #
@@ -55,6 +68,10 @@ omit:
   # gives, the effect on this experiment is one thing: three of eleven models run at the
   # vendor's default sampling and cannot be pinned. PLAN.md section 15.11.
   openai-frontier: [temperature]
+  # 2026-11-17, the same two refusals word for word, on the first call to each. Five of sixteen
+  # models now run at the vendor's default sampling.
+  anthropic-haiku-b: [temperature]
+  openai-mid-b: [temperature]
 
 # Answer-only token budgets, where the default of 16 is not enough.
 #
@@ -87,3 +104,11 @@ omit:
 # text at all, and four Gemma builds measured locally the same day wrote 114 to 800 tokens
 # each. That is a property of the family and it belongs in finding 8.
 tokens: {}
+
+# Aliases whose vendor refuses a request that is not streamed. Transport only: the same prompt,
+# budget and request hash, with the stream read to its end so the reply is one whole text.
+#
+# 2026-11-17, three smoke items identically: openweights returned 400: This model only supports
+# streaming. Set "stream": true.
+stream:
+  - together-open-d

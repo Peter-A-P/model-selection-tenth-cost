@@ -17,7 +17,7 @@ from typing import Any
 import httpx
 import pytest
 import respx
-from boundary import BatchNotReady, SpendCapExceeded
+from boundary import BatchNotReady, ConfigError, SpendCapExceeded
 from boundary.config import CacheConfig, CapsConfig, ProjectCap, load_config
 from boundary.gateway import Gateway
 
@@ -442,3 +442,64 @@ def test_what_counts_as_worth_asking_again(status: object, expected: bool) -> No
     from mselect.runner.gateway import _transient
 
     assert _transient(status) is expected
+
+
+class Recorder:
+    """A gateway that answers every call and remembers how it was asked."""
+
+    def __init__(self) -> None:
+        self.calls: list[tuple[str, dict[str, Any]]] = []
+
+    def _answer(self, how: str, request: Any) -> Any:
+        self.calls.append((how, dict(request.extra)))
+        return SimpleNamespace(
+            text="Answer: B",
+            cost_usd=0.0,
+            usage=SimpleNamespace(input_tokens=30, output_tokens=3),
+            model_returned="m",
+            ledger_id="1",
+            ok=True,
+            finish_reason="stop",
+            cached=False,
+            status="ok",
+            raw={},
+        )
+
+    def chat(self, request: Any, **kw: object) -> Any:
+        return self._answer("chat", request)
+
+    def chat_stream(self, request: Any, **kw: object) -> Any:
+        return self._answer("stream", request)
+
+    def batch_submit(self, requests: object, **kw: object) -> object:
+        self.calls.append(("batch", {}))
+        raise ConfigError("no batch endpoint here")
+
+
+def test_a_streamed_alias_is_streamed_and_still_carries_its_extras() -> None:
+    """2026-11-17: Qwen3.8 Flash refuses an unstreamed request, and thinks for 7,693 tokens
+    unless told not to. Both settings have to reach the request, and only for that alias."""
+    recorder = Recorder()
+    caller = BoundaryCaller(
+        recorder,  # type: ignore[arg-type]
+        use_batches=True,
+        extras={"together-open-d": {"reasoning": {"enabled": False}}},
+        streamed=frozenset({"together-open-d"}),
+    )
+    caller.ask(build_prompts([MC], "together-open-d") + build_prompts([MC], "local-small-a"))
+    assert recorder.calls == [
+        ("stream", {"reasoning": {"enabled": False}}),
+        ("batch", {}),
+        ("chat", {}),
+    ], "a streamed alias is never batched, and the extras travel with the stream"
+
+
+def test_the_committed_extras_name_what_the_november_models_need() -> None:
+    """The run sent no extras at all from 2026-09-12 to 2026-11-17, while the request hash said
+    it had. The loaders are what `mselect run` now hands its caller, so they are checked here."""
+    extras = gateway.extras_of()
+    assert extras["together-open-c"] == {"reasoning": {"enabled": False}}
+    assert extras["together-open-d"] == {"reasoning": {"enabled": False}}
+    assert gateway.streams_of() == frozenset({"together-open-d"})
+    assert "temperature" in gateway.omits_of()["anthropic-haiku-b"]
+    assert "temperature" in gateway.omits_of()["openai-mid-b"]

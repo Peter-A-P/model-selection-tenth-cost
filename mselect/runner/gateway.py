@@ -186,6 +186,21 @@ def omits_temperature(alias: str, omits: dict[str, frozenset[str]] | None = None
     return "temperature" in (omits if omits is not None else omits_of()).get(alias, frozenset())
 
 
+def streams_of(path: Path = EXTRAS) -> frozenset[str]:
+    """Aliases whose vendor answers only a streamed request.
+
+    Transport, not content: the prompt, the budget and the request hash are the same either way,
+    and the stream is read to its end so the reply is one whole text, as a plain call returns.
+    """
+    if not path.is_file():
+        return frozenset()
+    loaded = yaml.safe_load(path.read_text(encoding="utf-8"))
+    stream = loaded.get("stream") if isinstance(loaded, dict) else None
+    if not isinstance(stream, list):
+        return frozenset()
+    return frozenset(str(a) for a in stream)
+
+
 def tokens_of(path: Path = EXTRAS) -> dict[str, int]:
     """alias -> answer-only token budget, where the default is not enough.
 
@@ -333,8 +348,12 @@ class BoundaryCaller:
         wait_s: float = 3600.0,
         poll_s: float = 30.0,
         extras: Mapping[str, Mapping[str, Any]] | None = None,
+        streamed: frozenset[str] = frozenset(),
     ) -> None:
         self.gateway = gateway
+        # Aliases whose vendor refuses a request that is not streamed. Asked one at a time with
+        # the stream read to its end, so the reply is the same whole text a plain call returns.
+        self.streamed = streamed
         self.purpose = purpose
         self.run_id = run_id
         # Per-alias vendor fields from the routing file. Empty for most models; the ones that
@@ -356,7 +375,7 @@ class BoundaryCaller:
             return []
         replies: list[Reply] = []
         for alias, group in _by_alias(prompts):
-            if self.use_batches and alias not in self._no_batches:
+            if self.use_batches and alias not in self._no_batches and alias not in self.streamed:
                 batched = self._ask_batched(alias, group)
                 if batched is not None:
                     replies.extend(batched)
@@ -400,8 +419,9 @@ class BoundaryCaller:
     def _ask_one_at_a_time(self, prompts: Sequence[Prompt]) -> list[Reply]:
         out: list[Reply] = []
         for prompt in prompts:
+            send = self.gateway.chat_stream if prompt.alias in self.streamed else self.gateway.chat
             try:
-                response = self.gateway.chat(
+                response = send(
                     _request(prompt, self.extras.get(prompt.alias)),
                     purpose=self.purpose,
                     run_id=self.run_id,

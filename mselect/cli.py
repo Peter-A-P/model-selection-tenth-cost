@@ -547,6 +547,7 @@ def smoke(
             purpose="smoke",
             run_id="smoke",
             extras=gateway.extras_of(),
+            streamed=gateway.streams_of(),
             use_batches=batch,
         )
         omits = gateway.omits_of()
@@ -740,6 +741,13 @@ def run(
             run_id=f"{version}-{template}-{rotation}" + ("" if repeat == 1 else f"-r{repeat}"),
             use_batches=batch,
             wait_s=batch_wait,
+            # Missing from 2026-09-12 to 2026-11-17, while `smoke` passed it: the request hash
+            # took the extras into account through `route_key` and the request body did not
+            # carry them, so every `run` call went out without the per-model fields that
+            # request-extras.yaml says it needs. Found when DeepSeek V4.1 Flash answered the
+            # smoke in 4 tokens and the run's caller was seen to have no extras to send.
+            extras=extras,
+            streamed=gateway.streams_of(),
         )
         for name in wanted:
             budget = budgets.get(name, 0)

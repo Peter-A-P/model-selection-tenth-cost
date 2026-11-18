@@ -150,10 +150,36 @@ routes:
   local-mid-a:
     provider: local
     model: qwen2.5:7b
-# The dated price files that ship inside the pinned boundary (04 docs/prices.md), so the pin
-# decides the rates and September's costing is reproducible from this checkout alone. The copy
-# that lived in mselect/config/prices/ moved into the library as 2026-09-12.yaml.
-prices: builtin
+  # The November 2026 cohort, added 2026-11-17. A month on, the panel above already read as last
+  # season's models, so four current and widely used ones were added to run the suite and nothing
+  # else: no rotation, retest or framing arms, so findings 6 to 8 stay twelve-model findings.
+  # Chosen to sit inside the band the bank can still resolve. A replay of all 66 pairs of the
+  # first twelve showed that two models above about 91% on the suite cannot be separated by any
+  # method, because the bank runs out of questions hard enough, while two between about 83% and
+  # 90% and 3 to 6 points apart are where adaptive selection separates them and random does not.
+  # Identifiers confirmed against each vendor's own list by `mselect models` the same day.
+  anthropic-haiku-b:
+    provider: anthropic
+    model: claude-haiku-5-5
+  openai-mid-b:
+    provider: openai
+    model: gpt-6-luna
+  # The dated snapshot rather than the moving name, because this table is a record of which model
+  # answered and Together serves both under the same price.
+  together-open-c:
+    provider: openweights
+    model: deepseek-ai/DeepSeek-V4.1-Flash-1017
+  together-open-d:
+    provider: openweights
+    model: Qwen/Qwen3.8-Flash
+# Until 2026-11-17 this read `prices: builtin`, the dated files that ship inside the pinned
+# boundary (04 docs/prices.md), so the pin decided the rates. It points at this project's own
+# directory now because the pinned 0.35.0 prices none of the four November models and an
+# unpriced call is an uncosted row the spend cap cannot count. mselect/config/prices/2026-11-17.yaml
+# is the pinned 2026-10-01 list verbatim plus those four, and its header says how to go back.
+# Every earlier call was costed when it was made and the ledger holds that figure, so this moves
+# no September or October number.
+prices: prices
 caps: caps.yaml
 
 defaults:

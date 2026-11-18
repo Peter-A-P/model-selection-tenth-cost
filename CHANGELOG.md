@@ -3,6 +3,12 @@
 Versions follow semantic versioning on a 0.x line: the interface re-exported from `mselect`
 itself is stable within a minor version, and everything else in the package is internal.
 
+## Unreleased
+
+### Four current models, and `mselect run` now sends the extras its hash says it sent
+
+`mselect run` had built its caller without the per-model request fields since 2026-09-12, while `mselect smoke` sent them, so gemini-3.8-flash and gpt-oss-120b were run in September with their default reasoning rather than the settings `request-extras.yaml` records. Fixed, tested, and both models are being asked again in every arm, with the old records set aside and kept (PLAN.md 15.42). Four current models are added for the suite only: claude-haiku-5-5, gpt-6-luna, DeepSeek-V4.1-Flash-1017 and Qwen3.8-Flash, with a project price file for the rates the pinned gateway does not carry and streamed requests for the one vendor that refuses anything else.
+
 ## v0.3.11 - 2026-10-08
 
 ### The page opens on gemini-3.8-flash against claude-haiku-4-5
