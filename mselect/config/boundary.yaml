@@ -48,6 +48,25 @@ providers:
     base_url: https://openrouter.ai/api
     decisions_path: /alpha/decisions
     api_key_env: OPENROUTER_API_KEY
+  # Decision models on the laptop, each behind its own System One server on the CPU (PLAN.md
+  # 15.43). Free in dollars; what they cost is hours of a CPU nobody else can use meanwhile,
+  # which the ledger's latencies record. Started by hand, one at a time, with the commands in
+  # docs/decision-models.md.
+  strands:
+    kind: decisions
+    base_url: http://127.0.0.1:8010
+    decisions_path: /v1/systemone
+    price_zero: true
+  laya:
+    kind: decisions
+    base_url: http://127.0.0.1:8011
+    decisions_path: /v1/systemone
+    price_zero: true
+  kev:
+    kind: decisions
+    base_url: http://127.0.0.1:8009
+    decisions_path: /v1/systemone
+    price_zero: true
   # Small models on the laptop. They cost nothing and they spread the ability range
   # downward, which is where item calibration needs points it cannot buy.
   local:
@@ -225,6 +244,17 @@ routes:
   decision-tev1-4b:
     provider: openrouter
     model: togethercomputer/tev1-4b-experimental
+  # On the laptop. Amazon's Strands Decider 2B (AWS Strands Labs, Apache 2.0, the v21 checkpoint),
+  # Convai's Laya (421M, ModernBERT, Apache 2.0) and Kev 4B (Qwen3.5-4B base, Apache 2.0).
+  decision-strands-2b:
+    provider: strands
+    model: StrandsAgents/strands-decider-2B-hobson-v21
+  decision-laya:
+    provider: laya
+    model: english
+  decision-kev-4b:
+    provider: kev
+    model: jaredpalmer/kev-4b
 # Until 2026-11-17 this read `prices: builtin`, the dated files that ship inside the pinned
 # boundary (04 docs/prices.md), so the pin decided the rates. It points at this project's own
 # directory now because the pinned 0.35.0 prices none of the four November models and an
