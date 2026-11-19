@@ -880,3 +880,7 @@ footer.foot {
 /* The film under the headline figures, sized and framed as on project 10's page. */
 .demo-video { display: block; width: 100%; max-width: 52rem; aspect-ratio: 1; margin: 1rem auto 0; border-radius: var(--radius); background: #0a111c; box-shadow: var(--shadow); }
 .demo-video-note { max-width: 52rem; margin: 0.6rem auto 0; font-size: 0.9rem; color: var(--ink-faint); text-align: center; }
+
+/* The ranking film is widescreen, so it takes the column's full width at 16 by 9. */
+.demo-video.wide { max-width: 100%; aspect-ratio: 16 / 9; }
+.demo-video-note.wide { max-width: 100%; }

@@ -5,6 +5,10 @@ itself is stable within a minor version, and everything else in the package is i
 
 ## Unreleased
 
+### A second film: decision models ranked
+
+The 24-second film of twelve decision models ranked on the 2,454 shared multiple-choice questions, with Claude Haiku 5.5 and DeepSeek-V4.1-Flash marked for scale, sits before "How it works", widescreen at the column's full width, with its frame at one second as the opening screen.
+
 ### The film is on the page, and the "On this page" box is gone
 
 The 37-second film of DeepSeek-V4.1-Flash against jev-1.14 sits under the headline figures, sized and framed as on project 10's page, served from `demo/video/` with `media-src 'self'` added to the hosting policy. The "On this page" list is removed, because the tabs across the top already carry the same links.
