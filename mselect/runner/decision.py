@@ -37,6 +37,11 @@ from mselect.runner.prompts import LETTERS
 DECISION: Final = "decision"
 QUESTION_ID: Final = "answer"
 
+#: The decision models that ran on this laptop rather than through a host, by alias. Their
+#: price is zero and their cost is hours of a machine, which is how the README and the page
+#: report them. Kept beside the routes' own comment in `boundary.yaml`.
+LOCAL: Final = frozenset({"decision-strands-2b", "decision-laya", "decision-kev-4b"})
+
 # One instruction for every item, so the comparison between decision models is the models and
 # not the wording, and as close as the interface allows to what `plain` asks a text model.
 INSTRUCTIONS: Final = "The state is a benchmark question. Which option is the correct answer to it?"

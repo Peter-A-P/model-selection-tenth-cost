@@ -15,7 +15,7 @@ const MAX_QUESTIONS = 300;
 function comparedToEverything(arena) {
   const usd = arena.models.reduce((total, model) => total + model.full_usd, 0);
   const seconds = arena.models.reduce((total, model) => total + (model.full_seconds || 0), 0);
-  const everything = `all ${state.panel.n_items.toLocaleString("en-CA")} questions of both`;
+  const everything = `all ${arena.prepared.panel.n_items.toLocaleString("en-CA")} questions of both`;
   if (usd < 0.0005) {
     return (
       `Nothing in dollars, because these run on a laptop: what a short test saves here is the ` +
@@ -38,16 +38,20 @@ function ceilingNote(arena) {
     .filter((_, side) => Math.abs(arena.posteriors[side].theta) > 4.0)
     .map((model) => model.label);
   const subject = named.length > 1 ? "Both estimates have" : `<code>${named[0]}</code> has`;
+  const { panel, items } = arena.prepared;
+  let hard = 0;
+  for (let i = 0; i < panel.n_items; i += 1) if (items.usable[i] && items.b[i] > 3) hard += 1;
   return (
     `<strong>${subject} run off the end of the bank's scale.</strong> The selector asks for ` +
     "questions it believes are a coin flip at this level, and this panel's strongest models get " +
-    "about nine in ten of those right, so the estimate climbs until the scale stops it. Only 236 " +
-    "of the 2,754 questions are harder than +3. The suite has run out of questions hard enough, " +
+    "about nine in ten of those right, so the estimate climbs until the scale stops it. Only " +
+    `${hard.toLocaleString("en-CA")} of the ${panel.n_items.toLocaleString("en-CA")} questions ` +
+    "are harder than +3. The suite has run out of questions hard enough, " +
     "and an interval measured against that wall is not precision."
   );
 };
 
-const state = { panel: null, curves: null, items: null, experiments: null, power: null, run: null };
+const state = { panel: null, decisions: null, curves: null, items: null, experiments: null, power: null, run: null };
 
 const colour = (name) => getComputedStyle(document.body).getPropertyValue(name).trim();
 
@@ -89,6 +93,7 @@ async function load(name, build) {
 // behind, which otherwise surfaces as a null dereference somewhere far from the cause.
 const REQUIRED = {
   panel: (data) => data.models?.[0]?.label && data.items?.a?.length,
+  decisions: (data) => data.models?.some((model) => model.kind === "decision") && data.items?.a?.length,
   curves: (data) => data.panels?.length,
   items: (data) => data.benchmarks?.length,
   experiments: (data) => data.order?.length,
@@ -107,8 +112,10 @@ function check(name, data) {
 
 // ------------------------------------------------------------------ the live adaptive test
 
-function prepare() {
-  const panel = state.panel;
+// One response matrix ready to replay. The page holds two: the text models on the items all of
+// them answered, and every model of both kinds on the multiple-choice items all of them
+// answered, which is the only frame a decision model can be compared on.
+function prepare(panel) {
   const items = {
     a: Float64Array.from(panel.items.a),
     b: Float64Array.from(panel.items.b.map((v) => (v === null ? 0 : v))),
@@ -120,7 +127,7 @@ function prepare() {
     ...model,
     responses: unpackBits(model.correct, panel.n_items),
   }));
-  return { items, models, weights: Float64Array.from(panel.weights) };
+  return { panel, items, models, weights: Float64Array.from(panel.weights) };
 }
 
 class Arena {
@@ -253,8 +260,8 @@ function drawArena(arena) {
       `by asking again. ` +
       `${comparedToEverything(arena)} ` +
       (agrees
-        ? `Asking all ${state.panel.n_items.toLocaleString("en-CA")} questions ranks them the same way.`
-        : `Asking all ${state.panel.n_items.toLocaleString("en-CA")} questions ranks them the ` +
+        ? `Asking all ${arena.prepared.panel.n_items.toLocaleString("en-CA")} questions ranks them the same way.`
+        : `Asking all ${arena.prepared.panel.n_items.toLocaleString("en-CA")} questions ranks them the ` +
           `other way round, by ` +
           `${(Math.abs(leader.accuracy - other.accuracy) * 100).toFixed(1)} of a point. Ability ` +
           `and a count of correct answers are not the same quantity, and at a gap this small ` +
@@ -281,15 +288,16 @@ function drawArena(arena) {
 function drawLog(arena) {
   const body = document.getElementById("log-body");
   clear(body);
-  const benchmarks = state.panel.benchmarks;
+  const panel = arena.prepared.panel;
+  const benchmarks = panel.benchmarks;
   for (const row of arena.trail) {
     const item = row.first.item;
     const tr = document.createElement("tr");
     const cells = [
       String(row.n),
-      benchmarks[state.panel.items.stratum[item]].title,
-      state.panel.items.b[item] === null ? "-" : state.panel.items.b[item].toFixed(2),
-      state.panel.items.a[item].toFixed(2),
+      benchmarks[panel.items.stratum[item]].title,
+      panel.items.b[item] === null ? "-" : panel.items.b[item].toFixed(2),
+      panel.items.a[item].toFixed(2),
     ];
     for (const [index, value] of cells.entries()) {
       const td = document.createElement("td");
@@ -308,7 +316,11 @@ function drawLog(arena) {
 }
 
 function setupRace() {
-  const prepared = prepare();
+  const prepared = prepare(state.panel);
+  const mixed = prepare(state.decisions);
+  const isDecision = new Set(
+    mixed.models.filter((model) => model.kind === "decision").map((model) => model.alias)
+  );
   const selectA = document.getElementById("model-a");
   const selectB = document.getElementById("model-b");
   const ordered = [...state.panel.models].sort((x, y) => y.accuracy - x.accuracy);
@@ -322,6 +334,24 @@ function setupRace() {
       const group = document.createElement("optgroup");
       group.label = hosted ? "Hosted, billed by the token" : "On a laptop, billed in hours";
       for (const model of ordered.filter((m) => m.hosted === hosted)) {
+        const option = document.createElement("option");
+        option.value = model.alias;
+        option.textContent = `${model.label} (${(model.accuracy * 100).toFixed(1)}%)`;
+        group.appendChild(option);
+      }
+      select.appendChild(group);
+    }
+    // Decision models, with their accuracy on the multiple-choice questions, which are the only
+    // ones they were asked; a text model's figure above is over every question.
+    const deciders = [...mixed.models]
+      .filter((model) => model.kind === "decision")
+      .sort((x, y) => y.accuracy - x.accuracy);
+    for (const hosted of [true, false]) {
+      const group = document.createElement("optgroup");
+      group.label = hosted
+        ? "Decision models, hosted (multiple-choice accuracy)"
+        : "Decision models, on a laptop (multiple-choice accuracy)";
+      for (const model of deciders.filter((m) => m.hosted === hosted)) {
         const option = document.createElement("option");
         option.value = model.alias;
         option.textContent = `${model.label} (${(model.accuracy * 100).toFixed(1)}%)`;
@@ -354,14 +384,25 @@ function setupRace() {
 
   function reset() {
     stop();
-    const find = (alias) => prepared.models.find((m) => m.alias === alias);
+    // A decision model was asked only the multiple-choice questions, so a pair with one in it
+    // runs on the multiple-choice questions every model answered. Text against text keeps the
+    // larger frame, so every result the page reported before decision models arrived stands.
+    const decision = isDecision.has(selectA.value) || isDecision.has(selectB.value);
+    const frame = decision ? mixed : prepared;
+    const find = (alias) => frame.models.find((m) => m.alias === alias);
     const a = find(selectA.value);
     const b = find(selectB.value);
     const seed = (a.alias.length * 31 + b.alias.length * 17 + 7) >>> 0;
     state.run = {
-      adaptive: new Arena("adaptive", "adaptive", prepared, a, b, seed),
-      random: new Arena("random", "random", prepared, a, b, seed),
+      adaptive: new Arena("adaptive", "adaptive", frame, a, b, seed),
+      random: new Arena("random", "random", frame, a, b, seed),
     };
+    document.getElementById("frame-note").textContent = decision
+      ? `A decision model is in this pair, so both are asked from the ` +
+        `${frame.panel.n_items.toLocaleString("en-CA")} multiple-choice questions that every ` +
+        `text and decision model answered, scored on the same ability scale.`
+      : `Two text models: both are asked from the ` +
+        `${frame.panel.n_items.toLocaleString("en-CA")} questions every text model answered.`;
     document.getElementById("log-a").textContent = a.label;
     document.getElementById("log-b").textContent = b.label;
     drawArena(state.run.adaptive);
@@ -937,7 +978,7 @@ function setupHidden() {
 
 async function start() {
   const index = await load("index");
-  const names = ["panel", "curves", "items", "experiments", "power"];
+  const names = ["panel", "decisions", "curves", "items", "experiments", "power"];
   const loaded = await Promise.all(
     names.map((name) => load(name, index.build).then((data) => check(name, data)))
   );

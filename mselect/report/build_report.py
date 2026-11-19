@@ -199,26 +199,24 @@ def decision_table(version: str = "v1", kind: str = "2pl") -> str:
     from mselect.demo.build import PANEL_RECORDS, _extras
     from mselect.experiments import ownrun
     from mselect.irt import fit
+    from mselect.runner.decision import LOCAL
 
     out = paths.out_for(version)
     decisions = ownrun.load(out / DECISION_RECORDS, version=version, kind=kind)
     text = ownrun.load(out / PANEL_RECORDS, version=version, kind=kind)
-    shared = sorted(
-        set(np.asarray(decisions.item_ids)[decisions.common()])
-        & set(np.asarray(text.item_ids)[text.common()])
-    )
-    columns_d = [decisions.item_ids.index(i) for i in shared]
-    columns_t = [text.item_ids.index(i) for i in shared]
-    items = decisions.items.subset(np.asarray(columns_d, dtype=np.intp))
-    x = np.vstack([decisions.responses[:, columns_d], text.responses[:, columns_t]])
-    aliases = decisions.aliases + text.aliases
-    theta, se = fit.eap(x, items)
+    joint = ownrun.combine(decisions, text).dense()
+    shared = joint.item_ids
+    x = joint.responses
+    aliases = joint.aliases
+    theta, se = fit.eap(x, joint.items)
     correct = np.nansum(x, axis=1)
 
     extras = {**_extras(out / PANEL_RECORDS).model_of, **_extras(out / DECISION_RECORDS).model_of}
     latency = _extras(out / DECISION_RECORDS).latency_ms
+    # What each decision model's whole administration cost, not just the shared frame's part.
+    # Decision rows come first in the combined panel, so the row index is the same.
     spend = decisions.spend()
-    laptop = {"decision-strands-2b", "decision-laya", "decision-kev-4b"}
+    laptop = LOCAL
 
     rows = [
         f"Scored on the {len(shared):,} multiple-choice items that all "

@@ -5,6 +5,10 @@ itself is stable within a minor version, and everything else in the package is i
 
 ## Unreleased
 
+### The page races decision models too
+
+Both model lists on the page now carry the seventeen decision models, hosted and on the laptop. A pair with a decision model in it is replayed from a new payload, `decisions.json`, holding every text and decision model on the 2,454 multiple-choice questions all of them answered, and the page says which frame a race is on. Text against text stays on its own 2,754-question frame, so no result the page reported before moves. `ownrun.combine` stacks two administrations of the suite into one panel, and the README's decision table is built on it too.
+
 ### The page opens on DeepSeek-V4.1-Flash against gpt-6-luna
 
 Two current models under three points apart on the suite. Over 40 seeds adaptive selection settles the pair in 87.5% of runs at a median of 72 questions and random selection in 5% inside 300; on the page's own seed and order adaptive settles at 227 and random does not. The Luna estimate ends past +4, so the first run shows the ceiling note.

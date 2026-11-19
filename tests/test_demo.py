@@ -55,7 +55,7 @@ def test_the_page_asks_for_exactly_the_files_that_are_written() -> None:
     """A data file the page never reads is dead weight; one it reads and nobody writes is a
     blank page. Both are silent, so the two lists are compared rather than trusted."""
     page = (DEMO / "app.js").read_text(encoding="utf-8")
-    asked = set(re.findall(r'"(panel|curves|items|experiments|power|index)"', page))
+    asked = set(re.findall(r'"(panel|decisions|curves|items|experiments|power|index)"', page))
     written = {path.stem for path in DATA.glob("*.json")}
     assert asked == written
 
@@ -264,7 +264,7 @@ def test_the_stamp_changes_when_a_payload_changes(tmp_path: Path) -> None:
     edited["n_items"] = int(edited["n_items"]) + 1
     panel.write_text(json.dumps(edited, separators=(",", ":")), encoding="utf-8")
     second = hashlib.sha256()
-    for name in ("panel", "curves", "items", "experiments", "power"):
+    for name in ("panel", "decisions", "curves", "items", "experiments", "power"):
         second.update((tmp_path / f"{name}.json").read_text(encoding="utf-8").encode("utf-8"))
     assert second.hexdigest()[:12] != first
 
@@ -274,7 +274,7 @@ def test_every_payload_the_page_checks_on_arrival_is_one_it_is_sent() -> None:
     names it checks are the names the builder writes."""
     page = (DEMO / "app.js").read_text(encoding="utf-8")
     checked = set(re.findall(r"^  (\w+): \(data\)", page, flags=re.MULTILINE))
-    assert checked == {"panel", "curves", "items", "experiments", "power"}
+    assert checked == {"panel", "decisions", "curves", "items", "experiments", "power"}
 
 
 def test_the_hosting_policy_lets_the_page_load_itself_and_nothing_else() -> None:
@@ -337,6 +337,7 @@ def test_the_builder_writes_every_file_the_page_needs(tmp_path: Path) -> None:
     names = {item.path.name for item in written}
     assert names == {
         "panel.json",
+        "decisions.json",
         "curves.json",
         "items.json",
         "experiments.json",
@@ -346,3 +347,30 @@ def test_the_builder_writes_every_file_the_page_needs(tmp_path: Path) -> None:
     for item in written:
         assert item.bytes > 0
         json.loads(item.path.read_text(encoding="utf-8"))
+
+
+def test_decision_models_and_text_models_share_one_frame_on_the_page() -> None:
+    """A pair with a decision model in it is replayed from `decisions.json`. Every model there
+    must carry an answer for every item of that frame, both kinds must be present, and every
+    text model of the main panel must be in it, or choosing a decision model against a text
+    model would find no row to replay."""
+    mixed = _read("decisions.json")
+    panel = _read("panel.json")
+    n_items = int(mixed["n_items"])
+    kinds = {str(model["kind"]) for model in mixed["models"]}
+    assert kinds == {"decision", "text"}
+    assert {m["alias"] for m in panel["models"]} <= {m["alias"] for m in mixed["models"]}
+    # Multiple-choice only, so the frame is smaller than the text models' own.
+    assert n_items < int(panel["n_items"])
+    for model in mixed["models"]:
+        correct = unpack(str(model["correct"]), n_items)
+        assert float(correct.mean()) == pytest.approx(float(model["accuracy"]), abs=0.001)
+        assert len(model["cost_micro"]) == n_items
+
+
+def test_the_page_switches_frame_when_a_decision_model_is_chosen() -> None:
+    """The switch is the whole feature: a decision model replayed on the text frame would be
+    scored as wrong on every free-response item it was never asked."""
+    page = (DEMO / "app.js").read_text(encoding="utf-8")
+    assert "const frame = decision ? mixed : prepared;" in page
+    assert 'id="frame-note"' in (DEMO / "index.html").read_text(encoding="utf-8")

@@ -276,6 +276,7 @@ code { font-family: var(--mono); font-size: 0.9em; }
 .section { padding: 2.75rem 0; border-bottom: 1px solid var(--line); }
 .section-lead { color: var(--ink-soft); max-width: var(--measure); }
 .note { font-size: 0.86rem; color: var(--ink-faint); max-width: var(--measure); }
+.frame-note { font-size: 0.86rem; color: var(--ink-faint); margin-top: 0.5rem; }
 
 /* The architecture page. The diagrams are white-ground SVGs generated from a specification,
    so they sit on their own card in both themes, and each opens full size for narrow screens. */

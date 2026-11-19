@@ -530,7 +530,7 @@ term in finding 8 is still not noise-free, and the 36 repeated questions in
 are matched on exact text.
 
 **Published as a page as well as a table.** [adaptive.peterparker.ca](https://adaptive.peterparker.ca)
-runs the adaptive test in the browser against those sixteen models' recorded answers, and it is
+runs the adaptive test in the browser against those sixteen models' recorded answers, and the seventeen decision models' beside them on the multiple-choice questions, and it is
 built from these artefacts by `mselect demo build` rather than written by hand.
 [docs/deploy.md](docs/deploy.md).
 

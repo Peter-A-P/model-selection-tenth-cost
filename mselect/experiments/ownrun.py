@@ -258,6 +258,30 @@ def load(path: Path, *, version: str = "v1", kind: str = "2pl") -> Panel:
     )
 
 
+def combine(first: Panel, second: Panel) -> Panel:
+    """Two administrations of the same suite as one panel: the rows of both, the same columns.
+
+    This is how decision models and text models are put side by side. `load` lays every record
+    file out in the committed suite's order, so the columns already line up; `dense()` on the
+    result then keeps the items every model of both kinds answered, which for a decision model
+    means the multiple-choice items only. A benchmark name missing from one file (a decision
+    model is never asked a free-response item, so its file never names one) is taken from the
+    other.
+    """
+    if first.item_ids != second.item_ids:
+        raise ValueError("the two panels were not administered the same suite")
+    benchmarks = np.where(first.benchmarks != "", first.benchmarks, second.benchmarks)
+    return Panel(
+        aliases=first.aliases + second.aliases,
+        item_ids=first.item_ids,
+        benchmarks=benchmarks.astype(str),
+        responses=np.vstack([first.responses, second.responses]),
+        cost_usd=np.vstack([first.cost_usd, second.cost_usd]),
+        items=first.items,
+        unidentified=first.unidentified,
+    )
+
+
 @dataclass(frozen=True, slots=True)
 class Point:
     """One checkpoint: how well each method ranked the panel, and what it cost to find out."""

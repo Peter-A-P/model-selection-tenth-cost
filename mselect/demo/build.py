@@ -44,6 +44,10 @@ DEFAULT_DATA_DIR = paths.ROOT / "demo" / "data"
 #: no option rotation. The same file `mselect validate` reads.
 PANEL_RECORDS = "own-run-plain-0.jsonl"
 
+#: The decision models' administration: the suite's multiple-choice items, one choice question
+#: each. The same file `mselect validate --template decision` reads.
+DECISION_RECORDS = "own-run-decision-0.jsonl"
+
 #: Item parameters for the cloud chart are sampled, because 20,365 points is a picture of a
 #: blob rather than of a bank, and every one of them would be sent over the wire to draw it.
 #: Seeded, so the same items are drawn every build and a reader comparing two versions of the
@@ -177,7 +181,7 @@ def _extras(path: Path) -> Extras:
 
 
 def panel_payload(version: str = "v1", kind: str = "2pl") -> dict[str, Any]:
-    """The twelve own-run models, the items they were asked, and what each answer cost.
+    """The sixteen own-run text models, the items they were asked, and what each answer cost.
 
     Restricted to the common frame, the items every model answered, for the reason
     `Panel.dense` gives: a ranking is a comparison, and a comparison needs one item set.
@@ -185,9 +189,51 @@ def panel_payload(version: str = "v1", kind: str = "2pl") -> dict[str, Any]:
     records = paths.out_for(version) / PANEL_RECORDS
     panel = ownrun.load(records, version=version, kind=kind).dense()
     extras = _extras(records)
+    kinds = {alias: "text" for alias in panel.aliases}
+    hosted = {alias: not alias.startswith("local-") for alias in panel.aliases}
+    return _matrix_payload(panel, extras, kinds, hosted, panel.spend(), version, kind)
+
+
+def decisions_payload(version: str = "v1", kind: str = "2pl") -> dict[str, Any]:
+    """Decision models and text models together, on the items every one of them answered.
+
+    A decision model returns a probability per option and no text, so it was asked only the
+    multiple-choice items. A comparison that includes one is therefore run on the multiple-choice
+    items every model of both kinds answered, and the page switches to this frame whenever a
+    decision model is chosen and says so. Text against text stays on the larger frame in
+    `panel_payload`, so nothing the page already reported moves. Every cost and time is over this
+    frame, as `panel_payload`'s are over its own, so "all of these questions" means what it says.
+    """
+    from mselect.runner.decision import LOCAL
+
+    out = paths.out_for(version)
+    decisions = ownrun.load(out / DECISION_RECORDS, version=version, kind=kind)
+    text = ownrun.load(out / PANEL_RECORDS, version=version, kind=kind)
+    joint = ownrun.combine(decisions, text).dense()
+    extras_d, extras_t = _extras(out / DECISION_RECORDS), _extras(out / PANEL_RECORDS)
+    extras = Extras(
+        model_of={**extras_t.model_of, **extras_d.model_of},
+        latency_ms={**extras_t.latency_ms, **extras_d.latency_ms},
+    )
+    kinds = {alias: "decision" for alias in decisions.aliases}
+    kinds.update({alias: "text" for alias in text.aliases})
+    hosted = {alias: alias not in LOCAL for alias in decisions.aliases}
+    hosted.update({alias: not alias.startswith("local-") for alias in text.aliases})
+    return _matrix_payload(joint, extras, kinds, hosted, joint.spend(), version, kind)
+
+
+def _matrix_payload(
+    panel: ownrun.Panel,
+    extras: Extras,
+    kinds: dict[str, str],
+    hosted: dict[str, bool],
+    full_usd: NDArray[np.float64],
+    version: str,
+    kind: str,
+) -> dict[str, Any]:
+    """One response matrix as the page reads it: items, and per model its bits and prices."""
     strata, weights, names = benchmark_strata(panel.benchmarks)
     accuracy = panel.accuracy()
-    spend = panel.spend()
 
     models: list[dict[str, Any]] = []
     for row, alias in enumerate(panel.aliases):
@@ -205,12 +251,13 @@ def panel_payload(version: str = "v1", kind: str = "2pl") -> dict[str, Any]:
                 "alias": alias,
                 "model": extras.model_of.get(alias, alias),
                 "label": display_name(extras.model_of.get(alias, alias)),
-                "hosted": not alias.startswith("local-"),
+                "kind": kinds[alias],
+                "hosted": hosted[alias],
                 "accuracy": round(float(accuracy[row]), 4),
                 "ability": round(ability.theta, 4),
                 "ability_lo": round(lo, 4),
                 "ability_hi": round(hi, 4),
-                "full_usd": round(float(spend[row]), 6),
+                "full_usd": round(float(full_usd[row]), 6),
                 # Micro-dollars, as integers. A tenth of a cent is below the resolution of
                 # anything the page says, and an integer array is a third the size of the
                 # float one.
@@ -528,6 +575,7 @@ def build_all(out_dir: Path | None = None) -> list[Written]:
     directory.mkdir(parents=True, exist_ok=True)
     payloads: dict[str, dict[str, Any]] = {
         "panel.json": panel_payload(),
+        "decisions.json": decisions_payload(),
         "curves.json": curves_payload(),
         "items.json": items_payload(),
         "experiments.json": experiments_payload(),
