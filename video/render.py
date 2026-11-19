@@ -28,7 +28,7 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 FPS = 30
 SECONDS = 37.0  # film.html's END
-POSTER_AT = 32.4  # the result, with its three figures and the footer in
+POSTER_AT = 2.0  # the frame the page shows before the film is played
 # The names the film prints; the vendors' identifiers are longer than a card.
 NAMES = ["DeepSeek-V4.1-Flash", "Jev 1.14"]
 
