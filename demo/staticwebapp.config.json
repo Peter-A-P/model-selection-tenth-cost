@@ -6,17 +6,20 @@
       "/architecture/*.svg",
       "*.css",
       "*.js",
-      "*.woff2"
+      "*.woff2",
+      "/video/*"
     ]
   },
   "mimeTypes": {
     ".json": "application/json",
     ".svg": "image/svg+xml",
     ".png": "image/png",
-    ".txt": "text/plain"
+    ".txt": "text/plain",
+    ".mp4": "video/mp4",
+    ".jpg": "image/jpeg"
   },
   "globalHeaders": {
-    "Content-Security-Policy": "default-src 'none'; script-src 'self'; style-src 'self'; font-src 'self'; connect-src 'self'; img-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'",
+    "Content-Security-Policy": "default-src 'none'; script-src 'self'; style-src 'self'; font-src 'self'; connect-src 'self'; img-src 'self'; media-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'",
     "X-Content-Type-Options": "nosniff",
     "Referrer-Policy": "no-referrer",
     "Cross-Origin-Opener-Policy": "same-origin",

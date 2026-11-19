@@ -876,3 +876,7 @@ footer.foot {
 }
 
 .arch-back { margin: 1.5rem 0 0; font-size: 0.95rem; }
+
+/* The film under the headline figures, sized and framed as on project 10's page. */
+.demo-video { display: block; width: 100%; max-width: 52rem; aspect-ratio: 1; margin: 1rem auto 0; border-radius: var(--radius); background: #0a111c; box-shadow: var(--shadow); }
+.demo-video-note { max-width: 52rem; margin: 0.6rem auto 0; font-size: 0.9rem; color: var(--ink-faint); text-align: center; }

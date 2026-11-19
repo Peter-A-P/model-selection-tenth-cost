@@ -5,6 +5,10 @@ itself is stable within a minor version, and everything else in the package is i
 
 ## Unreleased
 
+### The film is on the page, and the "On this page" box is gone
+
+The 37-second film of DeepSeek-V4.1-Flash against jev-1.14 sits under the headline figures, sized and framed as on project 10's page, served from `demo/video/` with `media-src 'self'` added to the hosting policy. The "On this page" list is removed, because the tabs across the top already carry the same links.
+
 ### Four headline figures, money first
 
 The first card is now what ranking the sixteen models cost: $0.67 for a hundred adaptively chosen questions each against $14.67 for every question, with the agreement each reaches. Then "10 as good as 127", the share of the bank that measures nothing, and a new fourth: the 2.7% of answers that change when the same model is asked the same question again. Every figure is read from the data the page already loads.
