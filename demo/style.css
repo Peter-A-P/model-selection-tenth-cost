@@ -254,6 +254,8 @@ code { font-family: var(--mono); font-size: 0.9em; }
 
 /* "10 as good as 127": the words between the two figures are set small, so the comparison
    reads as two numbers rather than a sentence. */
+/* The costlier side of a comparison, in red: what the method is being measured against. */
+.point-figure .point-worse { color: var(--warn); }
 .point-joiner { font-family: var(--sans); font-size: 0.95rem; font-weight: 600; letter-spacing: 0; color: var(--ink-soft); }
 
 .point-unit {
