@@ -566,34 +566,14 @@ function setupHero() {
   const own = state.curves.panels.find((p) => p.key === "own");
   const v1 = state.curves.panels.find((p) => p.key === "v1");
   const hundred = own.cost.find((c) => c.items === 100);
-  // The title and the paragraph under it: what a hundred well-chosen questions per model cost
-  // against asking every model everything, and how close the two rankings come. Written in the
-  // markup as well, so the page reads right before this runs, and replaced here from the data.
+  // The money card: a hundred well-chosen questions per model against every question, and how
+  // close the two rankings come, both with their intervals.
   const adaptive100 = own.curve.find((p) => p.method === "adaptive" && p.items === 100);
-  for (const id of ["title-short", "lead-short"]) {
-    document.getElementById(id).textContent = money(hundred.usd_adaptive);
-  }
-  for (const id of ["title-full", "lead-full"]) {
-    document.getElementById(id).textContent = money(own.full_suite_usd);
-  }
-  document.getElementById("lead-items").textContent = own.n_items.toLocaleString("en-CA");
-  document.getElementById("lead-tau").textContent =
-    `${adaptive100.tau.toFixed(3)} (95% interval ${adaptive100.lo.toFixed(3)} to ` +
-    `${adaptive100.hi.toFixed(3)})`;
-  document.getElementById("lead-tau-full").textContent =
-    `${own.transfer.point.toFixed(3)} (${own.transfer.lo.toFixed(3)} to ${own.transfer.hi.toFixed(3)})`;
-
-  // Decision models: how many, and where the best of them lands among the text models on the
-  // same questions and the same scale.
-  const deciders = state.decisions.models.filter((m) => m.kind === "decision");
-  const texts = state.decisions.models.filter((m) => m.kind === "text");
-  const best = [...deciders].sort((x, y) => y.ability - x.ability)[0];
-  const below = texts.filter((m) => m.ability < best.ability).length;
-  document.getElementById("hero-deciders").textContent = String(deciders.length);
-  document.getElementById("hero-deciders-label").textContent =
-    `They answer with a probability per option instead of text. The best, ${best.label}, places ` +
-    `above ${below} of the ${texts.length} text models, for ${money(best.full_usd)} across all ` +
-    `${state.decisions.n_items.toLocaleString("en-CA")} multiple-choice questions.`;
+  document.getElementById("hero-cost").textContent = money(hundred.usd_adaptive);
+  document.getElementById("hero-full").textContent = money(own.full_suite_usd);
+  document.getElementById("hero-cost-label").textContent =
+    `About the same ranking: agreement ${adaptive100.tau.toFixed(3)} (${adaptive100.lo.toFixed(3)} ` +
+    `to ${adaptive100.hi.toFixed(3)}) against ${own.transfer.point.toFixed(3)} for every question.`;
 
   document.getElementById("hero-items").textContent = String(v1.equivalent.adaptive_items);
   document.getElementById("hero-random").textContent = String(

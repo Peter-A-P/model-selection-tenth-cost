@@ -5,9 +5,9 @@ itself is stable within a minor version, and everything else in the package is i
 
 ## Unreleased
 
-### The page opens with the money, and four headline figures
+### Four headline figures, money first
 
-The title is now what ranking the sixteen models cost: $0.67 for a hundred adaptively chosen questions each against $14.67 for every question, with the paragraph under it giving the agreement both reach, with intervals. The headline cards are four: seventeen decision models on the text models' scale, "10 as good as 127", the share of the bank that measures nothing, and the 2.7% of answers that change when the same model is asked again. Every figure is read from the data the page already loads.
+The first card is now what ranking the sixteen models cost: $0.67 for a hundred adaptively chosen questions each against $14.67 for every question, with the agreement each reaches. Then "10 as good as 127", the share of the bank that measures nothing, and a new fourth: the 2.7% of answers that change when the same model is asked the same question again. Every figure is read from the data the page already loads.
 
 ### The page opens on DeepSeek-V4.1-Flash against jev-1.14
 
