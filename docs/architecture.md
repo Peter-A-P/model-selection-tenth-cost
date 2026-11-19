@@ -8,7 +8,7 @@ loop, and how each published number is produced. For the reasoning behind the de
 
 ## The system
 
-![Public per-item results are frozen into two banks and fitted by item response theory; the diagnostics name the items that measure nothing; the adaptive test runs against twelve current models' recorded answers and against simulation; the report and the demo are written from the same artefacts, and the power function is what project 03 imports.](architecture/system.svg)
+![Public per-item results are frozen into two banks and fitted by item response theory; the diagnostics name the items that measure nothing; the adaptive test runs against sixteen current models' recorded answers and against simulation; the report and the demo are written from the same artefacts, and the power function is what project 03 imports.](architecture/system.svg)
 
 The diagram reads left to right: the question bank, the test, and what gets published.
 
@@ -19,7 +19,7 @@ standardised exams. That gives every question a difficulty and a measure of how 
 separates stronger models from weaker ones, each with a standard error. Diagnostics then name
 the questions that measure nothing, with the evidence for each.
 
-The test runs against real answers. Twelve current models were asked the frozen 3,000-question
+The test runs against real answers. Sixteen current models were asked the frozen 3,000-question
 suite through the portfolio's gateway, which capped the spend and recorded every call. The
 adaptive test asks one question at a time and stops as soon as it knows enough. It runs against
 those recorded answers, so it is tested on models the fit never saw. Three experiments on the
@@ -70,8 +70,8 @@ The fit writes each question's parameters and the list of broken questions from 
 banks. The simulation writes the curve of ranking accuracy against the number of questions
 asked, adaptive against random, on models held out of the fit.
 
-The results on real models come from one paid run: the 3,000-question suite put to twelve
-current models through the gateway for US$18.25. Reading those records back costs nothing, and
+The results on real models come from paid runs: the 3,000-question suite put to sixteen
+current models through the gateway for US$18.25 in September and US$4.17 in November. Reading those records back costs nothing, and
 that is where the transfer result and the cost per ranking decision come from. The three
 experiments asked the same models again and added two prompt templates for US$3.38, so each
 template is judged against the noise measured under that same template. A cross-bank check asks

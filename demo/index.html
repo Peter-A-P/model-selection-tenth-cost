@@ -4,14 +4,14 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Model Selection at a Tenth of the Cost: ask ten questions, not three thousand</title>
-<meta name="description" content="Run an adaptive test against twelve real language models, question by question, on the recorded answers of a benchmark run. Ten well-chosen questions rank a shortlist as well as 127 random ones. Every number is reproducible from the repository.">
+<meta name="description" content="Run an adaptive test against sixteen real language models, question by question, on the recorded answers of a benchmark run. Ten well-chosen questions rank a shortlist as well as 127 random ones. Every number is reproducible from the repository.">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="icon.png">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Peter Parker">
 <meta property="og:url" content="https://adaptive.peterparker.ca/">
 <meta property="og:title" content="Model Selection at a Tenth of the Cost">
-<meta property="og:description" content="Run an adaptive test against twelve real language models, question by question, on the recorded answers of a benchmark run. Ten well-chosen questions rank a shortlist as well as 127 random ones. Every number is reproducible from the repository.">
+<meta property="og:description" content="Run an adaptive test against sixteen real language models, question by question, on the recorded answers of a benchmark run. Ten well-chosen questions rank a shortlist as well as 127 random ones. Every number is reproducible from the repository.">
 <meta property="og:image" content="https://adaptive.peterparker.ca/og.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
@@ -60,7 +60,7 @@
       </div>
       <div class="point good">
         <span class="point-figure" id="hero-cost">...</span>
-        <span class="point-unit">to rank twelve models</span>
+        <span class="point-unit">to rank sixteen models</span>
         <span class="point-label" id="hero-cost-label">against the price of asking all of them everything</span>
       </div>
       <div class="point violet">
@@ -70,9 +70,7 @@
       </div>
     </div>
     <p class="hero-note">
-      Twelve current models from four vendors and a laptop, <span id="hero-suite">2,816</span>
-      scored questions, and the answers the models actually gave, recorded in September 2026 by
-      putting the 3,000-question suite to them for US$18.25. The adaptive test runs in your
+      Sixteen current models from four vendors and a laptop, <span id="hero-suite">2,754</span> scored questions, and the answers the models actually gave, recorded in September and November 2026 by putting the 3,000-question suite to them for US$18.25 and then US$4.17. The adaptive test runs in your
       browser against those answers; it can only replay what was asked and paid for, and it never
       invents a response. Every number can be reproduced from
       <a href="https://github.com/Peter-A-P/model-selection-tenth-cost">the public repository</a>.
@@ -212,7 +210,7 @@
         <strong>Try <code>anthropic-sonnet</code> against <code>openai-frontier</code>, which the method cannot settle.</strong>
         Both estimates run to the end of the bank's ability scale and stop there, because the
         selector asks for questions it believes are a coin flip at that level and these two get
-        about nine in ten of them right. Only 253 of the 2,816 questions are harder than +3, so the
+        about nine in ten of them right. Only 236 of the 2,754 questions are harder than +3, so the
         suite has run out of questions that could tell them apart, and the tight-looking interval is
         a wall rather than evidence. The item parameters were fitted on 150 models evaluated between
         2023 and 2025; a bank calibrated on that panel measures the top of a 2026 shortlist poorly,
@@ -248,32 +246,32 @@
     <details class="disclose">
       <summary>For the technical reader: where the answers and the dollars come from</summary>
       <p>
-        <strong>Three of the twelve cost nothing in dollars, and they are not free.</strong> The
+        <strong>Three of the sixteen cost nothing in dollars, and they are not free.</strong> The
         three models on a laptop were billed in hours rather than tokens: the full suite took
         <span id="local-hours">nine hours</span> of laptop CPU for the 7B, against about an hour
         for a hosted model over the network, and that machine can do nothing else meanwhile. Both
         figures come from the same ledger, which recorded a price and a latency for every call, so
-        a short test is priced in whichever currency the model is actually paid for. The three
+        a short test is priced in whichever currency the model is actually paid for. The four
         Anthropic models have no per-call time at all, because this project sends them through the
         Message Batches endpoint at half price and a call inside a batch has no latency worth
         reporting; the page says so rather than showing a zero.
       </p>
       <p>
-        Nothing here is simulated. The answers are the ones the twelve models gave when they were
-        administered the frozen suite in September 2026, one bit per cell, and the dollars are the
+        Nothing here is simulated. The answers are the ones the sixteen models gave when they were
+        administered the frozen suite in September and November 2026, one bit per cell, and the dollars are the
         ones the gateway's ledger recorded for those exact calls. The arithmetic, about two hundred
         lines, is in <code>irt.js</code> beside this page. The item parameters were fitted to 150
-        other models from a public evaluation archive, and <strong>not one of the twelve models here
+        other models from a public evaluation archive, and <strong>not one of the sixteen models here
         was in that fit</strong>, so the questions were measured before these models existed.
       </p>
     </details>
 
-    <h3>One pair is an anecdote. Here are all sixty-six.</h3>
+    <h3>One pair is an anecdote. Here are all hundred and twenty.</h3>
     <p>
-      Every pair of the twelve models, both methods, same budget, in your browser. It takes a few
+      Every pair of the sixteen models, both methods, same budget, in your browser. It takes a few
       seconds and nothing is fetched to do it.
     </p>
-    <p><button type="button" id="sweep" class="primary">Run all 66 pairs</button>
+    <p><button type="button" id="sweep" class="primary">Run all 120 pairs</button>
       <span class="note" id="sweep-progress"></span></p>
     <div class="headline" id="sweep-stats" hidden></div>
     <p class="verdict" id="sweep-verdict" hidden></p>
@@ -294,7 +292,7 @@
     <h2>The whole idea in one picture</h2>
     <p class="section-lead">
       Six steps. The order matters: every question is measured on other models first, so the
-      twelve models on this page are tested by a bank that has never seen them.
+      sixteen models on this page are tested by a bank that has never seen them.
     </p>
     <ol class="pipeline steps-6">
       <li><span class="step">1</span><strong>Gather</strong><span>Public per-question results from HELM and the Open LLM Leaderboard.</span></li>
@@ -302,12 +300,12 @@
       <li><span class="step">3</span><strong>Calibrate</strong><span>Give every question a difficulty and a sharpness, by item response theory.</span></li>
       <li class="key"><span class="step">4</span><strong>Ask</strong><span>Put the question that tells the most about this model, one at a time.</span></li>
       <li><span class="step">5</span><strong>Stop</strong><span>When the two models' ranges no longer overlap, or the budget runs out.</span></li>
-      <li><span class="step">6</span><strong>Check</strong><span>Against twelve current models the fit never saw.</span></li>
+      <li><span class="step">6</span><strong>Check</strong><span>Against sixteen current models the fit never saw.</span></li>
     </ol>
     <div class="verdict">
       <p>
         <strong>The questions were measured before the models were.</strong> Not one of the
-        twelve models on this page was in the fit, so the test is judged on models it had never
+        sixteen models on this page was in the fit, so the test is judged on models it had never
         seen.
       </p>
     </div>
@@ -381,7 +379,7 @@
           <tbody>
             <tr><td>Asked of a shortlist of five</td><td class="num" id="power-five"></td></tr>
             <tr><td>At the price this panel's calls cost</td><td class="num" id="power-price"></td></tr>
-            <tr><td>Share of the 2,816-question suite</td><td class="num" id="power-share"></td></tr>
+            <tr><td>Share of the 2,754-question suite</td><td class="num" id="power-share"></td></tr>
           </tbody>
         </table>
         <p class="power-note">
@@ -422,7 +420,7 @@
   <section class="section" id="hidden">
     <h2>Three things a single score cannot tell you</h2>
     <p class="section-lead">
-      The same twelve models, measured three more ways. Each of these is cheap to run and almost
+      Twelve of the same models, the ones run in September, measured three more ways. Each of these is cheap to run and almost
       nobody publishes them, which is why a two-point drop in a leaderboard gets a headline it has
       not earned.
     </p>
@@ -489,9 +487,9 @@
         </p>
       </div>
       <div class="takeaway">
-        <h3>Twelve models is twelve models</h3>
+        <h3>Sixteen models is sixteen models</h3>
         <p>
-          The live half of this page rests on twelve models spanning 0.54 to 0.94 accuracy across
+          The live half of this page rests on sixteen models spanning 0.55 to 0.93 accuracy across
           four vendors and a laptop. That settles that the question parameters transfer at all. It
           is too few to rank methods against each other, and every interval in it is wide and
           published wide.
@@ -518,7 +516,7 @@
     <div class="headline">
       <div class="stat"><span class="figure">280</span><span class="caption">automated tests</span></div>
       <div class="stat"><span class="figure">13,000</span><span class="caption">lines of typed Python in the package, strict type checking and linting clean in CI</span></div>
-      <div class="stat"><span class="figure">US$18.25</span><span class="caption">to put the 3,000-question suite to the panel, every call capped and logged</span></div>
+      <div class="stat"><span class="figure">US$22.42</span><span class="caption">to put the 3,000-question suite to sixteen models, every call capped and logged</span></div>
       <div class="stat"><span class="figure">&lt;1 min</span><span class="caption">to fit 150 models by 20,365 questions, exactly, in NumPy</span></div>
     </div>
     <ul class="chips" aria-label="Tools and techniques">
@@ -533,7 +531,7 @@
     <details class="disclose">
       <summary>For the technical reader: the choices that are easy to get wrong</summary>
       <ul>
-        <li><strong>The twelve test models are held out of every fit.</strong> The item parameters come from 150 other models, read and not refitted, so the transfer result is on models the bank had never seen.</li>
+        <li><strong>The sixteen test models are held out of every fit.</strong> The item parameters come from 150 other models, read and not refitted, so the transfer result is on models the bank had never seen.</li>
         <li><strong>Two banks, from different sources.</strong> 400 open-weight models from the Open LLM Leaderboard repeat the whole method, and the 998 questions the two banks share put a number on whether difficulty carries over.</li>
         <li><strong>Questions are not independent, and the correction ships.</strong> Local dependence is measured per benchmark (8% to 31% of pairs above Q3 0.2), and the power calculation treats its answers as a floor.</li>
         <li><strong>Every paid call goes through one gateway</strong> that caps spend and records a price and latency per call, so a short test is priced from the ledger rather than estimated.</li>
@@ -551,7 +549,7 @@
       panel, so I ran the whole method again on questions from a different source, scored by
       different software, on a different kind of model, and used the 998 questions the two banks
       share to put a number on whether question difficulty carries over. The other is that I paid
-      to put twelve current models through the suite and kept all twelve out of the fit, so the
+      to put sixteen current models through the suite and kept all sixteen out of the fit, so the
       test is judged on models it had never seen. The first thing the data rejected was my own
       headline assumption, that adaptive testing could replace the benchmark score at any budget.
       Past about two hundred questions it cannot, and the chart above shows where.
@@ -589,7 +587,7 @@
       <a href="https://peterparker.ca/projects/model-selection/">peterparker.ca</a>.
     </p>
     <ul>
-      <li>Data: the public per-item releases of HELM and the Open LLM Leaderboard; the twelve models' answers recorded by this project in September 2026</li>
+      <li>Data: the public per-item releases of HELM and the Open LLM Leaderboard; the sixteen models' answers recorded by this project in September and November 2026</li>
       <li>Type: Newsreader and Inter, SIL Open Font License, served from this host</li>
       <li id="footer-provenance"></li>
     </ul>

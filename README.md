@@ -6,11 +6,7 @@ re-evaluating models every month, that is a day instead of a week and tens of do
 of thousands, and it names the benchmark questions that were never measuring anything.
 
 **[Run the adaptive test yourself at adaptive.peterparker.ca](https://adaptive.peterparker.ca)**:
-pick two of the twelve models this project paid to run, and watch the test ask one question at a
-time until the two are separated, beside the same two models being asked questions at random. It
-is the real procedure on the real recorded answers, it runs in the browser, and most pairs are
-settled inside a hundred questions for a few cents. There is a button that runs all sixty-six
-pairs at once, which is the same claim without having to take one run's word for it.
+pick two of the sixteen models this project paid to run, and watch the test ask one question at a time until the two are separated, beside the same two models being asked questions at random. It is the real procedure on the real recorded answers, it runs in the browser, and most pairs are settled inside a hundred questions for a few cents. There is a button that runs all hundred and twenty pairs at once, which is the same claim without having to take one run's word for it.
 
 Item response theory, the psychometrics behind every standardised test, fitted to a matrix of
 150 language models by 20,365 benchmark items built from the public HELM per-item releases.
@@ -45,12 +41,12 @@ transfer" into a number. [Both are below.](#does-it-replicate-a-second-bank-from
 | Reliability: the same model answering the same item twice | 93.6% agreement (n = 6,000 repeated cells) |
 | Differential item functioning, open weights vs API only | 128 items flagged (0.9%) |
 | Test-retest: the same 500 items asked twice at temperature 0, a day apart | hosted models agree **0.936** (0.912 to 0.956) to 0.984 (0.972 to 0.994); the two on a laptop agree 0.998 and 1.000 |
-| How much a benchmark score moves with nothing changed | **up to 2.0 points**, median 0.4, and symmetric (84 flips to right against 85 to wrong, p = 1.00), so it is a random walk rather than drift. A drop smaller than that is noise |
+| How much a benchmark score moves with nothing changed | **up to 2.0 points**, median 0.2, and symmetric (75 flips to right against 88 to wrong, p = 0.35), so it is a random walk rather than drift. A drop smaller than that is noise |
 | Option order: the same 300 questions asked 4 times with the answer in a different position | every one of 12 models is worse when the answer is at A than at C or D (11/12); items that flip on order alone, net of the model's own instability, run from **0.9%** (0.0% to 3.5%) on `openai-frontier` to **42.9%** (37.6% to 48.6%) on `local-small-a` |
 | What this project's answer-only prompt costs against letting the model reason briefly, over 300 items and 3 templates | **nothing for 10 of 12 models** (interval spans zero); the template explains at most **0.3%** of the variance in correctness. The exceptions are `anthropic-haiku` at 5.0% (2.0% to 8.4%), `local-mid-a` at 4.4% (0.7% to 7.8%) |
-| Does this bank rank models it was never fitted on? 12 current models, 2,816 items each, parameters read and not refitted | Kendall's tau **0.879** (0.682 to 1.000) |
-| Adaptive items needed to rank those 12 models as well as all 2,816 do | **100 items** (3.6% of the suite), tau 0.879 (0.695 to 1.000) |
-| Cost per ranking decision, in dollars | **US$0.73** against US$15.97 to ask every item, 4.6% |
+| Does this bank rank models it was never fitted on? 16 current models, 2,754 items each, parameters read and not refitted | Kendall's tau **0.883** (0.730 to 1.000) |
+| Adaptive items needed to rank those 16 models as well as all 2,754 do | **150 items** (5.4% of the suite), tau 0.933 (0.820 to 1.000) |
+| Cost per ranking decision, in dollars | **US$1.01** against US$14.67 to ask every item, 6.9% |
 
 Bank `v1` (`4a9871d69f3360d8`): 150 models x 20,365 items, 1,648,626 recorded responses from the public HELM per-item releases. Fitted with marginal maximum a posteriori by Bock-Aitkin EM, 61-point normal quadrature. Regenerate with `mselect report --version v1`.
 <!-- mselect:results:end -->
@@ -87,7 +83,7 @@ suite average, and those two rankings agree only at tau 0.92 even with every ite
 you want the benchmark's own average, sample randomly and score it directly. If you want to know
 which model is better, ask ten well-chosen questions.
 
-**The twelve models, named.** Everything else in this repository addresses the panel by alias,
+**The sixteen models, named.** Everything else in this repository addresses the panel by alias,
 because a vendor renaming a model must not break the code. That is the wrong unit for a reader,
 so the mapping is published here, taken from the identifier each vendor returned on the call
 rather than from the configuration that asked for it.
@@ -95,18 +91,22 @@ rather than from the configuration that asked for it.
 <!-- mselect:panel:start -->
 | Alias | The model that answered | Where it ran | Accuracy | The full suite cost |
 |---|---|---|---:|---|
-| `google-frontier` | `gemini-3.8-flash` | hosted, through the gateway | 93.6% | US$2.59, 1.3 hours |
-| `anthropic-opus` | `claude-opus-5` | hosted, through the gateway | 92.1% | US$4.30, as a batch, so untimed |
-| `anthropic-sonnet` | `claude-sonnet-5` | hosted, through the gateway | 89.9% | US$1.26, as a batch, so untimed |
-| `openai-frontier` | `gpt-5.6-sol` | hosted, through the gateway | 89.4% | US$4.24, 1.3 hours |
-| `google-mid` | `gemini-3.5-flash-lite` | hosted, through the gateway | 88.7% | US$1.19, 0.8 hours |
-| `together-open-b` | `openai/gpt-oss-120b` | hosted, through the gateway | 85.7% | US$0.36, 0.7 hours |
-| `anthropic-haiku` | `claude-haiku-4-5-20251001` | hosted, through the gateway | 84.7% | US$0.59, as a batch, so untimed |
-| `together-open-a` | `meta-llama/Llama-3.3-70B-Instruct-Turbo` | hosted, through the gateway | 82.8% | US$0.95, 1.7 hours |
-| `openai-mid` | `gpt-5.4-mini-2026-03-17` | hosted, through the gateway | 79.5% | US$0.50, 0.5 hours |
-| `local-mid-a` | `qwen2.5:7b` | a laptop, through ollama | 64.5% | US$0.00, and 8.7 hours of laptop |
-| `local-small-a` | `llama3.2:3b` | a laptop, through ollama | 54.2% | US$0.00, and 5.0 hours of laptop |
-| `local-small-b` | `qwen2.5:3b` | a laptop, through ollama | 54.1% | US$0.00, and 3.4 hours of laptop |
+| `google-frontier` | `gemini-3.8-flash` | hosted, through the gateway | 93.4% | US$1.48, 1.9 hours |
+| `anthropic-opus` | `claude-opus-5` | hosted, through the gateway | 92.5% | US$4.07, as a batch, so untimed |
+| `anthropic-sonnet` | `claude-sonnet-5` | hosted, through the gateway | 90.5% | US$1.20, as a batch, so untimed |
+| `openai-frontier` | `gpt-5.6-sol` | hosted, through the gateway | 89.6% | US$3.92, 1.2 hours |
+| `google-mid` | `gemini-3.5-flash-lite` | hosted, through the gateway | 89.4% | US$1.14, 0.7 hours |
+| `anthropic-haiku-b` | `claude-haiku-5-5` | hosted, through the gateway | 89.2% | US$0.17, as a batch, so untimed |
+| `openai-mid-b` | `gpt-6-luna` | hosted, through the gateway | 88.6% | US$0.18, 1.4 hours |
+| `together-open-d` | `Qwen/Qwen3.8-Flash` | hosted, through the gateway | 86.2% | US$0.15, 1.5 hours |
+| `together-open-c` | `deepseek-ai/DeepSeek-V4.1-Flash-1017` | hosted, through the gateway | 85.9% | US$0.19, 0.2 hours |
+| `anthropic-haiku` | `claude-haiku-4-5-20251001` | hosted, through the gateway | 85.5% | US$0.56, as a batch, so untimed |
+| `together-open-b` | `openai/gpt-oss-120b` | hosted, through the gateway | 84.6% | US$0.20, 0.5 hours |
+| `together-open-a` | `meta-llama/Llama-3.3-70B-Instruct-Turbo` | hosted, through the gateway | 83.6% | US$0.92, 1.6 hours |
+| `openai-mid` | `gpt-5.4-mini-2026-03-17` | hosted, through the gateway | 80.3% | US$0.49, 0.5 hours |
+| `local-mid-a` | `qwen2.5:7b` | a laptop, through ollama | 65.0% | US$0.00, and 8.5 hours of laptop |
+| `local-small-a` | `llama3.2:3b` | a laptop, through ollama | 55.0% | US$0.00, and 4.9 hours of laptop |
+| `local-small-b` | `qwen2.5:3b` | a laptop, through ollama | 54.7% | US$0.00, and 3.3 hours of laptop |
 <!-- mselect:panel:end -->
 
 These are the identifiers as the vendors returned them, dated snapshot and hosting prefix
@@ -119,38 +119,15 @@ rather than part of its name.
 The last column is two currencies on purpose. Three of these models cost nothing in dollars and
 hours of a laptop that could do nothing else while they ran, and a table that prints US$0.00 and
 stops tells a team with its own hardware that evaluation is free. It is not: it is paid in a
-machine rather than an invoice, and a short test saves that just as surely. The three Anthropic
+machine rather than an invoice, and a short test saves that just as surely. The four Anthropic
 models have no time at all, because this project sends them through the Message Batches endpoint
 at half price and a call inside a batch has no latency worth reporting.
 
-**The own-run panel reproduces that ceiling on models the bank never saw, which is the version
-of the result that counts.** Twelve current models from four vendors, 2,816 items each, asked
-through this repository's own prompts and parser; the item parameters were read from the bank
-and nothing was refitted. They rank at Kendall's tau 0.879, and 100 adaptively chosen items
-reach that same 0.879 for US$0.73 against US$15.97 to ask everything. The ceiling is lower here
-than on the public bank and the reason is the same construct gap, now measured twice: ability
-and suite average are different quantities, and no number of items closes the distance between
-them. Below 200 items adaptive selection leads at every checkpoint; from 200 on the two are
-indistinguishable, with a plain random sample ahead at 200, 300 and 750 items and behind at 500
-and 1,000, every interval overlapping.
+**Four models joined on 2026-11-17, and running them found a defect in two of the September rows.** `claude-haiku-5-5`, `gpt-6-luna`, `DeepSeek-V4.1-Flash-1017` and `Qwen3.8-Flash` were asked the same suite through the same answer-only prompt for US$0.86 together. Two of them think before answering unless told not to, so their requests carry a setting that switches it off, and checking that the setting arrived showed that from 2026-09-12 `mselect run` had never sent any per-model setting, while the request hash recorded them as sent. Two September models had one: `gemini-3.8-flash`, meant to have its thinking budget set to zero, and `gpt-oss-120b`, meant to have reasoning set low. Both were asked the whole suite again, every template and option rotation, with the settings actually sent, for US$3.31, and the September records are kept beside the new ones in `out/v1/superseded-2026-11-17/`. Neither moved much: on the answer-only template `gemini-3.8-flash` went from 92.8% (91.8% to 93.7%) of the questions it answered to 92.3% (91.3% to 93.2%), and `gpt-oss-120b` from 84.6% (83.2% to 85.8%) to 83.1% (81.7% to 84.4%) on 60% fewer output tokens. One limit stays: Gemini 3.8 Flash cannot switch thinking off entirely, only down to a minimum, so its row is a model that thought a little.
 
-**At the top of the panel the suite runs out of questions, and the estimator says so by
-saturating.** The ability grid this estimator carries runs from -4.5 to +4.5. Asked to place the
-two strongest models, the adaptive test lands `anthropic-sonnet` at +4.37 where scoring the whole
-suite puts it at +3.73, and `openai-frontier` at +4.47 against +3.19, so their intervals are
-narrow against a boundary rather than narrow on evidence and the pairwise rule never separates
-them. The cause is countable: only 90 of the 2,816 suite items are both harder than +3 and
-discriminating enough to measure with, and the models get 85 to 92 percent of the items the
-selector picks right, where a well-targeted item should be close to a coin flip. The bias is in
-the same direction all the way down the panel, at +0.2 for a 7B on a laptop and +1.3 for a
-frontier model, which is what a bank fitted on 150 models evaluated between 2023 and 2025 does
-when it is pointed at a 2026 shortlist: those models beat its expectations on exactly the sharp
-items maximum-information selection prefers. Rankings survive it, because a monotone bias does
-not reorder anything, but at the top it compresses four models into the last tenth of the scale,
-which is one reason the own-run curve plateaus. **Treat an estimate within half a point of the
-grid edge as unmeasured**, and for a frontier-against-frontier comparison bring harder items.
-[adaptive.peterparker.ca](https://adaptive.peterparker.ca) draws that edge and names it, because
-a curve flattened against a wall otherwise reads as precision.
+**The own-run panel reproduces that ceiling on models the bank never saw, which is the version of the result that counts.** Sixteen current models from four vendors, 2,754 items each, asked through this repository's own prompts and parser; the item parameters were read from the bank and nothing was refitted. They rank at Kendall's tau 0.883 (0.730 to 1.000), and 150 adaptively chosen items reach 0.933 (0.820 to 1.000) for US$1.01 against US$14.67 to ask everything; 100 items reach 0.867 (0.725 to 0.965) for US$0.67. The ceiling is lower here than on the public bank and the reason is the same construct gap, now measured twice: ability and suite average are different quantities, and no number of items closes the distance between them. Adaptive selection is ahead of a plain random sample at every checkpoint except 750 items, and every interval overlaps, because sixteen models is a small sample. These figures moved when four models joined in November: on the twelve run in September, over 2,816 items, the same rows read tau 0.879, and 100 items reaching it for US$0.73 against US$15.97. The common frame shrank to 2,754 items because an item any one model left unanswered leaves it for all of them.
+
+**At the top of the panel the suite runs out of questions, and the estimator says so by saturating.** The ability grid this estimator carries runs from -4.5 to +4.5. Asked to place the strongest models, the adaptive test lands `anthropic-sonnet` at +4.38 where scoring the whole suite puts it at +3.72, and `openai-frontier` at +4.47 against +3.20, so their intervals are narrow against a boundary rather than narrow on evidence and the pairwise rule never separates them. The cause is countable: only 82 of the 2,754 suite items are both harder than +3 and discriminating enough to measure with, and the models above +3 get 82 to 93 percent of the items the selector picks right, where a well-targeted item should be close to a coin flip. The bias is in the same direction all the way down the panel, at +0.3 for a 7B on a laptop and +1.3 for a frontier model, which is what a bank fitted on 150 models evaluated between 2023 and 2025 does when it is pointed at a 2026 shortlist: those models beat its expectations on exactly the sharp items maximum-information selection prefers. Rankings survive it, because a monotone bias does not reorder anything, but at the top it compresses seven of the sixteen models into the last half point of the scale, which is one reason the own-run curve plateaus. **Treat an estimate within half a point of the grid edge as unmeasured**, and for a frontier-against-frontier comparison bring harder items. [adaptive.peterparker.ca](https://adaptive.peterparker.ca) draws that edge and names it, because a curve flattened against a wall otherwise reads as precision.
 
 Three more limits worth stating before the method is used for anything:
 
@@ -165,14 +142,64 @@ Three more limits worth stating before the method is used for anything:
   question arrives under two ids. They are reported rather than deduplicated, because a bank that
   silently drops items is one whose count nobody can check, and they are the exact end of the
   local dependence scale that [docs/diagnostics.md](docs/diagnostics.md) measures with Q3.
-- The own-run validation is twelve models, not a hundred. It is the right twelve, spanning
-  0.54 to 0.94 accuracy across four vendors and a laptop, but a bootstrap over twelve models
-  is wide: every interval in that part of the table overlaps every other. What it settles is
+- The own-run validation is sixteen models, not a hundred. They span 0.55 to 0.93 accuracy across four vendors and a laptop, but a bootstrap over sixteen models is wide: every interval in that part of the table overlaps every other. What it settles is
   that the parameters transfer at all. What it cannot settle is a ranking of methods.
 - `items_needed` is optimistic for large effects. Against the simulation it is well calibrated
   for small gaps and over-promises for big ones (88 percent predicted against 42 percent
   observed for models 5 to 10 points apart at ten items), because it assumes items are locally
   independent and they are not. Treat it as a floor. [PLAN.md](PLAN.md) section 13.6.
+
+## Decision models on the same ruler
+
+A decision model returns a probability for each option and no text. A multiple-choice question is already that shape: the question is the state and its options are the choices. So seventeen decision models were asked the bank's own multiple-choice items, in the order and with the answer key the text models had, scored right or wrong from the option given the highest probability, and placed on the same ability scale by the same fixed item parameters, with nothing refitted. That is the point of a calibrated bank: a new kind of model needs no new benchmark, it needs the same ruler. The free-response items (MATH and GSM8K, about 7% of the suite) have no options and were not asked. Fourteen of the decision models are hosted and were reached through OpenRouter for US$0.41 in all, 2,783 questions each; three ran on this laptop. Every probability is kept in the record, so whether a 0.8 is right eight times in ten can be measured later from the same files.
+
+<!-- mselect:decision:start -->
+Scored on the 2,454 multiple-choice items that all 17 decision models and all 16 text models answered.
+
+| Model | Kind | Where it ran | Accuracy (95% interval) | Ability (95% interval) | The full suite cost |
+|---|---|---|---:|---:|---|
+| `gemini-3.8-flash` | text | hosted | 93.7% (92.7% to 94.6%) | +4.47 (+4.34 to +4.60) | see above |
+| `gpt-5.6-sol` | text | hosted | 92.3% (91.2% to 93.3%) | +4.45 (+4.28 to +4.62) | see above |
+| `claude-opus-5` | text | hosted | 92.7% (91.7% to 93.7%) | +4.42 (+4.20 to +4.63) | see above |
+| `gpt-6-luna` | text | hosted | 91.3% (90.1% to 92.4%) | +4.41 (+4.18 to +4.63) | see above |
+| `typesafe/jev-1.14-20261014` | decision | hosted, through OpenRouter | 90.1% (88.9% to 91.3%) | +4.28 (+3.97 to +4.60) | US$0.055 |
+| `gemini-3.5-flash-lite` | text | hosted | 90.1% (88.9% to 91.3%) | +4.12 (+3.78 to +4.47) | see above |
+| `claude-sonnet-5` | text | hosted | 91.1% (89.9% to 92.2%) | +4.05 (+3.70 to +4.40) | see above |
+| `typesafe/jev-1.13-20260917` | decision | hosted, through OpenRouter | 90.4% (89.2% to 91.5%) | +3.95 (+3.60 to +4.29) | US$0.055 |
+| `Qwen/Qwen3.8-Flash` | text | hosted | 88.9% (87.6% to 90.1%) | +3.90 (+3.56 to +4.24) | see above |
+| `google/gemini-decision-1-20261111` | decision | hosted, through OpenRouter | 89.1% (87.8% to 90.3%) | +3.51 (+3.20 to +3.82) | US$0.065 |
+| `claude-haiku-5-5` | text | hosted | 89.2% (88.0% to 90.4%) | +3.49 (+3.18 to +3.80) | see above |
+| `deepseek-ai/DeepSeek-V4.1-Flash-1017` | text | hosted | 87.1% (85.7% to 88.4%) | +3.36 (+3.06 to +3.66) | see above |
+| `perplexity/pplx-decider-v1.3-20261112` | decision | hosted, through OpenRouter | 87.8% (86.5% to 89.1%) | +3.33 (+3.04 to +3.63) | US$0.000 |
+| `liquid/d1.2-ultra-20261116` | decision | hosted, through OpenRouter | 88.0% (86.6% to 89.2%) | +3.30 (+3.01 to +3.60) | US$0.020 |
+| `perplexity/pplx-decider-v1.2-20261016` | decision | hosted, through OpenRouter | 87.9% (86.5% to 89.1%) | +3.27 (+2.98 to +3.57) | US$0.013 |
+| `liquid/d1.2-20261116` | decision | hosted, through OpenRouter | 87.5% (86.1% to 88.7%) | +3.12 (+2.84 to +3.40) | US$0.010 |
+| `claude-haiku-4-5-20251001` | text | hosted | 87.6% (86.2% to 88.8%) | +3.10 (+2.82 to +3.38) | see above |
+| `nace-ai/drex-max-20261016` | decision | hosted, through OpenRouter | 87.4% (86.1% to 88.7%) | +3.05 (+2.78 to +3.33) | US$0.038 |
+| `microsoft/microsoft-decision-1.1-20261117` | decision | hosted, through OpenRouter | 85.9% (84.5% to 87.3%) | +2.78 (+2.52 to +3.04) | US$0.020 |
+| `nace-ai/drex-v2.0-20261009` | decision | hosted, through OpenRouter | 84.3% (82.8% to 85.7%) | +2.57 (+2.32 to +2.82) | US$0.027 |
+| `meta-llama/Llama-3.3-70B-Instruct-Turbo` | text | hosted | 83.5% (82.0% to 84.9%) | +2.44 (+2.20 to +2.68) | see above |
+| `openai/gpt-oss-120b` | text | hosted | 84.9% (83.4% to 86.2%) | +2.34 (+2.11 to +2.58) | see above |
+| `gpt-5.4-mini-2026-03-17` | text | hosted | 82.8% (81.3% to 84.3%) | +2.32 (+2.08 to +2.55) | see above |
+| `openai/gpt-6-luna-decisions-20261006` | decision | hosted, through OpenRouter | 82.9% (81.3% to 84.3%) | +2.17 (+1.94 to +2.40) | US$0.070 |
+| `perplexity/pplx-decider-flash-v1.2-20261016` | decision | hosted, through OpenRouter | 78.6% (77.0% to 80.2%) | +1.36 (+1.18 to +1.55) | US$0.006 |
+| `togethercomputer/tev1-4b-experimental-20260923` | decision | hosted, through OpenRouter | 71.3% (69.4% to 73.0%) | +0.28 (+0.14 to +0.42) | US$0.029 |
+| `jaredpalmer/kev-4b` | decision | a laptop | 71.2% (69.4% to 72.9%) | +0.26 (+0.12 to +0.41) | US$0.00, and 8.6 hours of laptop |
+| `qwen2.5:7b` | text | a laptop | 69.0% (67.1% to 70.8%) | +0.08 (-0.08 to +0.23) | see above |
+| `qwen2.5:3b` | text | a laptop | 58.6% (56.7% to 60.6%) | -0.88 (-0.99 to -0.77) | see above |
+| `baseten/joey-1-20261029` | decision | hosted, through OpenRouter | 57.9% (55.9% to 59.8%) | -1.08 (-1.20 to -0.96) | US$0.007 |
+| `llama3.2:3b` | text | a laptop | 57.4% (55.4% to 59.3%) | -1.09 (-1.21 to -0.96) | see above |
+| `strands-decider-2B-hobson-v21` | decision | a laptop | 52.6% (50.6% to 54.5%) | -1.46 (-1.59 to -1.34) | US$0.00, and 4.0 hours of laptop |
+| `laya-rl-agent` | decision | a laptop | 31.4% (29.6% to 33.3%) | -3.00 (-3.06 to -2.94) | US$0.00, and 0.9 hours of laptop |
+<!-- mselect:decision:end -->
+
+What the table says:
+
+- **The best decision models sit among the text models, for a few cents a suite.** `jev-1.14` lands between `gpt-6-luna` and `gemini-3.5-flash-lite` on the ability scale, and the full suite cost it US$0.055 against US$0.15 to US$4.07 for the hosted text models. Most of the hosted decision models sit in the band the mid-priced text models occupy.
+- **"Decision model" is not one level of quality.** The seventeen run from +4.28 to -3.00, the whole width of the text panel and further, so the category says how a model answers, not how well.
+- **The bank ranks them about as well as it ranks text models.** Over every item, ability and observed accuracy agree at Kendall's tau 0.971 (0.888 to 1.000, n = 17). The short adaptive test does worse here than on the text panel: at 10 items it reaches 0.397 (-0.031 to 0.748) where a test stratified by benchmark reaches 0.750 (0.480 to 0.936), and it overtakes only from about 200 items, 0.897 (0.728 to 1.000). This panel is spread so wide that a coarse sample from every benchmark already separates most of it, and seventeen models make every one of these intervals wide.
+- **Four questions are unanswered on purpose.** OpenAI refused four questions sent through `gpt-6-luna-decisions`, twice each, and they are recorded as unanswered rather than wrong, which is why the frame is the 2,454 items every model answered.
+- **One model may have seen the test.** `kev-4b` is the one model here whose training may have included MMLU-Pro. Its MMLU-Pro accuracy is 55% (47% to 63%, n = 150) against 47% (39% to 55%, n = 144) for `tev1-4b`, which matches it on everything else; the intervals overlap, so the run neither shows contamination nor rules it out.
 
 ## What this says, if you do not do statistics for a living
 
@@ -485,11 +512,7 @@ The build is nearly finished.
 banks, at no cost to anyone.
 
 **Measured by running current models here**: the transfer result and the dollar cost per
-ranking decision. The panel is twelve models across Anthropic, OpenAI, Google, an open-weights
-host and three models on a laptop, administered the committed 3,000-item suite on 2026-09-12
-and 2026-09-13 for US$18.25 through the portfolio gateway, which enforces the spend caps and
-records every call. The twelfth, `local-mid-a`, was administered on 2026-09-16 and 2026-09-17
-and added US$0.00 and about nineteen hours of laptop CPU. `mselect validate` reads the records
+ranking decision. The panel is sixteen models across Anthropic, OpenAI, Google, an open-weights host and three models on a laptop. Twelve were administered the committed 3,000-item suite between 2026-09-12 and 2026-09-17 for US$18.25 through the portfolio gateway, which enforces the spend caps and records every call; four more joined on 2026-11-17 and 2026-11-18, and two of the September twelve were asked again with the settings a defect had dropped, for US$4.17 together. Seventeen decision models were asked the multiple-choice items on the same days for US$0.41. `mselect validate` reads the records
 back and costs nothing to repeat.
 
 **Not measured yet**: nothing in the own-run half. All three measurement experiments of
@@ -502,7 +525,7 @@ term in finding 8 is still not noise-free, and the 36 repeated questions in
 are matched on exact text.
 
 **Published as a page as well as a table.** [adaptive.peterparker.ca](https://adaptive.peterparker.ca)
-runs the adaptive test in the browser against those twelve models' recorded answers, and it is
+runs the adaptive test in the browser against those sixteen models' recorded answers, and it is
 built from these artefacts by `mselect demo build` rather than written by hand.
 [docs/deploy.md](docs/deploy.md).
 

@@ -32,6 +32,9 @@ END = "<!-- mselect:results:end -->"
 LINE_BREAK = chr(10)
 PANEL_START = "<!-- mselect:panel:start -->"
 PANEL_END = "<!-- mselect:panel:end -->"
+DECISION_START = "<!-- mselect:decision:start -->"
+DECISION_END = "<!-- mselect:decision:end -->"
+DECISION_RECORDS = "own-run-decision-0.jsonl"
 BENCH_START = "<!-- mselect:benchmarks:start -->"
 BENCH_END = "<!-- mselect:benchmarks:end -->"
 HEADLINE_VERSION = "v1"
@@ -102,6 +105,9 @@ def write_all(
     if version == HEADLINE_VERSION and own_run is not None:
         _replace_between(readme, panel_table(version, kind), (PANEL_START, PANEL_END))
         progress("README panel table regenerated")
+    if version == HEADLINE_VERSION and (paths.out_for(version) / DECISION_RECORDS).is_file():
+        _replace_between(readme, decision_table(version, kind), (DECISION_START, DECISION_END))
+        progress("README decision-model table regenerated")
 
     broken = broken_items_doc(bank, item_diagnostics, diagnostics)
     broken_path = paths.ROOT / "docs" / f"items-that-measure-nothing{tag}.md"
@@ -161,6 +167,85 @@ def panel_table(version: str = "v1", kind: str = "2pl") -> str:
             f"| `{alias}` | `{extras.model_of.get(alias, alias)}` | "
             f"{'a laptop, through ollama' if local else 'hosted, through the gateway'} | "
             f"{accuracy[row]:.1%} | {cost} |"
+        )
+    return LINE_BREAK.join(rows)
+
+
+def _wilson(correct: float, n: int, z: float = 1.959964) -> tuple[float, float]:
+    """The 95% Wilson interval on a proportion: well behaved near 0 and 1, unlike the normal one."""
+    if n == 0:
+        return math.nan, math.nan
+    p = correct / n
+    centre = (p + z * z / (2 * n)) / (1 + z * z / n)
+    half = z * math.sqrt(p * (1 - p) / n + z * z / (4 * n * n)) / (1 + z * z / n)
+    # Exact arithmetic puts the ends at 0 and 1 for all-wrong and all-right; floating point can
+    # land a hair outside, which is clamped rather than printed.
+    return max(0.0, centre - half), min(1.0, centre + half)
+
+
+def decision_table(version: str = "v1", kind: str = "2pl") -> str:
+    """Decision models and text models on one ruler: the same items, the same key, one scale.
+
+    A decision model returns a probability per option and no text, so it can only be asked the
+    multiple-choice items. The frame is therefore the items every decision model and every text
+    model answered and the bank can measure with, and both kinds are scored on exactly those
+    columns: accuracy with a Wilson interval, and ability by EAP with the bank's parameters held
+    fixed, with the posterior's 95% interval. Nothing is refitted, so a decision model lands on
+    the scale the text models were placed on rather than on one of its own.
+
+    Hosted decision models are listed with what the ledger charged; the three on a laptop with
+    the hours they took, for the reason `panel_table` gives.
+    """
+    from mselect.demo.build import PANEL_RECORDS, _extras
+    from mselect.experiments import ownrun
+    from mselect.irt import fit
+
+    out = paths.out_for(version)
+    decisions = ownrun.load(out / DECISION_RECORDS, version=version, kind=kind)
+    text = ownrun.load(out / PANEL_RECORDS, version=version, kind=kind)
+    shared = sorted(
+        set(np.asarray(decisions.item_ids)[decisions.common()])
+        & set(np.asarray(text.item_ids)[text.common()])
+    )
+    columns_d = [decisions.item_ids.index(i) for i in shared]
+    columns_t = [text.item_ids.index(i) for i in shared]
+    items = decisions.items.subset(np.asarray(columns_d, dtype=np.intp))
+    x = np.vstack([decisions.responses[:, columns_d], text.responses[:, columns_t]])
+    aliases = decisions.aliases + text.aliases
+    theta, se = fit.eap(x, items)
+    correct = np.nansum(x, axis=1)
+
+    extras = {**_extras(out / PANEL_RECORDS).model_of, **_extras(out / DECISION_RECORDS).model_of}
+    latency = _extras(out / DECISION_RECORDS).latency_ms
+    spend = decisions.spend()
+    laptop = {"decision-strands-2b", "decision-laya", "decision-kev-4b"}
+
+    rows = [
+        f"Scored on the {len(shared):,} multiple-choice items that all "
+        f"{decisions.n_models} decision models and all {text.n_models} text models answered.",
+        "",
+        "| Model | Kind | Where it ran | Accuracy (95% interval) | Ability (95% interval) "
+        "| The full suite cost |",
+        "|---|---|---|---:|---:|---|",
+    ]
+    for row in sorted(range(len(aliases)), key=lambda r: -float(theta[r])):
+        alias = aliases[row]
+        is_decision = row < decisions.n_models
+        lo, hi = _wilson(float(correct[row]), len(shared))
+        ability = (
+            f"{theta[row]:+.2f} ({theta[row] - 1.96 * se[row]:+.2f} to "
+            f"{theta[row] + 1.96 * se[row]:+.2f})"
+        )
+        if not is_decision:
+            where, cost = "hosted" if not alias.startswith("local-") else "a laptop", "see above"
+        elif alias in laptop:
+            seconds = sum(ms for (a, _), ms in latency.items() if a == alias) / 1000.0
+            where, cost = "a laptop", f"US$0.00, and {seconds / 3600:.1f} hours of laptop"
+        else:
+            where, cost = "hosted, through OpenRouter", f"US${spend[row]:.3f}"
+        rows.append(
+            f"| `{extras.get(alias, alias)}` | {'decision' if is_decision else 'text'} | {where} "
+            f"| {correct[row] / len(shared):.1%} ({lo:.1%} to {hi:.1%}) | {ability} | {cost} |"
         )
     return LINE_BREAK.join(rows)
 

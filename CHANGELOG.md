@@ -5,6 +5,10 @@ itself is stable within a minor version, and everything else in the package is i
 
 ## Unreleased
 
+### Results regenerated: sixteen text models, seventeen decision models
+
+Every own-run figure is regenerated with the four November models and the two September models asked again (PLAN.md 15.44). The transfer result moves from tau 0.879 on twelve models over 2,816 items to 0.883 (0.730 to 1.000) on sixteen over 2,754, and the cheapest adaptive budget that reaches the full-suite ranking moves from 100 items for US$0.73 to 150 items for US$1.01, against US$14.67 to ask everything. `mselect report` writes a new generated README table that places decision models and text models on one ability scale over the multiple-choice items all of them answered, with Wilson intervals on accuracy and posterior intervals on ability. The page counts sixteen models and 120 pairs, and its own-run verdict reads the agreement at 100 items from the curve instead of asserting it matches the full suite.
+
 ### Decision models, on the same items and the same scale
 
 `mselect run --template decision` asks a decision model the suite's multiple-choice items as one choice question each and scores the option it gives the highest probability, so decision models and text models sit on one ability scale. Fourteen hosted decision models are routed through OpenRouter, priced in the project's price file, and the gateway pin moves to v1.6.1 for its `decisions` provider kind (PLAN.md 15.43).

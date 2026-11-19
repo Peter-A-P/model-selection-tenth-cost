@@ -41,7 +41,7 @@
 <text x="792.0" y="215.0" font-size="13" font-weight="500" text-anchor="middle" fill="#14201E">10 adaptive vs 127 random</text>
 <text x="792.0" y="232.0" font-size="11" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" text-anchor="middle" fill="#5C6B67">demo/data/curves.json</text>
 <rect x="28.0" y="290.0" width="216.0" height="64.0" rx="4" fill="#F2F4F3" stroke="#5C6B67" stroke-width="1.1" stroke-dasharray="5 3"/>
-<text x="136.0" y="318.0" font-size="13" font-weight="500" text-anchor="middle" fill="#14201E">Twelve current models</text>
+<text x="136.0" y="318.0" font-size="13" font-weight="500" text-anchor="middle" fill="#14201E">Sixteen current models</text>
 <text x="136.0" y="334.0" font-size="13" font-weight="500" text-anchor="middle" fill="#14201E">the 3,000-item suite, gateway</text>
 <rect x="356.0" y="290.0" width="216.0" height="64.0" rx="4" fill="#FFFFFF" stroke="#14201E" stroke-width="1.1"/>
 <text x="464.0" y="311.0" font-size="13" font-weight="500" text-anchor="middle" fill="#14201E">mselect run, then validate</text>

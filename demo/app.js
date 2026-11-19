@@ -41,8 +41,8 @@ function ceilingNote(arena) {
   return (
     `<strong>${subject} run off the end of the bank's scale.</strong> The selector asks for ` +
     "questions it believes are a coin flip at this level, and this panel's strongest models get " +
-    "about nine in ten of those right, so the estimate climbs until the scale stops it. Only 253 " +
-    "of the 2,816 questions are harder than +3. The suite has run out of questions hard enough, " +
+    "about nine in ten of those right, so the estimate climbs until the scale stops it. Only 236 " +
+    "of the 2,754 questions are harder than +3. The suite has run out of questions hard enough, " +
     "and an interval measured against that wall is not precision."
   );
 };
@@ -422,7 +422,7 @@ function setupRace() {
   reset();
 }
 
-// Every pair of the twelve models, both methods. One run is an anecdote and a reader is right
+// Every pair of the sixteen models, both methods. One run is an anecdote and a reader is right
 // to treat it as one, so the page offers to do the whole matrix rather than asking to be
 // believed. It runs in chunks so the page keeps answering while it works.
 function setupSweep(prepared) {
@@ -509,7 +509,7 @@ function setupSweep(prepared) {
         `shows: the test measures ability, a leaderboard reports an average of correct answers, ` +
         `and those two rankings do not agree perfectly even when every question has been asked.`;
       button.disabled = false;
-      button.textContent = "Run all 66 pairs again";
+      button.textContent = "Run all 120 pairs again";
     }
 
     chunk();
@@ -535,7 +535,7 @@ function setupHero() {
       : "");
   document.getElementById("hero-cost").textContent = money(hundred.usd_adaptive);
   document.getElementById("hero-cost-label").textContent =
-    `against ${money(own.full_suite_usd)} to ask all twelve every question`;
+    `against ${money(own.full_suite_usd)} to ask all sixteen every question`;
   const dead = state.items.benchmarks.reduce(
     (total, group) => total + group.share_low * group.n_items,
     0
@@ -553,7 +553,7 @@ function setupHero() {
   document.getElementById("footer-provenance").textContent =
     `Item bank ${state.items.bank_version} (${state.items.bank_hash}): ` +
     `${state.items.n_models} models by ${state.items.n_items.toLocaleString("en-CA")} questions, ` +
-    `fitted by marginal maximum a posteriori. The twelve models on this page were held out of ` +
+    `fitted by marginal maximum a posteriori. The sixteen models on this page were held out of ` +
     `every fit. Data written by "mselect demo build", ` +
     `${(state.sizes / 1024).toFixed(0)} KB of JSON in total, and nothing on this page is fetched ` +
     `from anywhere else.`;
@@ -632,13 +632,15 @@ function setupCurve() {
         `agreement ${panel.equivalent.tau.toFixed(3)}. That is the screening budget, and it is ` +
         `where the saving is.`;
     } else {
+      const hundred = panel.curve.find((p) => p.method === "adaptive" && p.items === 100);
       verdict.innerHTML =
-        `<strong>The bank ranks twelve models it never saw at ${panel.transfer.point.toFixed(3)}</strong> ` +
+        `<strong>The bank ranks ${panel.n_models} models it never saw at ${panel.transfer.point.toFixed(3)}</strong> ` +
         `(${panel.transfer.lo.toFixed(2)} to ${panel.transfer.hi.toFixed(2)}), and 100 adaptively ` +
-        `chosen questions reach that same figure for ` +
+        `chosen questions reach ${hundred.tau.toFixed(3)} (${hundred.lo.toFixed(2)} to ` +
+        `${hundred.hi.toFixed(2)}) for ` +
         `${money(panel.cost.find((c) => c.items === 100).usd_adaptive)} against ` +
-        `${money(panel.full_suite_usd)} to ask everything. Twelve models is a wide interval and it ` +
-        `is published wide.`;
+        `${money(panel.full_suite_usd)} to ask everything. ${panel.n_models} models is a wide ` +
+        `interval and it is published wide.`;
     }
     for (const button of holder.children) {
       button.classList.toggle("on", button.dataset.key === current);
