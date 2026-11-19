@@ -235,6 +235,7 @@ code { font-family: var(--mono); font-size: 0.9em; }
 
 .point.good { border-top-color: var(--good); }
 .point.violet { border-top-color: var(--sim); }
+.point.warn { border-top-color: var(--warn); }
 
 .point-figure {
   display: block;
@@ -249,6 +250,11 @@ code { font-family: var(--mono); font-size: 0.9em; }
 
 .point.good .point-figure { color: var(--good); }
 .point.violet .point-figure { color: var(--sim); }
+.point.warn .point-figure { color: var(--warn); }
+
+/* "10 as good as 127": the words between the two figures are set small, so the comparison
+   reads as two numbers rather than a sentence. */
+.point-joiner { font-family: var(--sans); font-size: 0.95rem; font-weight: 600; letter-spacing: 0; color: var(--ink-soft); }
 
 .point-unit {
   display: block;
@@ -698,9 +704,11 @@ footer {
    header, the pipeline, the cards for what did not work, the readout under each chart, the
    warning, the assumption, the chips, the glossary and the footer. */
 
-/* Three figures, always three, so they sit in one row or one column and never wrap two and
-   one. */
-.hero-points { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+/* Four figures, in one row, two rows of two, or one column, and never three and one. */
+.hero-points { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+@media (max-width: 64rem) {
+  .hero-points { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
 
 /* The one way straight to the result, for a reader who came for that and not the method. */
 .hero-cta { margin: 0 0 0.7rem; }

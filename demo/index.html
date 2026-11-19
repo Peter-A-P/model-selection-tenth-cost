@@ -42,31 +42,34 @@
 
   <header class="hero">
     <p class="eyebrow">Real models, real recorded answers, every number reproducible</p>
-    <h1>Most benchmark questions are not worth asking. <span class="hl">These are.</span></h1>
+    <h1><span id="title-short">$0.67</span> instead of <span id="title-full">$14.67</span> to rank sixteen AI models. <span class="hl">Most benchmark questions are not worth asking.</span></h1>
     <p class="lead">
-      Choosing between AI models means running a benchmark: a few thousand questions, put to every
-      model on the shortlist, counted up into a percentage. Twenty models is sixty thousand paid
-      calls, and it has to be repeated every time any vendor ships anything. <strong>Most of those
-      questions separate nobody.</strong> Standardised testing worked this out decades ago and
-      stopped handing everybody the same fixed paper. This page does the same thing to a language
-      model benchmark, on real recorded answers, and lets you watch it happen.
+      Asking sixteen current AI models every one of <span id="lead-items">2,754</span> benchmark questions cost <strong id="lead-full">$14.67</strong>. Asking each of them a hundred questions, chosen one at a time for what the next answer would reveal about that model, cost <strong id="lead-short">$0.67</strong> and ranked them about as well: agreement with the full benchmark's ranking of <span id="lead-tau">0.867</span>, where asking everything reaches <span id="lead-tau-full">0.883</span>.
+    </p>
+    <p class="lead">
+      Choosing between AI models usually means running the whole benchmark, putting every question to every model on the shortlist and repeating it every time a vendor ships anything. <strong>Most of those questions separate nobody.</strong> Standardised testing worked this out decades ago and stopped handing everybody the same fixed paper. This page does the same thing to a language model benchmark, on real recorded answers, and lets you watch it happen.
     </p>
     <p class="hero-cta"><a class="button" href="#run">Run the test on two real models</a></p>
     <div class="hero-points">
-      <div class="point">
-        <span class="point-figure" id="hero-items">...</span>
-        <span class="point-unit">questions</span>
-        <span class="point-label" id="hero-items-label">rank a shortlist as well as a larger random sample</span>
-      </div>
       <div class="point good">
-        <span class="point-figure" id="hero-cost">...</span>
-        <span class="point-unit">to rank sixteen models</span>
-        <span class="point-label" id="hero-cost-label">against the price of asking all of them everything</span>
+        <span class="point-figure" id="hero-deciders">...</span>
+        <span class="point-unit">decision models on the same scale as the text models</span>
+        <span class="point-label" id="hero-deciders-label">models that answer with a probability per option instead of text</span>
+      </div>
+      <div class="point">
+        <span class="point-figure"><span id="hero-items">...</span><span class="point-joiner"> as good as </span><span id="hero-random">...</span></span>
+        <span class="point-unit">well-chosen questions against random ones, ranking a shortlist</span>
+        <span class="point-label" id="hero-items-label">on 150 models from a public evaluation archive</span>
       </div>
       <div class="point violet">
         <span class="point-figure" id="hero-dead">...</span>
         <span class="point-unit">of the bank measures nothing</span>
         <span class="point-label">and every published benchmark score counts them at full weight</span>
+      </div>
+      <div class="point warn">
+        <span class="point-figure" id="hero-flip">...</span>
+        <span class="point-unit">of answers change when the same model is asked the same question again</span>
+        <span class="point-label" id="hero-flip-label">so a small drop between two versions can be nothing at all</span>
       </div>
     </div>
     <p class="hero-note">

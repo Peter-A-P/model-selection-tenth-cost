@@ -566,20 +566,58 @@ function setupHero() {
   const own = state.curves.panels.find((p) => p.key === "own");
   const v1 = state.curves.panels.find((p) => p.key === "v1");
   const hundred = own.cost.find((c) => c.items === 100);
+  // The title and the paragraph under it: what a hundred well-chosen questions per model cost
+  // against asking every model everything, and how close the two rankings come. Written in the
+  // markup as well, so the page reads right before this runs, and replaced here from the data.
+  const adaptive100 = own.curve.find((p) => p.method === "adaptive" && p.items === 100);
+  for (const id of ["title-short", "lead-short"]) {
+    document.getElementById(id).textContent = money(hundred.usd_adaptive);
+  }
+  for (const id of ["title-full", "lead-full"]) {
+    document.getElementById(id).textContent = money(own.full_suite_usd);
+  }
+  document.getElementById("lead-items").textContent = own.n_items.toLocaleString("en-CA");
+  document.getElementById("lead-tau").textContent =
+    `${adaptive100.tau.toFixed(3)} (95% interval ${adaptive100.lo.toFixed(3)} to ` +
+    `${adaptive100.hi.toFixed(3)})`;
+  document.getElementById("lead-tau-full").textContent =
+    `${own.transfer.point.toFixed(3)} (${own.transfer.lo.toFixed(3)} to ${own.transfer.hi.toFixed(3)})`;
+
+  // Decision models: how many, and where the best of them lands among the text models on the
+  // same questions and the same scale.
+  const deciders = state.decisions.models.filter((m) => m.kind === "decision");
+  const texts = state.decisions.models.filter((m) => m.kind === "text");
+  const best = [...deciders].sort((x, y) => y.ability - x.ability)[0];
+  const below = texts.filter((m) => m.ability < best.ability).length;
+  document.getElementById("hero-deciders").textContent = String(deciders.length);
+  document.getElementById("hero-deciders-label").textContent =
+    `They answer with a probability per option instead of text. The best, ${best.label}, places ` +
+    `above ${below} of the ${texts.length} text models, for ${money(best.full_usd)} across all ` +
+    `${state.decisions.n_items.toLocaleString("en-CA")} multiple-choice questions.`;
+
   document.getElementById("hero-items").textContent = String(v1.equivalent.adaptive_items);
+  document.getElementById("hero-random").textContent = String(
+    Math.round(v1.equivalent.random_items)
+  );
   // The interval travels with the figure: the agreement those ten questions reach, from the
   // same curve the section below draws.
   const ten = v1.curve.find(
     (point) => point.method === "adaptive" && point.items === v1.equivalent.adaptive_items
   );
   document.getElementById("hero-items-label").textContent =
-    `rank a shortlist as well as ${Math.round(v1.equivalent.random_items)} chosen at random` +
+    `On ${v1.n_models} models from a public evaluation archive` +
     (ten
-      ? ` (agreement ${ten.tau.toFixed(3)}, 95% interval ${ten.lo.toFixed(3)} to ${ten.hi.toFixed(3)})`
-      : "");
-  document.getElementById("hero-cost").textContent = money(hundred.usd_adaptive);
-  document.getElementById("hero-cost-label").textContent =
-    `against ${money(own.full_suite_usd)} to ask all sixteen every question`;
+      ? `: agreement ${ten.tau.toFixed(3)}, 95% interval ${ten.lo.toFixed(3)} to ${ten.hi.toFixed(3)}.`
+      : ".");
+
+  // Test-retest: the same model, the same questions, temperature 0, a day apart.
+  const retest = state.experiments.retest;
+  document.getElementById("hero-flip").textContent =
+    `${(retest.pooled_flip_rate * 100).toFixed(1)}%`;
+  document.getElementById("hero-flip-label").textContent =
+    `Pooled over ${retest.n_models} models at temperature 0, a day apart, and up to ` +
+    `${(retest.worst_hosted_flip_rate * 100).toFixed(1)}% for one of them: a small drop between ` +
+    `two versions can be nothing at all.`;
   const dead = state.items.benchmarks.reduce(
     (total, group) => total + group.share_low * group.n_items,
     0
