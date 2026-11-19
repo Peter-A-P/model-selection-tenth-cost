@@ -330,13 +330,14 @@ function setupRace() {
       select.appendChild(group);
     }
   }
-  // A flagship's fast tier against another vendor's small model, nine accuracy points apart:
-  // the comparison a team choosing a cheap default actually makes. Adaptive selection settles it
-  // in 42 questions; random selection does not settle it inside three hundred. The Gemini
-  // estimate ends past +4, so the first run a visitor sees also shows the ceiling note, which
-  // is the bank's real limit and better met on the default pair than discovered later.
-  selectA.value = "google-frontier";
-  selectB.value = "anthropic-haiku";
+  // Two current models people are choosing between, under three accuracy points apart on the
+  // suite. Over 40 seeds adaptive selection settles the pair 87.5% of the time (median 72
+  // questions) and random selection 5% of the time inside three hundred; on this page's own seed
+  // and order, adaptive settles at 227 questions and random does not. The Luna estimate ends past
+  // +4, so the first run also shows the ceiling note: the order is right, the gap it draws is
+  // wider than the bank can measure, and that is better met on the default pair than later.
+  selectA.value = "together-open-c";
+  selectB.value = "openai-mid-b";
 
   const runButton = document.getElementById("run-test");
   const resetButton = document.getElementById("reset");

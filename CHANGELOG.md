@@ -5,6 +5,10 @@ itself is stable within a minor version, and everything else in the package is i
 
 ## Unreleased
 
+### The page opens on DeepSeek-V4.1-Flash against gpt-6-luna
+
+Two current models under three points apart on the suite. Over 40 seeds adaptive selection settles the pair in 87.5% of runs at a median of 72 questions and random selection in 5% inside 300; on the page's own seed and order adaptive settles at 227 and random does not. The Luna estimate ends past +4, so the first run shows the ceiling note.
+
 ### Results regenerated: sixteen text models, seventeen decision models
 
 Every own-run figure is regenerated with the four November models and the two September models asked again (PLAN.md 15.44). The transfer result moves from tau 0.879 on twelve models over 2,816 items to 0.883 (0.730 to 1.000) on sixteen over 2,754, and the cheapest adaptive budget that reaches the full-suite ranking moves from 100 items for US$0.73 to 150 items for US$1.01, against US$14.67 to ask everything. `mselect report` writes a new generated README table that places decision models and text models on one ability scale over the multiple-choice items all of them answered, with Wilson intervals on accuracy and posterior intervals on ability. The page counts sixteen models and 120 pairs, and its own-run verdict reads the agreement at 100 items from the curve instead of asserting it matches the full suite.
