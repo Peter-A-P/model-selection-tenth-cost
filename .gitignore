@@ -33,3 +33,6 @@ Thumbs.db
 data/raw/
 data/cache/
 out/
+
+# The film's rendered output (video/render.py)
+video/out/

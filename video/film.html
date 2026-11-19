@@ -1,0 +1,421 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Adaptive against random, as a film</title>
+<!-- One 1080 by 1080 frame of the project's short film, drawn for a time t in seconds by
+     render(t). video/render.py steps t at 30 frames a second, screenshots each frame and
+     encodes them. Every run, question and figure comes from video/trace.json, which
+     video/trace.mjs replays from the page's own data with the page's own code, injected as
+     window.D, so the film says what the page says. -->
+<style>
+@font-face { font-family: "Inter"; font-weight: 400 700; src: url(../demo/fonts/inter-latin.woff2) format("woff2"); }
+@font-face { font-family: "Newsreader"; font-weight: 200 800; src: url(../demo/fonts/newsreader-latin.woff2) format("woff2"); }
+html, body { margin: 0; width: 1080px; height: 1080px; overflow: hidden; background: #0a111c; }
+svg { display: block; }
+text { font-family: Inter, sans-serif; }
+.serif { font-family: Newsreader, Georgia, serif; }
+.mono { font-family: Consolas, "Cascadia Mono", Menlo, monospace; }
+</style>
+</head>
+<body>
+<svg id="s" width="1080" height="1080" viewBox="0 0 1080 1080" xmlns="http://www.w3.org/2000/svg"></svg>
+<script>
+"use strict";
+const NS = "http://www.w3.org/2000/svg";
+const W = 1080, H = 1080;
+const C = {
+  bg: "#0a111c", panel: "#111b2a", panel2: "#16243a", line: "#1e2b3d", ink: "#eef2f6", soft: "#a9b4c2", faint: "#6c7a8c",
+  teal: "#5fc4d6", red: "#e0554a", redSoft: "#3a1c20", good: "#58c286", goodSoft: "#14301f", violet: "#b191e0", warn: "#f0a35a",
+};
+// The first model is teal and the second violet, everywhere.
+const TONE = [C.teal, C.violet];
+
+/* The film's schedule, in seconds. sound.py uses the same numbers. */
+const T = {
+  ask: [0, 3.4], intro1: [3.4, 6.6], wall: [6.6, 10.2], cloud: [10.2, 14.4], intro2: [14.4, 19.6],
+  race: [19.6, 28.0], result: [28.0, 37.0],
+};
+// Inside the race: the adaptive run's questions arrive over RUN_A, it holds, then the random
+// run carries on alone over RUN_B to its budget.
+const RUN_A = [19.9, 23.5], HOLD_END = 24.3, RUN_B = [24.3, 26.8];
+const END = 37.0;
+
+const clamp = (v, a = 0, b = 1) => Math.max(a, Math.min(b, v));
+const ease = v => (v = clamp(v), v < 0.5 ? 4 * v * v * v : 1 - Math.pow(-2 * v + 2, 3) / 2);
+const back = v => { v = clamp(v); const c = 1.7; return 1 + (c + 1) * Math.pow(v - 1, 3) + c * Math.pow(v - 1, 2); };
+const span = (t, a, b) => clamp((t - a) / (b - a));
+const lerp = (a, b, k) => a + (b - a) * k;
+const fade = (t, a, b, i = 0.4, o = 0.4) => Math.min(ease(span(t, a, a + i)), 1 - ease(span(t, b - o, b)));
+
+let S;
+function el(name, attrs, parent, text) {
+  const e = document.createElementNS(NS, name);
+  for (const [k, v] of Object.entries(attrs || {})) e.setAttribute(k, v);
+  if (text != null) e.textContent = text;
+  (parent || S).appendChild(e);
+  return e;
+}
+const g = (attrs, parent) => el("g", attrs, parent);
+function txt(parent, x, y, s, size, fill, opts = {}) {
+  return el("text", Object.assign({x, y, "font-size": size, fill, "text-anchor": opts.anchor || "start", "font-weight": opts.weight || 400}, opts.attrs || {}), parent, s);
+}
+const money = usd => usd >= 0.1 ? `US$${usd.toFixed(2)}` : usd >= 0.01 ? `US$${usd.toFixed(3)}` : `US$${usd.toFixed(4)}`;
+const pct = v => `${Math.round(v * 100)}%`;
+const minutes = s => `${Math.floor(s / 60)}m ${String(Math.round(s % 60)).padStart(2, "0")}s`;
+
+function caption(t, a, b, head, sub, at = {}) {
+  const k = fade(t, a + 0.1, b, 0.45, 0.35);
+  if (k <= 0) return;
+  const y = at.y || 940, size = at.size || 44;
+  const c = g({opacity: k, transform: `translate(0 ${(1 - k) * 12})`});
+  txt(c, W / 2, y, head, size, C.ink, {anchor: "middle", weight: 600});
+  // A subtitle can be one line or several.
+  [].concat(sub || []).forEach((line, i) => txt(c, W / 2, y + size * 0.55 + 28 + i * (at.sub || 25) * 1.35, line, at.sub || 25, C.soft, {anchor: "middle"}));
+}
+
+/* A title screen: big words in the middle, one line after another. */
+function title(t, a, b, lines, gap = 0.55, rise = 0.5) {
+  const out = 1 - ease(span(t, b - 0.4, b));
+  if (t < a || out <= 0) return;
+  let y = 470 - (lines.length - 1) * 50;
+  lines.forEach(([text, size, color, serif], i) => {
+    const k = ease(span(t, a + 0.15 + i * gap, a + 0.15 + rise + i * gap)) * out;
+    if (k > 0) txt(g({opacity: k, transform: `translate(0 ${(1 - k) * 24})`}), W / 2, y, text, size, color, {anchor: "middle", weight: serif ? 500 : 600, attrs: serif ? {class: "serif"} : {}});
+    y += size * 1.45;
+  });
+}
+
+/* Words wrapped to a width, as tspans; the width is read from an estimate of Inter's advance. */
+function wrapped(parent, x, y, s, size, fill, width, lead = 1.3, opts = {}) {
+  const words = s.split(" "), lines = [];
+  let cur = "";
+  for (const w of words) {
+    const trial = cur ? `${cur} ${w}` : w;
+    if (trial.length * size * 0.53 > width && cur) { lines.push(cur); cur = w; } else cur = trial;
+  }
+  lines.push(cur);
+  lines.forEach((l, i) => txt(parent, x, y + i * size * lead, l, size, fill, opts));
+  return y + lines.length * size * lead;
+}
+
+function pill(parent, cx, cy, label, color, fillc, size = 22) {
+  const w = label.length * size * 0.66 + 44, h = size * 2;
+  el("rect", {x: cx - w / 2, y: cy - h / 2, width: w, height: h, rx: h / 2, fill: fillc || "none", stroke: color, "stroke-width": 2.5}, parent);
+  txt(parent, cx, cy + size * 0.36, label, size, color, {anchor: "middle", weight: 700, attrs: {"letter-spacing": "0.06em"}});
+  return w;
+}
+
+/* Where each question sits: in the wall (one per question, in bank order) and in the cloud
+   (difficulty across, discrimination up). Questions the bank cannot place inside the scale are
+   pinned to its edge and drawn faint: they are the ones that measure almost nothing here. */
+const GRID = {x: 150, y: 190, cols: 62, dx: 12.9, dy: 13.2};
+const CLOUD = {x0: 150, x1: 930, y0: 690, y1: 190, bLo: -4.5, bHi: 4.5, aLo: -0.6, aHi: 2.7};
+let R = null;
+function prepare() {
+  const it = D.items;
+  const n = it.index.length;
+  const where = new Map();
+  const dots = [];
+  for (let k = 0; k < n; k += 1) {
+    where.set(it.index[k], k);
+    const gx = GRID.x + (k % GRID.cols) * GRID.dx, gy = GRID.y + Math.floor(k / GRID.cols) * GRID.dy;
+    const b = it.b[k], a = it.a[k];
+    // A small fixed jitter so pinned questions show as a band, not one dot.
+    const j = ((k * 7919) % 97) / 97 - 0.5;
+    const cx = lerp(CLOUD.x0, CLOUD.x1, (clamp(b, CLOUD.bLo, CLOUD.bHi) - CLOUD.bLo) / (CLOUD.bHi - CLOUD.bLo)) + (Math.abs(b) > 4.5 ? j * 14 : 0);
+    const cy = lerp(CLOUD.y0, CLOUD.y1, (clamp(a, CLOUD.aLo, CLOUD.aHi) - CLOUD.aLo) / (CLOUD.aHi - CLOUD.aLo));
+    const weak = Math.abs(b) > 4.5 || a < 0.3;
+    dots.push({gx, gy, cx, cy, weak, delay: ((k * 2654435761) % 1000) / 1000});
+  }
+  const fullUsd = D.models.reduce((s, m) => s + m.full_usd, 0);
+  const fullSec = D.models.reduce((s, m) => s + (m.full_seconds || 0), 0);
+  return {where, dots, fullUsd, fullSec, n};
+}
+
+/* How many questions each run has asked at time t (fractional, for smooth curves). */
+function askedA(t) {
+  const n = D.adaptive.steps.length;
+  return n * Math.pow(span(t, RUN_A[0], RUN_A[1]), 1.6);
+}
+function askedB(t) {
+  const n = D.random.steps.length, m = D.adaptive.steps.length;
+  if (t < RUN_B[0]) return Math.min(askedA(t), n);
+  return lerp(m, n, Math.pow(span(t, RUN_B[0], RUN_B[1]), 1.15));
+}
+/* A run's state after q questions: densities blended between whole steps. */
+function stateAt(arm, q) {
+  const steps = D[arm].steps;
+  if (q <= 0) {
+    const prior = D.nodes.map(x => Math.exp(-0.5 * x * x));
+    const tot = prior.reduce((s, v) => s + v, 0);
+    const d = prior.map(v => v / tot);
+    return {n: 0, usd: 0, sides: [0, 1].map(() => ({density: d, interval: [-1.96, 1.96], theta: 0})), last: null};
+  }
+  const i = Math.min(steps.length - 1, Math.floor(q) - 1 < 0 ? 0 : Math.floor(q) - 1);
+  const j = Math.min(steps.length - 1, i + 1), f = q >= steps.length ? 0 : q - Math.floor(q);
+  const s0 = Math.floor(q) < 1 ? null : steps[i];
+  const sides = [0, 1].map(side => {
+    const from = s0 ? s0.sides[side] : stateAt(arm, 0).sides[side];
+    const to = steps[s0 ? j : 0].sides[side];
+    const k = s0 ? f : q;
+    return {
+      density: from.density.map((v, x) => lerp(v, to.density[x], k)),
+      interval: [lerp(from.interval[0], to.interval[0], k), lerp(from.interval[1], to.interval[1], k)],
+      theta: lerp(from.theta, to.theta, k),
+    };
+  });
+  return {n: Math.floor(q), usd: s0 ? s0.usd : 0, sides, last: s0};
+}
+
+/* One race panel: the two posteriors on the ability scale, their intervals, and a tick on the
+   axis for each recent question at its difficulty. */
+function panel(t, p, y0, arm, q, title, tag, tagColor) {
+  const x0 = 70, w = 940, h = 360;
+  el("rect", {x: x0, y: y0, width: w, height: h, rx: 18, fill: C.panel, stroke: C.line, "stroke-width": 1.5}, p);
+  txt(p, x0 + 30, y0 + 44, title, 24, C.ink, {weight: 600});
+  const tw = tag.length * 15 * 0.72 + 30;
+  el("rect", {x: x0 + 30, y: y0 + 60, width: tw, height: 28, rx: 14, fill: "none", stroke: tagColor, "stroke-width": 1.5}, p);
+  txt(p, x0 + 30 + tw / 2, y0 + 79, tag, 14, tagColor, {anchor: "middle", weight: 700, attrs: {"letter-spacing": "0.1em"}});
+  const st = stateAt(arm, q);
+  // Counters, right.
+  txt(p, x0 + w - 270, y0 + 40, "QUESTIONS", 14, C.faint, {anchor: "end", weight: 600, attrs: {"letter-spacing": "0.1em"}});
+  txt(p, x0 + w - 270, y0 + 80, String(st.n), 38, C.ink, {anchor: "end", weight: 600, attrs: {class: "mono"}});
+  txt(p, x0 + w - 30, y0 + 40, "MODEL COST", 14, C.faint, {anchor: "end", weight: 600, attrs: {"letter-spacing": "0.1em"}});
+  txt(p, x0 + w - 30, y0 + 80, `US$${st.usd.toFixed(4)}`, 38, C.ink, {anchor: "end", weight: 600, attrs: {class: "mono"}});
+  // The scale.
+  const ax0 = x0 + 40, ax1 = x0 + w - 40, base = y0 + 262, top = y0 + 112;
+  const X = v => lerp(ax0, ax1, (v + 4.5) / 9);
+  for (let v = -4; v <= 4; v += 1) {
+    el("line", {x1: X(v), y1: top, x2: X(v), y2: base, stroke: C.line, "stroke-width": 1}, p);
+    txt(p, X(v), base + 82, v > 0 ? `+${v}` : String(v), 15, C.faint, {anchor: "middle"});
+  }
+  for (const v of [-4.5, 4.5]) el("line", {x1: X(v), y1: top - 6, x2: X(v), y2: base, stroke: C.red, "stroke-width": 1.5, "stroke-dasharray": "3 5", opacity: 0.6}, p);
+  txt(p, X(4.5) - 8, top + 8, "edge of the scale", 14, C.red, {anchor: "end", attrs: {opacity: 0.75}});
+  // Recent questions: a tick at each one's difficulty, in the asking model's colour.
+  const steps = D[arm].steps;
+  const recent = Math.min(st.n, steps.length);
+  for (let i = Math.max(0, recent - 10); i < recent; i += 1) {
+    const age = (recent - 1 - i) / 10;
+    steps[i].sides.forEach((s, side) => {
+      const k = D.items.index.indexOf(s.item);
+      const b = clamp(D.items.b[k], -4.5, 4.5);
+      el("line", {x1: X(b), y1: base + 6 + side * 12, x2: X(b), y2: base + 16 + side * 12, stroke: s.correct ? TONE[side] : C.red, "stroke-width": 3, opacity: 1 - age * 0.9}, p);
+    });
+  }
+  // The posteriors.
+  const maxD = 0.3;
+  st.sides.forEach((s, side) => {
+    const pts = D.nodes.map((x, i) => [X(x), base - Math.min(1, s.density[i] / maxD) * (base - top)]);
+    const d = `M${pts.map(([x, y]) => `${x.toFixed(1)},${y.toFixed(1)}`).join("L")}`;
+    el("path", {d: `${d}L${X(4.5)},${base}L${X(-4.5)},${base}Z`, fill: TONE[side], opacity: 0.16}, p);
+    el("path", {d, fill: "none", stroke: TONE[side], "stroke-width": 3}, p);
+  });
+  el("line", {x1: ax0, y1: base, x2: ax1, y2: base, stroke: C.faint, "stroke-width": 1.5}, p);
+  return {st, X, base};
+}
+
+function intervals(p, info, side0y) {
+  const {st, X} = info;
+  st.sides.forEach((s, side) => {
+    const y = side0y + side * 14;
+    const [lo, hi] = s.interval;
+    el("line", {x1: X(lo), y1: y, x2: X(hi), y2: y, stroke: TONE[side], "stroke-width": 6, "stroke-linecap": "round"}, p);
+    el("circle", {cx: X(s.theta), cy: y, r: 6, fill: C.bg, stroke: TONE[side], "stroke-width": 3}, p);
+  });
+}
+
+function render(t) {
+  if (!R) R = prepare();
+  const {dots, fullUsd, fullSec, n} = R;
+  const names = (window.NAMES || D.models.map(m => m.label));
+  S = document.getElementById("s");
+  S.innerHTML = "";
+  const defs = el("defs", {});
+  const glow = el("radialGradient", {id: "bgGlow", cx: "50%", cy: "40%", r: "60%"}, defs);
+  el("stop", {offset: "0%", "stop-color": "#123049", "stop-opacity": 0.85}, glow);
+  el("stop", {offset: "100%", "stop-color": C.bg, "stop-opacity": 0}, glow);
+  el("rect", {x: 0, y: 0, width: W, height: H, fill: C.bg});
+  el("rect", {x: 0, y: 0, width: W, height: H, fill: "url(#bgGlow)"});
+
+  const story = 1 - ease(span(t, T.result[0] - 0.2, T.result[0] + 0.4));
+
+  /* The bar along the top: what is happening, and during the wall the bill for asking all. */
+  if (story > 0) {
+    const top = g({opacity: story});
+    const stage = t < T.intro1[0] ? ["WHICH MODEL?", C.teal] : t < T.cloud[0] ? ["THE USUAL WAY", C.red] : t < T.intro2[0] ? ["THE QUESTION BANK", C.teal] : t < T.race[0] ? ["A BETTER WAY", C.good] : ["ADAPTIVE AGAINST RANDOM", C.good];
+    el("circle", {cx: 44, cy: 46, r: 8, fill: stage[1], opacity: 0.6 + 0.4 * Math.sin(t * 6)}, top);
+    txt(top, 62, 53, stage[0], 20, C.ink, {weight: 700, attrs: {"letter-spacing": "0.06em"}});
+    txt(top, 62, 80, `${names[0]} against ${names[1]}, answers they really gave`, 18, C.faint);
+    const wk = fade(t, T.wall[0], T.cloud[0] + 0.3, 0.3, 0.4);
+    if (wk > 0) {
+      const lit = Math.round(n * ease(span(t, T.wall[0] + 0.3, T.wall[1] - 0.6)));
+      const tg = g({opacity: wk}, top);
+      txt(tg, 820, 40, "QUESTIONS, EACH", 14, C.faint, {anchor: "end", weight: 600, attrs: {"letter-spacing": "0.1em"}});
+      txt(tg, 820, 72, lit.toLocaleString("en-CA"), 30, C.ink, {anchor: "end", weight: 600, attrs: {class: "mono"}});
+      txt(tg, 1040, 40, "MODEL COST", 14, C.faint, {anchor: "end", weight: 600, attrs: {"letter-spacing": "0.1em"}});
+      txt(tg, 1040, 72, `US$${(fullUsd * lit / n).toFixed(3)}`, 30, C.ink, {anchor: "end", weight: 600, attrs: {class: "mono"}});
+    }
+    el("rect", {x: 40, y: 104, width: 1000, height: 1, fill: C.line}, top);
+  }
+
+  /* 1. The two models. */
+  {
+    const k = fade(t, 0, T.ask[1] + 0.2, 0.3, 0.5);
+    if (k > 0) {
+      const p = g({opacity: k});
+      const kinds = D.models.map(m => m.kind === "decision" ? "Decision model" : "Text model");
+      const blurbs = D.models.map(m => m.kind === "decision" ? "answers with a probability per option" : "answers in words");
+      [0, 1].forEach(side => {
+        const a = back(span(t, 0.2 + side * 0.35, 0.65 + side * 0.35));
+        const x = side === 0 ? 60 : 560, cx = x + 230;
+        const c = g({opacity: clamp(a), transform: `translate(${cx} ${400}) scale(${0.8 + 0.2 * a}) translate(${-cx} ${-400})`}, p);
+        // What kind of model, larger than its name: the contrast is the point of the pairing.
+        txt(c, cx, 270, kinds[side], 54, TONE[side], {anchor: "middle", weight: 700});
+        el("rect", {x, y: 310, width: 460, height: 200, rx: 18, fill: C.panel, stroke: TONE[side], "stroke-width": 2.5}, c);
+        txt(c, cx, 412, names[side], 38, C.ink, {anchor: "middle", attrs: {class: "serif"}});
+        txt(c, cx, 462, blurbs[side], 20, C.soft, {anchor: "middle"});
+      });
+      const vk = back(span(t, 1.0, 1.35));
+      if (vk > 0) {
+        const c = g({transform: `translate(540 410) scale(${vk})`}, p);
+        el("circle", {cx: 0, cy: 0, r: 30, fill: C.bg, stroke: C.line, "stroke-width": 2}, c);
+        txt(c, 0, 9, "vs", 26, C.soft, {anchor: "middle", weight: 700});
+      }
+    }
+    caption(t, T.ask[0] + 0.9, T.ask[1], "Which one is better?", null, {y: 680, size: 72});
+  }
+
+  /* 2 and 3. Every question as a dot: the wall lights up, then the dots fly to the cloud. */
+  {
+    title(t, T.intro1[0], T.intro1[1], [["How do you tell them apart?", 76, C.ink, true], ["The usual way: ask thousands of questions.", 40, C.soft, false]]);
+    const k = Math.min(ease(span(t, T.wall[0] - 0.1, T.wall[0] + 0.4)), 1 - ease(span(t, T.intro2[0] - 0.5, T.intro2[0])));
+    if (k > 0) {
+      const p = g({opacity: k});
+      const lit = n * ease(span(t, T.wall[0] + 0.3, T.wall[1] - 0.6));
+      const fly = span(t, T.cloud[0], T.cloud[0] + 1.4);
+      const tint = ease(span(t, T.cloud[0] + 1.6, T.cloud[0] + 2.2));
+      // The cloud's axes, under the dots.
+      const ak = ease(span(t, T.cloud[0] + 1.0, T.cloud[0] + 1.6));
+      if (ak > 0) {
+        const ax = g({opacity: ak}, p);
+        el("line", {x1: CLOUD.x0, y1: CLOUD.y0 + 30, x2: CLOUD.x1, y2: CLOUD.y0 + 30, stroke: C.faint, "stroke-width": 1.5}, ax);
+        txt(ax, CLOUD.x0, CLOUD.y0 + 62, "easier", 20, C.soft);
+        txt(ax, (CLOUD.x0 + CLOUD.x1) / 2, CLOUD.y0 + 62, "how hard the question is", 20, C.soft, {anchor: "middle", weight: 600});
+        txt(ax, CLOUD.x1, CLOUD.y0 + 62, "harder", 20, C.soft, {anchor: "end"});
+        el("line", {x1: CLOUD.x0 - 30, y1: CLOUD.y0, x2: CLOUD.x0 - 30, y2: CLOUD.y1, stroke: C.faint, "stroke-width": 1.5}, ax);
+        txt(ax, CLOUD.x0 - 44, (CLOUD.y0 + CLOUD.y1) / 2, "how sharply it tells models apart", 20, C.soft, {anchor: "middle", weight: 600, attrs: {transform: `rotate(-90 ${CLOUD.x0 - 44} ${(CLOUD.y0 + CLOUD.y1) / 2})`}});
+      }
+      for (let i = 0; i < dots.length; i += 1) {
+        const d = dots[i];
+        const on = i < lit;
+        const m = ease(span(fly, d.delay * 0.4, 0.6 + d.delay * 0.4));
+        const x = lerp(d.gx, d.cx, m), y = lerp(d.gy, d.cy, m) - Math.sin(m * Math.PI) * 40;
+        let fill = on ? C.soft : C.line, op = on ? 0.85 : 0.9;
+        if (tint > 0 && d.weak) { fill = C.red; op = lerp(0.85, 0.45, tint); }
+        else if (tint > 0) { fill = C.teal; op = lerp(0.85, 0.75, tint); }
+        el("circle", {cx: x.toFixed(1), cy: y.toFixed(1), r: 4, fill, opacity: op}, p);
+      }
+      if (tint > 0) {
+        const weak = dots.filter(d => d.weak).length;
+        const lg = g({opacity: tint}, p);
+        el("circle", {cx: 640, cy: 168, r: 6, fill: C.red}, lg);
+        txt(lg, 654, 175, `${weak.toLocaleString("en-CA")} too easy, too hard or too blunt to help`, 19, C.soft);
+      }
+    }
+    caption(t, T.wall[0], T.wall[1], "Every question, to both models.", `${n.toLocaleString("en-CA")} each: ${money(fullUsd)} and ${Math.round(fullSec / 60)} minutes, for one pair.`);
+    caption(t, T.cloud[0] + 1.4, T.cloud[1], "But most of those questions say little.", null, {y: 850, size: 56});
+  }
+
+  /* 4. The better way, then the race: adaptive above, random below, the same two models and
+     recorded answers. */
+  title(t, T.intro2[0], T.intro2[1], [["A better way: adaptive testing.", 70, C.ink, true], ["Each model gets only the questions", 44, C.teal, false], ["pitched at its level, chosen from", 44, C.teal, false], ["its own answers so far.", 44, C.teal, false]], 1.0, 0.8);
+  {
+    const k = Math.min(ease(span(t, T.race[0] + 0.1, T.race[0] + 0.6)), story);
+    if (k > 0) {
+      const p = g({opacity: k});
+      // The legend.
+      let lx = 70;
+      [0, 1].forEach(side => {
+        el("rect", {x: lx, y: 124, width: 16, height: 16, rx: 3, fill: TONE[side]}, p);
+        txt(p, lx + 26, 139, names[side], 19, C.ink, {weight: 600});
+        lx += 26 + names[side].length * 11 + 40;
+      });
+      txt(p, 1010, 139, "red tick: a question answered wrong", 16, C.faint, {anchor: "end"});
+      const qa = askedA(t), qb = askedB(t);
+      const A = panel(t, g({}, p), 160, "adaptive", qa, "Adaptive: questions at each model's level", "THE METHOD", C.good);
+      intervals(p, A, 160 + 262 + 42);
+      const B = panel(t, g({}, p), 540, "random", qb, "Random: ask whatever comes up", "THE BASELINE", C.soft);
+      intervals(p, B, 540 + 262 + 42);
+      // The verdicts.
+      const da = D.adaptive.decidedAt;
+      if (da !== null) {
+        const pk = back(span(t, RUN_A[1] + 0.05, RUN_A[1] + 0.4));
+        if (pk > 0) {
+          const b = g({transform: `translate(330 ${160 + 175}) rotate(-4) scale(${pk})`}, p);
+          pill(b, 0, 0, `${names[D.adaptive.leader].toUpperCase()} AHEAD, AT ${da}`, C.good, C.goodSoft, 24);
+        }
+      }
+      if (D.random.decidedAt === null) {
+        const pk = back(span(t, RUN_B[1] + 0.1, RUN_B[1] + 0.45));
+        const shake = Math.sin(t * 60) * 6 * (1 - span(t, RUN_B[1] + 0.1, RUN_B[1] + 0.55));
+        if (pk > 0) {
+          const b = g({transform: `translate(${330 + shake} ${540 + 175}) rotate(-4) scale(${pk})`}, p);
+          pill(b, 0, 0, `NO ANSWER AFTER ${D.random.steps.length}`, C.red, C.redSoft, 24);
+        }
+      }
+    }
+    caption(t, T.race[0], RUN_A[1], "Each model gets questions at its own level.", "It never sees the other model's answers. Random picks anything.");
+    caption(t, RUN_A[1], HOLD_END + 0.5, `An answer after ${D.adaptive.decidedAt} questions.`, "Their two estimates stopped overlapping, so asking more buys nothing.");
+    caption(t, HOLD_END + 0.5, RUN_B[1] + 0.2, "Random keeps asking.", "Its intervals still overlap, so it has no reason to stop.");
+    caption(t, RUN_B[1] + 0.2, T.race[1], `Random: none after ${D.random.steps.length}.`, `Same two models, same recorded answers, over ${Math.floor(D.random.steps.length / D.adaptive.decidedAt)} times the questions.`);
+  }
+
+  /* 5. The result: who won this pair, then the page's three headline figures. */
+  {
+    const r0 = T.result[0];
+    const k = ease(span(t, r0 + 0.2, r0 + 0.8));
+    if (k > 0) {
+      const p = g({opacity: k});
+      const da = D.adaptive.decidedAt, usd = D.adaptive.usd, rr = D.reruns, h = D.headline;
+      const lead = names[D.adaptive.leader];
+      txt(p, W / 2, 170, `${names[0]} AGAINST ${names[1]}`.toUpperCase(), 22, C.faint, {anchor: "middle", weight: 700, attrs: {"letter-spacing": "0.12em"}});
+      const hk = back(span(t, r0 + 0.4, r0 + 0.9));
+      const hg = g({transform: `translate(${W / 2} 255) scale(${0.85 + 0.15 * hk})`, opacity: ease(span(t, r0 + 0.4, r0 + 0.7))}, p);
+      txt(hg, 0, 0, `${lead} won.`, 68, C.ink, {anchor: "middle", weight: 500, attrs: {class: "serif"}});
+      const sk = back(span(t, r0 + 1.1, r0 + 1.5));
+      const sg = g({transform: `translate(${W / 2} 360) scale(${0.85 + 0.15 * sk})`, opacity: ease(span(t, r0 + 1.1, r0 + 1.35))}, p);
+      txt(sg, 0, 0, "So did adaptive testing.", 88, TONE[D.adaptive.leader], {anchor: "middle", weight: 500, attrs: {class: "serif"}});
+      const f3 = v => v.toFixed(3);
+      const usd2 = v => `$${v.toFixed(2)}`;
+      const rows = [
+        [[usd2(h.usd_hundred), " vs ", usd2(h.usd_full)], `to rank ${h.models === 16 ? "sixteen" : h.models} models with 100 questions each, against asking every question`, `About the same ranking: agreement ${f3(h.tau_hundred[0])} (${f3(h.tau_hundred[1])} to ${f3(h.tau_hundred[2])}) against ${f3(h.tau_full)}.`, C.good],
+        [[String(h.adaptive_items), " as good as ", String(h.random_items)], "well-chosen questions against random ones", h.tau_ten ? `On ${h.archive_models} models from a public archive: agreement ${f3(h.tau_ten[0])} (${f3(h.tau_ten[1])} to ${f3(h.tau_ten[2])}).` : "", C.teal],
+        [[`${Math.round(h.dead_share * 100)}%`], "of the bank measures nothing", "And every published benchmark score counts those questions at full weight.", C.violet],
+      ];
+      rows.forEach(([fig, l1, l2, color], i) => {
+        const a = ease(span(t, r0 + 2.0 + i * 0.45, r0 + 2.45 + i * 0.45));
+        const y = 450 + i * 128;
+        const c = g({opacity: a, transform: `translate(${(1 - a) * 40} 0)`}, p);
+        el("rect", {x: 80, y, width: 920, height: 108, rx: 16, fill: C.panel, stroke: C.line, "stroke-width": 1.5}, c);
+        el("rect", {x: 80, y, width: 6, height: 108, rx: 3, fill: color}, c);
+        const v = el("text", {x: 112, y: y + 58, "font-size": 50, fill: color, "font-weight": 700}, c);
+        fig.forEach((part, j) => el("tspan", j % 2 ? {"font-size": 28, fill: C.soft, "font-weight": 500} : {}, v, part));
+        txt(c, 112, y + 90, l1, 22, C.ink);
+      });
+      const fk = ease(span(t, r0 + 3.6, r0 + 3.9));
+      if (!(window.TIMING || {}).site) {
+        const ak = back(span(t, r0 + 4.1, r0 + 4.5));
+        if (ak > 0) {
+          const b = g({transform: `translate(${W / 2} 920) scale(${ak})`}, p);
+          el("rect", {x: -260, y: -32, width: 520, height: 64, rx: 32, fill: "#0f3440", stroke: C.teal, "stroke-width": 2}, b);
+          txt(b, 0, 10, "adaptive.peterparker.ca  →", 28, C.ink, {anchor: "middle", weight: 700});
+        }
+      }
+      txt(p, W / 2, 1050, `Recorded answers, 2026, reproducible from the repository. ${lead} sits at the top of the bank's scale: the order is measured, the gap is not.`, 14, C.faint, {anchor: "middle", attrs: {opacity: fk}});
+    }
+  }
+}
+</script>
+</body>
+</html>
