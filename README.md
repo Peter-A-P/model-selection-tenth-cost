@@ -8,6 +8,8 @@ of thousands, and it names the benchmark questions that were never measuring any
 **[Run the adaptive test yourself at adaptive.peterparker.ca](https://adaptive.peterparker.ca)**:
 pick two of the sixteen models this project paid to run, and watch the test ask one question at a time until the two are separated, beside the same two models being asked questions at random. It is the real procedure on the real recorded answers, it runs in the browser, and most pairs are settled inside a hundred questions for a few cents. There is a button that runs all hundred and twenty pairs at once, which is the same claim without having to take one run's word for it.
 
+**Now with decision models.** A decision model answers with a probability for each option rather than with text. Seventeen of them were asked the same calibrated multiple-choice questions as the text models and land on the same ability scale, so the two kinds compare directly: the best rank alongside current text models, for about five cents a full test. [The table is below.](#decision-models-on-the-same-ruler)
+
 Item response theory, the psychometrics behind every standardised test, fitted to a matrix of
 150 language models by 20,365 benchmark items built from the public HELM per-item releases.
 Calibrate the items once, then test each new model adaptively on the items that discriminate at
@@ -468,6 +470,7 @@ items and not portable enough to use as constants.
 - **Checks whether any of it transfers.** Two banks, 998 shared questions, one number for
   whether difficulty calibrated on one panel means anything on another. It does, for the items
   that measure something, and not at all for the rest.
+- **Puts decision models on the same scale.** `mselect run --template decision` asks a model that returns probabilities instead of text the bank's multiple-choice items, scores the option it rates highest, and keeps every probability for a later calibration check. Nothing is refitted, so decision models and text models are placed by the same item parameters.
 - **Hands the result to the next project.** `import mselect` gives the power function, the frozen
   banks, the adaptive estimator, the reliability figure and the local-dependence correction, with
   the caveats attached rather than left in a document. [CHANGELOG.md](CHANGELOG.md) says what
@@ -499,6 +502,8 @@ uv run mselect bank build --source ollm --version v2
 uv run mselect fit --version v2                  # then diagnose, simulate --evaluate 150, report
 uv run mselect crossbank                         # do the two banks agree about the same items?
 ```
+
+The own-run results, text and decision models, are read back at no cost from the record files the paid runs wrote under `out/`, which this repository does not commit: `mselect validate` for the text panel, `mselect validate --template decision` for the decision panel, then `mselect report`.
 
 Nothing in either list costs money. The HELM public buckets need no account at all, and every
 byte fetched from either source is cached with the date it was fetched, the URL it came from and
