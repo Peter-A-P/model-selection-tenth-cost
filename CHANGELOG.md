@@ -5,6 +5,10 @@ itself is stable within a minor version, and everything else in the package is i
 
 ## Unreleased
 
+### The page opens on DeepSeek-V4.1-Flash against jev-1.14
+
+A text model against a decision model, on the multiple-choice questions. On the page's own seed the adaptive test settles it at 68 questions and random selection does not settle it in 300; over 40 seeds adaptive settles it in 17 (median 65) and random in 2, so the opening run is a good draw rather than a typical one.
+
 ### The page races decision models too
 
 Both model lists on the page now carry the seventeen decision models, hosted and on the laptop. A pair with a decision model in it is replayed from a new payload, `decisions.json`, holding every text and decision model on the 2,454 multiple-choice questions all of them answered, and the page says which frame a race is on. Text against text stays on its own 2,754-question frame, so no result the page reported before moves. `ownrun.combine` stacks two administrations of the suite into one panel, and the README's decision table is built on it too.

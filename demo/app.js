@@ -360,14 +360,16 @@ function setupRace() {
       select.appendChild(group);
     }
   }
-  // Two current models people are choosing between, under three accuracy points apart on the
-  // suite. Over 40 seeds adaptive selection settles the pair 87.5% of the time (median 72
-  // questions) and random selection 5% of the time inside three hundred; on this page's own seed
-  // and order, adaptive settles at 227 questions and random does not. The Luna estimate ends past
-  // +4, so the first run also shows the ceiling note: the order is right, the gap it draws is
-  // wider than the bank can measure, and that is better met on the default pair than later.
+  // A current text model against a decision model, three points apart on the multiple-choice
+  // questions, so the first race a visitor sees is the newest thing on the page: two kinds of
+  // model on one scale. On this page's seed and order the adaptive test settles it at 68
+  // questions for under a cent and random selection does not settle it inside three hundred.
+  // Over 40 seeds adaptive settles it in 17 (median 65) and random in 2, so the opening run is a
+  // good draw rather than a typical one, and the sweep below is where the typical one lives.
+  // The Jev estimate ends past +4, so the ceiling note shows: the order is right, and the gap
+  // it draws is wider than the bank can measure.
   selectA.value = "together-open-c";
-  selectB.value = "openai-mid-b";
+  selectB.value = "decision-jev-1.14";
 
   const runButton = document.getElementById("run-test");
   const resetButton = document.getElementById("reset");
