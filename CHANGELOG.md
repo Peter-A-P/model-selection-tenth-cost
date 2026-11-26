@@ -5,6 +5,10 @@ itself is stable within a minor version, and everything else in the package is i
 
 ## Unreleased
 
+### The ranking film no longer opens on its winner
+
+The race in the decision-models film draws its 2,454 questions in a different random order (seed 215 instead of 7) and breaks early ties with Kev 4B first and Jev 1.14 last, so the opening frame shows a laptop model on top and the top model at the bottom. Kev 4B leads the first 22 questions, Jev 1.14 is no higher than ninth through the first 30 and leads at every check from question 300 on. Every number in the film and its final order are unchanged, because the order of the questions does not change any total.
+
 ### A second film: decision models ranked
 
 The 24-second film of twelve decision models ranked on the 2,454 shared multiple-choice questions, with Claude Haiku 5.5 and DeepSeek-V4.1-Flash marked for scale, sits before "How it works", widescreen at the column's full width, with its frame at one second as the opening screen.
